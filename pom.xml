@@ -90,6 +90,13 @@
           </execution>
         </executions>
         <configuration>
+	        <archive>
+	          <manifest>
+	            <addClasspath>true</addClasspath>
+	            <classpathPrefix>lib/</classpathPrefix>
+	            <mainClass>com.shinesolutions.aemorchestrator.AemOrchestrator</mainClass>
+	          </manifest>
+	        </archive>
         </configuration>
       </plugin>
 
@@ -179,12 +186,35 @@
     </profile>
   </profiles>
 
+	<parent>
+		<groupId>org.springframework.boot</groupId>
+		<artifactId>spring-boot-starter-parent</artifactId>
+		<version>1.4.3.RELEASE</version>
+	</parent>
+
   <dependencies>
+  	<!-- Compile -->
     <dependency>
       <groupId>com.shinesolutions</groupId>
       <artifactId>swaggeraem4j</artifactId>
       <version>0.9.0</version>
     </dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter</artifactId>
+		</dependency>
+		<dependency>
+		  <groupId>com.amazonaws</groupId>
+		  <artifactId>amazon-sqs-java-messaging-lib</artifactId>
+		  <version>1.0.1</version>
+		</dependency>
+	
+	  <!-- Test -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
+			<scope>test</scope>
+		</dependency>
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
