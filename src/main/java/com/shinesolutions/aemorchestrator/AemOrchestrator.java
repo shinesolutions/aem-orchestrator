@@ -16,9 +16,10 @@
 
 package com.shinesolutions.aemorchestrator;
 
+import javax.annotation.Resource;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -29,19 +30,21 @@ import com.shinesolutions.aemorchestrator.service.MessageReceiver;
 @SpringBootApplication
 @ComponentScan
 public class AemOrchestrator implements CommandLineRunner {
-	
-	@Autowired
-	private MessageReceiver messageReceiver;
-	
-	private final Logger logger = LoggerFactory.getLogger(this.getClass());
-	
-	public static void main(String[] args) throws Exception {
-		SpringApplication.run(AemOrchestrator.class, args);
-	}
 
-	public void run(String... arg0) throws Exception {
-		logger.info("AEM Orchestrator is running");
-		messageReceiver.receiveMessages();
-	}
+    @Resource
+    private MessageReceiver messageReceiver;
+
+    private final Logger logger = LoggerFactory.getLogger(this.getClass());
+
+    public static void main(String[] args) throws Exception {
+        SpringApplication.run(AemOrchestrator.class, args);
+    }
+
+    public void run(String... arg0) throws Exception {
+        logger.info("AEM Orchestrator is running");
+        
+        //Begin polling for messages on the queue
+        messageReceiver.receiveMessages();
+    }
 
 }

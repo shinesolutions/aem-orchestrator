@@ -2,15 +2,15 @@ package com.shinesolutions.aemorchestrator.service;
 
 import java.util.concurrent.TimeUnit;
 
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
+import javax.annotation.Resource;
 import javax.jms.JMSException;
 import javax.jms.Message;
 import javax.jms.MessageConsumer;
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.amazon.sqs.javamessaging.SQSConnection;
@@ -23,29 +23,32 @@ public class MessageReceiver {
 
 	private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
-	@Autowired
+	@Resource
 	private SQSConnection connection;
 
-	@Autowired
+	@Resource
 	private MessageConsumer consumer;
 
-	@Autowired
-	private SqsMessageHandler messageHandler;
+	@Resource
+	private MessageHandler messageHandler;
 
 	public void receiveMessages() throws JMSException {
 		try {
 			while (true) {
 				logger.debug("Waiting for messages");
-				// TODO figure out what wait time to use
+				
 				Message message = consumer.receive(TimeUnit.MINUTES.toMillis(1));
 
 				if (message != null) {
 					logger.info("Message received with id: " + message.getJMSMessageID());
 
-					messageHandler.handleMessgae((com.amazonaws.services.sqs.model.Message)message);
-
-					message.acknowledge();
-					logger.info("Acknowledged message " + message.getJMSMessageID());
+					boolean result = messageHandler.handleMessage((com.amazonaws.services.sqs.model.Message)message);
+					
+					//Acknowledging the message with remove it form the queue
+					if(result) {
+					    message.acknowledge();
+					    logger.info("Acknowledged message " + message.getJMSMessageID());
+					}
 				} else {
 					logger.error("Null message received, stopping MessageReceiver");
 					break;

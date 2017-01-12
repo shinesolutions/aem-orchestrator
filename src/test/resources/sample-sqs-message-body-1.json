@@ -1,0 +1,22 @@
+{
+  "Progress": 50,
+  "AccountId": "589462795858",
+  "Description": "Terminating EC2 instance: <Instance Id>",
+  "RequestId": "fb11ba55-11c8-3375-a349-a712d0222a98",
+  "EndTime": "2017-01-11T00:00:00.000Z",
+  "AutoScalingGroupARN": "<AutoScalingGroupARN>",
+  "ActivityId": "fb11ba55-11c8-3375-a349-a712d0222a98",
+  "StartTime": "2017-01-11T00:00:00.000Z",
+  "Service": "AWS Auto Scaling",
+  "Time": "2017-01-11T00:00:00.000Z",
+  "EC2InstanceId": "<Instance Id>",
+  "StatusCode": "InProgress",
+  "StatusMessage": "Fix in progress",
+  "Details": {
+    "Subnet ID": "subnet-aabbccdd",
+    "Availability Zone": "ap-southeast-2b"
+  },
+  "AutoScalingGroupName": "<AutoScalingGroupName>",
+  "Cause": "Accidental coffee spill",
+  "Event": "autoscaling:EC2_INSTANCE_TERMINATE"
+}
