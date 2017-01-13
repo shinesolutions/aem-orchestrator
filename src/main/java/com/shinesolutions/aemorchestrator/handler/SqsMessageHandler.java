@@ -1,4 +1,4 @@
-package com.shinesolutions.aemorchestrator.service;
+package com.shinesolutions.aemorchestrator.handler;
 
 import java.io.IOException;
 import java.util.Map;
@@ -13,7 +13,6 @@ import com.amazonaws.services.sqs.model.Message;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.shinesolutions.aemorchestrator.handler.EventHandler;
 import com.shinesolutions.aemorchestrator.model.EventMessage;
 
 /*
@@ -47,8 +46,8 @@ public class SqsMessageHandler implements MessageHandler {
             } else {
                 try {
                     logger.debug("Handling event: " + eventType);
-                    eventHandler.handleEvent(eventMessage);
-                    handleSuccess = true;
+                    handleSuccess = eventHandler.handleEvent(eventMessage);
+                    
                 } catch (Exception e) {
                     logger.error("Failed to handle event for message type: " + eventType, e);
                 }

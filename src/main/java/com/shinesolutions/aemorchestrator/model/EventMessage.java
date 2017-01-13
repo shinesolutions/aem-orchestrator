@@ -146,11 +146,11 @@ public class EventMessage {
         this.time = time;
     }
 
-    public String geteC2InstanceId() {
+    public String getEC2InstanceId() {
         return eC2InstanceId;
     }
 
-    public void seteC2InstanceId(String eC2InstanceId) {
+    public void setEC2InstanceId(String eC2InstanceId) {
         this.eC2InstanceId = eC2InstanceId;
     }
 

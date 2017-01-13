@@ -1,4 +1,4 @@
-package com.shinesolutions.aemorchestrator.service;
+package com.shinesolutions.aemorchestrator.handler;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
@@ -24,6 +24,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 import com.amazonaws.services.sqs.model.Message;
 import com.shinesolutions.aemorchestrator.handler.EventHandler;
+import com.shinesolutions.aemorchestrator.handler.SqsMessageHandler;
 import com.shinesolutions.aemorchestrator.model.EventMessage;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -57,6 +58,9 @@ public class SqsMessageHandlerTest {
     @Test
     public void testSuccess() {
         ArgumentCaptor<EventMessage> eventMessageCaptor = ArgumentCaptor.forClass(EventMessage.class);
+        
+        when(mockEventHandler.handleEvent(any(EventMessage.class))).thenReturn(true);
+        
         boolean result = sqsMessageHandler.handleMessage(testMessage);
 
         verify(mockEventHandler, times(1)).handleEvent(eventMessageCaptor.capture());

@@ -1,4 +1,4 @@
-package com.shinesolutions.aemorchestrator.service;
+package com.shinesolutions.aemorchestrator.handler;
 
 import com.amazonaws.services.sqs.model.Message;
 

@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import com.amazon.sqs.javamessaging.SQSConnection;
+import com.shinesolutions.aemorchestrator.handler.MessageHandler;
 
 /*
  * Polls the SQS queue checking for messages. If a message is found, then pass it to a message handler

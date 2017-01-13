@@ -36,7 +36,7 @@ public class JsonMappingTest {
         assertThat(eventMsg.getService(), equalTo(root.path("Service").asText()));
 
         assertThat(eventMsg.getTime(), equalTo(root.path("Time").asText()));
-        assertThat(eventMsg.geteC2InstanceId(), equalTo(root.path("EC2InstanceId").asText()));
+        assertThat(eventMsg.getEC2InstanceId(), equalTo(root.path("EC2InstanceId").asText()));
         assertThat(eventMsg.getStatusCode(), equalTo(root.path("StatusCode").asText()));
 
         JsonNode details = root.path("Details");
