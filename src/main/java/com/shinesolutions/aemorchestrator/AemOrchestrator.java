@@ -37,7 +37,7 @@ public class AemOrchestrator implements CommandLineRunner {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     public static void main(String[] args) throws Exception {
-        SpringApplication.run(AemOrchestrator.class, args);
+        SpringApplication.run(AemOrchestratorTest.class, args);
     }
 
     public void run(String... arg0) throws Exception {

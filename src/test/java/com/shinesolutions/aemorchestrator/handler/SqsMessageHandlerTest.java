@@ -41,7 +41,6 @@ public class SqsMessageHandlerTest {
     private EventHandler mockEventHandler;
 
     @Before
-    @SuppressWarnings("resource")
     public void setup() throws Exception {
         // Read in file containing test example of message body
         File sampleFile = new File(getClass().getResource("/sample-sqs-message-body-raw.txt").getFile());
