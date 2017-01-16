@@ -1,22 +1,25 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
 
-	<appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
-		<encoder class="ch.qos.logback.core.encoder.LayoutWrappingEncoder">
-			<layout class="ch.qos.logback.classic.PatternLayout">
-				<Pattern>
-					%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n
-				</Pattern>
-			</layout>
+	<appender name="DAILY_ROLLING_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<file>orchestrator.log</file>
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<!-- daily rollover -->
+			<fileNamePattern>orchestrator.%d{yyyy-MM-dd-HH-mm}.log</fileNamePattern>
+			<maxHistory>10</maxHistory>
+		</rollingPolicy>
+
+		<encoder>
+			<pattern>%relative [%thread] %-5level %logger{35} - %msg%n</pattern>
 		</encoder>
 	</appender>
 
-	<logger name="com.shinesolutions.aemorchestrator" level="info" additivity="false">
-		<appender-ref ref="STDOUT" />
+	<logger name="com.shinesolutions.aemorchestrator" level="debug" additivity="false">
+		<appender-ref ref="DAILY_ROLLING_FILE" />
 	</logger>
 
 	<root level="error">
-		<appender-ref ref="STDOUT" />
+		<appender-ref ref="DAILY_ROLLING_FILE" />
 	</root>
 
 </configuration>
