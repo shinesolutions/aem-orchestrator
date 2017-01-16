@@ -16,6 +16,8 @@
 
 package com.shinesolutions.aemorchestrator;
 
+import java.util.concurrent.TimeUnit;
+
 import javax.annotation.Resource;
 
 import org.slf4j.Logger;
@@ -24,12 +26,16 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.ComponentScan;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 import com.shinesolutions.aemorchestrator.service.MessageReceiver;
 
 @SpringBootApplication
 @ComponentScan
 public class AemOrchestrator implements CommandLineRunner {
+
+    @Resource
+    private ThreadPoolTaskExecutor taskExecutor;
 
     @Resource
     private MessageReceiver messageReceiver;
@@ -42,9 +48,18 @@ public class AemOrchestrator implements CommandLineRunner {
 
     public void run(String... arg0) throws Exception {
         logger.info("AEM Orchestrator is running");
-        
-        //Begin polling for messages on the queue
-        messageReceiver.receiveMessages();
+
+        // Begin polling for messages on the queue
+
+        taskExecutor.execute(messageReceiver);
+
+        while (true) {
+            if (taskExecutor.getActiveCount() == 0) {
+                taskExecutor.shutdown();
+                break;
+            }
+            Thread.sleep(TimeUnit.SECONDS.toMillis(5));
+        }
     }
 
 }

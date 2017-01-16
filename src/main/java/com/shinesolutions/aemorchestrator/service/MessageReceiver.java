@@ -20,7 +20,7 @@ import com.shinesolutions.aemorchestrator.handler.MessageHandler;
  * Polls the SQS queue checking for messages. If a message is found, then pass it to a message handler
  */
 @Component
-public class MessageReceiver {
+public class MessageReceiver implements Runnable {
 
 	private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
@@ -33,29 +33,29 @@ public class MessageReceiver {
 	@Resource
 	private MessageHandler messageHandler;
 
-	public void receiveMessages() throws JMSException {
+	@Override
+	public void run() {
 		try {
-			while (true) {
+			do {
 				logger.debug("Waiting for messages");
 				
-				Message message = consumer.receive(TimeUnit.MINUTES.toMillis(1));
+				Message message = consumer.receive(TimeUnit.SECONDS.toMillis(20));
 
 				if (message != null) {
 					logger.info("Message received with id: " + message.getJMSMessageID());
 
-					boolean result = messageHandler.handleMessage((com.amazonaws.services.sqs.model.Message)message);
+					boolean removeMessageFromQueue = messageHandler.handleMessage(message);
 					
-					//Acknowledging the message with remove it form the queue
-					if(result) {
+					//Acknowledging the message with remove it from the queue
+					if(removeMessageFromQueue) {
 					    message.acknowledge();
 					    logger.info("Acknowledged message " + message.getJMSMessageID());
 					}
 				} else {
-					logger.error("Null message received, stopping MessageReceiver");
-					break;
+					logger.info("No messages received, retrying");
 				}
 
-			}
+			} while(!Thread.interrupted());
 		} catch (JMSException e) {
 			logger.error("Error receiving from SQS: ", e);
 		}

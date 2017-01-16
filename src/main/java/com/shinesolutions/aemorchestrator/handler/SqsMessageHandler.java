@@ -1,19 +1,17 @@
 package com.shinesolutions.aemorchestrator.handler;
 
-import java.io.IOException;
 import java.util.Map;
 
 import javax.annotation.Resource;
+import javax.jms.Message;
+import javax.jms.TextMessage;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
-import com.amazonaws.services.sqs.model.Message;
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.shinesolutions.aemorchestrator.model.EventMessage;
+import com.shinesolutions.aemorchestrator.util.MessageExtractor;
 
 /*
  * Invokes the correct action based on the message type
@@ -27,10 +25,14 @@ public class SqsMessageHandler implements MessageHandler {
     private Map<String, EventHandler> eventTypeHandlerMappings;
 
     public boolean handleMessage(Message message) {
+        
         boolean handleSuccess = false;
         EventMessage eventMessage = null;
+        
         try {
-            eventMessage = extractMessageBody(message.getBody());
+            String messageBody = ((TextMessage)message).getText();
+            logger.debug("Raw message body: " + messageBody);
+            eventMessage = MessageExtractor.extractEventMessage(messageBody);
         } catch (Exception e) {
             logger.error("Error when reading message body, event will not be handled", e);
         }
@@ -55,19 +57,6 @@ public class SqsMessageHandler implements MessageHandler {
         }
 
         return handleSuccess;
-    }
-
-    private EventMessage extractMessageBody(String sqsMessageBody)
-        throws JsonParseException, JsonMappingException, IOException {
-
-        // Body contains \" instead of just ". Need to replace before attempting
-        // to map to object
-        String preparedBody = sqsMessageBody.replace("\\\"", "\"");
-
-        ObjectMapper mapper = new ObjectMapper();
-        EventMessage eventMsg = mapper.readValue(preparedBody, EventMessage.class);
-
-        return eventMsg;
     }
 
 }

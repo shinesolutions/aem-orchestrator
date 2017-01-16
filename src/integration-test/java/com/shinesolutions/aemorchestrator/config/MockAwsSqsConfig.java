@@ -25,7 +25,7 @@ public class MockAwsSqsConfig {
 
     @Bean
     public MessageConsumer getSqsMessageConsumer(SQSConnection connection) throws JMSException {
-        return mock(MessageConsumer.class);
+        return new MockMessageConsumer();
     }
 
 }

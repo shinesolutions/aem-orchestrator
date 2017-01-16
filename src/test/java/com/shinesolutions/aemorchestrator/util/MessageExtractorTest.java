@@ -1,26 +1,31 @@
-package com.shinesolutions.aemorchestrator.model;
+package com.shinesolutions.aemorchestrator.util;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 
 import java.io.File;
+import java.util.Scanner;
 
 import org.junit.Test;
 
+import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.shinesolutions.aemorchestrator.model.EventMessage;
 
-public class JsonMappingTest {
+public class MessageExtractorTest {
 
     @Test
-    public void testAemOrchestratorMessageJsonMappingOk() throws Exception {
+    @SuppressWarnings("resource")
+    public void testExtractEventMessageSuccess() throws Exception {
 
         File sampleFile = new File(getClass().getResource("/sample-sqs-message-body-1.json").getFile());
+        String sampleFileContent = new Scanner(sampleFile).useDelimiter("\\Z").next();
 
         ObjectMapper mapper = new ObjectMapper();
         JsonNode root = mapper.readTree(sampleFile);
 
-        EventMessage eventMsg = mapper.readValue(sampleFile, EventMessage.class);
+        EventMessage eventMsg = MessageExtractor.extractEventMessage(sampleFileContent);
 
         assertThat(eventMsg.getProgress(), equalTo(root.path("Progress").asInt()));
         assertThat(eventMsg.getAccountId(), equalTo(root.path("AccountId").asText()));
@@ -46,5 +51,9 @@ public class JsonMappingTest {
         assertThat(eventMsg.getCause(), equalTo(root.path("Cause").asText()));
         assertThat(eventMsg.getEvent(), equalTo(root.path("Event").asText()));
     }
-
+    
+    @Test(expected=JsonParseException.class)
+    public void testExtractEventMessageParseFail() throws Exception {
+        MessageExtractor.extractEventMessage("Invalid string");
+    }
 }

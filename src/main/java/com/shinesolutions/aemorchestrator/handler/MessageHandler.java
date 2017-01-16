@@ -1,8 +1,9 @@
 package com.shinesolutions.aemorchestrator.handler;
 
-import com.amazonaws.services.sqs.model.Message;
+import javax.jms.Message;
 
 public interface MessageHandler {
-
-	boolean handleMessage(Message message);
+    
+    boolean handleMessage(Message message);
+    
 }
