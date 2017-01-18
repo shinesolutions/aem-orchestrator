@@ -11,6 +11,8 @@ import javax.jms.MessageListener;
 public class MockMessageConsumer extends LinkedList<Message> implements MessageConsumer, Queue<Message> {
 
     private static final long serialVersionUID = 1L;
+    
+    private MessageListener messageListener;
 
     @Override
     public Message receive() throws JMSException {
@@ -35,10 +37,6 @@ public class MockMessageConsumer extends LinkedList<Message> implements MessageC
         return this.poll();
     }
 
-    /*
-     * Unused mocked methods
-     */
-
     @Override
     public void close() throws JMSException {
     }
@@ -50,11 +48,19 @@ public class MockMessageConsumer extends LinkedList<Message> implements MessageC
 
     @Override
     public MessageListener getMessageListener() throws JMSException {
-        return null;
+        return messageListener;
     }
 
     @Override
     public void setMessageListener(MessageListener listener) throws JMSException {
+        messageListener = listener;
+    }
+    
+    @Override
+    public boolean add(Message message) {
+        super.add(message);
+        messageListener.onMessage(message);
+        return true;
     }
 
 }
