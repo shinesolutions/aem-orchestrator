@@ -191,6 +191,18 @@
 		<artifactId>spring-boot-starter-parent</artifactId>
 		<version>1.4.3.RELEASE</version>
 	</parent>
+	
+	<dependencyManagement>
+	  <dependencies>
+	    <dependency>
+	      <groupId>com.amazonaws</groupId>
+	      <artifactId>aws-java-sdk-bom</artifactId>
+	      <version>1.11.78</version>
+	      <type>pom</type>
+	      <scope>import</scope>
+	    </dependency>
+	  </dependencies>
+	</dependencyManagement>
 
   <dependencies>
   	<!-- Compile -->
@@ -208,6 +220,23 @@
 		  <artifactId>amazon-sqs-java-messaging-lib</artifactId>
 		  <version>1.0.1</version>
 		</dependency>
+		
+		<dependency>
+	    <groupId>com.amazonaws</groupId>
+	    <artifactId>aws-java-sdk-ec2</artifactId>
+	  </dependency>
+	  <dependency>
+      <groupId>com.amazonaws</groupId>
+      <artifactId>aws-java-sdk-elasticloadbalancing</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.amazonaws</groupId>
+      <artifactId>aws-java-sdk-autoscaling</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.amazonaws</groupId>
+      <artifactId>aws-java-sdk-cloudformation</artifactId>
+    </dependency>
 	
 	  <!-- Test -->
 		<dependency>

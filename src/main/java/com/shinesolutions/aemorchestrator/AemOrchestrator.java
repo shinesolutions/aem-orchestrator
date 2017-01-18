@@ -43,14 +43,13 @@ public class AemOrchestrator implements CommandLineRunner {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     public static void main(String[] args) throws Exception {
-        SpringApplication.run(AemOrchestratorTest.class, args);
+        SpringApplication.run(AemOrchestrator.class, args);
     }
 
     public void run(String... arg0) throws Exception {
         logger.info("AEM Orchestrator is running");
 
         // Begin polling for messages on the queue
-
         taskExecutor.execute(messageReceiver);
 
         while (true) {
