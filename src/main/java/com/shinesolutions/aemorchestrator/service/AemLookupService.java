@@ -49,10 +49,16 @@ public class AemLookupService {
             awsHelperService.getPrivateIp(instanceId), aemPublisherPort);
     }
     
-    public String getAemUrlForAuthorDispatcher() {
-        //Author dispatcher is always accessed from the load balancer
+    public String getAemUrlForAuthorElb() {
+        //Author dispatcher can be accessed from the load balancer
         return String.format(URL_FORMAT, aemAuthorDispatcherProtocol, 
             awsHelperService.getElbDnsName(awsAuthorDispatcherGroupName), aemAuthorDispatcherPort);
+    }
+    
+    public String getAemUrlForAuthorDispatcher(String instanceId) {
+        //Author dispatcher can be accessed via private IP
+        return String.format(URL_FORMAT, aemAuthorDispatcherProtocol, 
+            awsHelperService.getPrivateIp(instanceId), aemAuthorDispatcherPort);
     }
 
     

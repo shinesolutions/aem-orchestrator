@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 import com.shinesolutions.aemorchestrator.aem.AgentRunMode;
 import com.shinesolutions.aemorchestrator.aem.FlushAgentManager;
 import com.shinesolutions.aemorchestrator.service.AemLookupService;
+import com.shinesolutions.swaggeraem4j.ApiException;
 
 @Component
 public class ScaleDownAuthorDispatcherAction implements ScaleAction {
@@ -19,12 +20,24 @@ public class ScaleDownAuthorDispatcherAction implements ScaleAction {
     private FlushAgentManager flushAgentManager;
     
     @Resource
-    private AemLookupService aemAwsLookupService;
+    private AemLookupService aemLookupService;
     
     public boolean execute(String instanceId) {
         logger.info("ScaleDownAuthorDispatcherAction executing");
-
-        return flushAgentManager.deleteFlushAgent(instanceId, AgentRunMode.AUTHOR);
+        
+        String aemBasePath = aemLookupService.getAemUrlForAuthorElb();
+        
+        boolean success = false;
+        
+        try {
+            flushAgentManager.deleteFlushAgent(instanceId, aemBasePath, AgentRunMode.AUTHOR);
+            success = true;
+        } catch (ApiException e) {
+            logger.error("Failed to delete flush agent for dispatcher id: " + instanceId + ", and run mode: "
+                + AgentRunMode.AUTHOR.name(), e);
+        }
+        
+        return success;
     }
 
 }
