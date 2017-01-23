@@ -1,9 +1,5 @@
 package com.shinesolutions.aemorchestrator.aem;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
-
 import javax.annotation.Resource;
 
 import org.slf4j.Logger;
@@ -14,6 +10,10 @@ import com.shinesolutions.swaggeraem4j.ApiException;
 import com.shinesolutions.swaggeraem4j.ApiResponse;
 import com.shinesolutions.swaggeraem4j.api.SlingApi;
 
+/**
+ * Convenience methods for managing AEM flush agents. A flush agent flushes the
+ * cache for a given dispatcher.
+ */
 @Component
 public class FlushAgentManager {
 
@@ -21,6 +21,12 @@ public class FlushAgentManager {
 
     @Resource
     private AemApiFactory aemApiFactory;
+
+    @Resource
+    private AgentRequestFactory agentRequestFactory;
+
+    @Resource
+    private AemApiHelper aemApiHelper;
 
     public void deleteFlushAgent(String dispatcherInstanceId, String aemBaseUrl, AgentRunMode runMode)
         throws ApiException {
@@ -33,7 +39,6 @@ public class FlushAgentManager {
         response = slingApi.deleteAgentWithHttpInfo(runMode.name().toLowerCase(),
             getFlushAgentName(dispatcherInstanceId));
         logger.debug("ApiResponse status code: " + response.getStatusCode());
-
     }
 
     public void createFlushAgent(String dispatcherInstanceId, String aemBaseUrl, String aemDispatcherBaseUrl,
@@ -41,41 +46,14 @@ public class FlushAgentManager {
         logger.info(
             "Creating flush agent for dispatcher id: " + dispatcherInstanceId + ", and run mode: " + runMode.name());
 
-        ApiResponse<Void> response;
-
-        String name = getFlushAgentName(dispatcherInstanceId);
-        String jcrPrimaryType = "cq:Page";
-        String jcrContentCqName = "";
-        String jcrContentJcrTitle = name;
-        String jcrContentJcrDescription = "Flush Agent for Dispatcher";
-        String jcrContentSlingResourceType = "/libs/cq/replication/components/agent";
-        String jcrContentTransportUri = aemDispatcherBaseUrl + "/dispatcher/invalidate.cache";
-        String jcrContentTransportUser = "";
-        String jcrContentTransportPassword = "";
-        String jcrContentLogLevel = "error";
-        boolean jcrContentNoVersioning = true;
-        List<String> jcrContentProtocolHTTPHeaders = Arrays.asList("CQ-Action:{action}");
-        String jcrContentProtocolHTTPHeadersTypeHint = "String[]";
-        String jcrContentProtocolHTTPMethod = "GET";
-        String jcrContentRetryDelay = "" + TimeUnit.MINUTES.toMillis(1);
-        String jcrContentSerializationType = "flush";
-        String jcrContentJcrMixinTypes = "cq:ReplicationStatus";
-        boolean jcrContentTriggerReceive = true;
-        boolean jcrContentTriggerSpecific = true;
-        String jcrContentCqTemplate = "/libs/cq/replication/templates/agent";
-        boolean jcrContentEnabled = true;
+        PostAgentWithHttpInfoRequest request = agentRequestFactory.getCreateFlushAgentRequest(runMode,
+            getFlushAgentName(dispatcherInstanceId), aemDispatcherBaseUrl);
 
         SlingApi slingApi = aemApiFactory.getSlingApi(aemBaseUrl, AgentAction.CREATE);
 
-        response = slingApi.postAgentWithHttpInfo(runMode.name().toLowerCase(), name, jcrPrimaryType, jcrContentCqName,
-            jcrContentJcrTitle, jcrContentJcrDescription, jcrContentSlingResourceType, jcrContentTransportUri,
-            jcrContentTransportUser, jcrContentTransportPassword, jcrContentLogLevel, jcrContentNoVersioning,
-            jcrContentProtocolHTTPHeaders, jcrContentProtocolHTTPHeadersTypeHint, jcrContentProtocolHTTPMethod,
-            jcrContentRetryDelay, jcrContentSerializationType, jcrContentJcrMixinTypes, jcrContentTriggerReceive,
-            jcrContentTriggerSpecific, jcrContentCqTemplate, jcrContentEnabled);
+        ApiResponse<Void> response = aemApiHelper.postAgentWithHttpInfo(slingApi, request);
 
         logger.debug("ApiResponse status code: " + response.getStatusCode());
-
     }
 
     private String getFlushAgentName(String instanceId) {

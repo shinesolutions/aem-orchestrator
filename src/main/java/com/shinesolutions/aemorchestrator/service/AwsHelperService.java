@@ -95,7 +95,7 @@ public class AwsHelperService {
     /**
      * Gets a map of tags for an AWS EC2 instance
      * @param instanceId the EC2 instance ID
-     * @return Map<String, String> map of AWS tags
+     * @return Map of AWS tags
      */
     public Map<String, String> getTags(String instanceId) {
         Filter filter = new Filter("resource-id", Arrays.asList(instanceId));
@@ -107,7 +107,7 @@ public class AwsHelperService {
     /**
      * Gets a list of EC2 instance IDs for a given auto scaling group name
      * @param groupName auto scaling group name
-     * @return List<String> list of instance ids
+     * @return List of string containing instance IDs
      */
     public List<String> getInstanceIdsForAutoScalingGroup(String groupName) {
         List<Instance> instanceList = getAutoScalingGroup(groupName).getInstances();
