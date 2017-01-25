@@ -95,7 +95,7 @@ public class AwsConfig {
     @Bean
     public ClientConfiguration awsClientConfig() {
         return new ClientConfiguration()
-            .withProtocol(Protocol.valueOf(clientProtocol))
+            .withProtocol(Protocol.valueOf(clientProtocol.toUpperCase()))
             .withProxyHost(clientProxyHost)
             .withProxyPort(clientProxyPort)
             .withConnectionTimeout(clientConnectionTimeout)
