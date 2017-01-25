@@ -17,16 +17,25 @@ import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsResult;
 import com.amazonaws.services.autoscaling.model.Instance;
 import com.amazonaws.services.autoscaling.model.SetDesiredCapacityRequest;
 import com.amazonaws.services.ec2.AmazonEC2;
+import com.amazonaws.services.ec2.model.CreateSnapshotRequest;
+import com.amazonaws.services.ec2.model.CreateSnapshotResult;
+import com.amazonaws.services.ec2.model.CreateTagsRequest;
+import com.amazonaws.services.ec2.model.DescribeInstanceAttributeRequest;
+import com.amazonaws.services.ec2.model.DescribeInstanceAttributeResult;
 import com.amazonaws.services.ec2.model.DescribeInstancesRequest;
 import com.amazonaws.services.ec2.model.DescribeInstancesResult;
 import com.amazonaws.services.ec2.model.DescribeTagsRequest;
 import com.amazonaws.services.ec2.model.DescribeTagsResult;
+import com.amazonaws.services.ec2.model.EbsInstanceBlockDevice;
 import com.amazonaws.services.ec2.model.Filter;
+import com.amazonaws.services.ec2.model.InstanceBlockDeviceMapping;
+import com.amazonaws.services.ec2.model.Tag;
 import com.amazonaws.services.ec2.model.TagDescription;
 import com.amazonaws.services.ec2.model.TerminateInstancesRequest;
 import com.amazonaws.services.elasticloadbalancing.AmazonElasticLoadBalancing;
 import com.amazonaws.services.elasticloadbalancing.model.DescribeLoadBalancersRequest;
 import com.amazonaws.services.elasticloadbalancing.model.DescribeLoadBalancersResult;
+
 
 /**
  * Helper class for performing a range of AWS functions
@@ -61,7 +70,7 @@ public class AwsHelperService {
     /**
      * Gets the private IP of a given AWS EC2 instance
      * @param instanceId the EC2 instance ID
-     * @return String private ip
+     * @return String private IP
      */
     public String getPrivateIp(String instanceId) {
         DescribeInstancesResult result = amazonEC2Client.describeInstances(
@@ -103,6 +112,17 @@ public class AwsHelperService {
         return result.getTags().stream().collect(Collectors.toMap(TagDescription::getKey, TagDescription::getValue));
     }
     
+    /**
+     * Adds provided map of tags to the given instance
+     * @param instanceId the EC2 instance ID
+     * @param tags the Map of tags to add
+     */
+    public void addTags(String instanceId, Map<String, String> tags) {
+        List <Tag> ec2Tags = tags.entrySet().stream().map(e -> 
+            new Tag(e.getKey(), e.getValue())).collect(Collectors.toList());
+        amazonEC2Client.createTags(new CreateTagsRequest().withResources(instanceId).withTags(ec2Tags));
+    }
+    
     
     /**
      * Gets a list of EC2 instance IDs for a given auto scaling group name
@@ -133,6 +153,39 @@ public class AwsHelperService {
             withAutoScalingGroupName(groupName).withDesiredCapacity(desiredCapacity);
         amazonAutoScalingClient.setDesiredCapacity(request);
     }
+    
+    /**
+     * Gets the volume id of a given instance and device name
+     * @param instanceId the EC2 instance ID
+     * @param deviceName the block device mapping name
+     * @return Volume Id of the EBS block device
+     */
+    public String getVolumeId(String instanceId, String deviceName) {
+        DescribeInstanceAttributeResult result = amazonEC2Client.describeInstanceAttribute(
+            new DescribeInstanceAttributeRequest().withInstanceId(instanceId).withAttribute("blockDeviceMapping"));
+        
+        List<InstanceBlockDeviceMapping> instanceBlockDeviceMappings = 
+            result.getInstanceAttribute().getBlockDeviceMappings();
+        
+        EbsInstanceBlockDevice ebsInstanceBlockDevice = instanceBlockDeviceMappings.stream().filter(
+            m -> m.getDeviceName().equals(deviceName)).findFirst().get().getEbs();
+        
+        return ebsInstanceBlockDevice.getVolumeId();
+    }
+    
+    /**
+     * Creates a snapshot for a given volume
+     * @param volumeId identifies the volume to snapshot
+     * @param description of the new snap shot
+     * @return Snapshot ID of the newly created snapshot
+     */
+    public String createSnapshot(String volumeId, String description) {
+        CreateSnapshotResult result = amazonEC2Client.createSnapshot(
+            new CreateSnapshotRequest().withVolumeId(volumeId).withDescription(description));
+        return result.getSnapshot().getSnapshotId();
+    }
+    
+
     
     
     private AutoScalingGroup getAutoScalingGroup(String groupName) {

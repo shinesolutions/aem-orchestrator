@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 
 import com.shinesolutions.aemorchestrator.aem.AgentRunMode;
 import com.shinesolutions.aemorchestrator.aem.FlushAgentManager;
-import com.shinesolutions.aemorchestrator.service.AemLookupService;
+import com.shinesolutions.aemorchestrator.service.AemHelperService;
 import com.shinesolutions.swaggeraem4j.ApiException;
 
 @Component
@@ -20,15 +20,15 @@ public class ScaleUpAuthorDispatcherAction implements ScaleAction {
     private FlushAgentManager flushAgentManager;
 
     @Resource
-    private AemLookupService aemLookupService;
+    private AemHelperService aemHelperService;
 
     public boolean execute(String instanceId) {
         logger.info("ScaleUpAuthorDispatcherAction executing");
         boolean success = false;
 
-        String authDispatcherAemBaseUrl = aemLookupService.getAemUrlForAuthorDispatcher(instanceId);
+        String authDispatcherAemBaseUrl = aemHelperService.getAemUrlForAuthorDispatcher(instanceId);
 
-        String authElbAemBaseUrl = aemLookupService.getAemUrlForAuthorElb();
+        String authElbAemBaseUrl = aemHelperService.getAemUrlForAuthorElb();
 
         try {
             flushAgentManager.createFlushAgent(instanceId, authElbAemBaseUrl, authDispatcherAemBaseUrl,

@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 public class ScaleUpPublisherDispatcherAction implements ScaleAction {
     
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
-
+    
     public boolean execute(String instanceId) {
         logger.info("ScaleUpPublisherDispatcherAction executing");
         
