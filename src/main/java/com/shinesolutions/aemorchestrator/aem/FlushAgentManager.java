@@ -33,10 +33,9 @@ public class FlushAgentManager {
         logger.info(
             "Deleting flush agent for dispatcher id: " + dispatcherInstanceId + ", and run mode: " + runMode.name());
 
-        ApiResponse<Void> response;
-
         SlingApi slingApi = aemApiFactory.getSlingApi(aemBaseUrl, AgentAction.DELETE);
-        response = slingApi.deleteAgentWithHttpInfo(runMode.name().toLowerCase(),
+        
+        ApiResponse<Void> response = slingApi.deleteAgentWithHttpInfo(runMode.name().toLowerCase(),
             getFlushAgentName(dispatcherInstanceId));
         logger.debug("ApiResponse status code: " + response.getStatusCode());
     }
