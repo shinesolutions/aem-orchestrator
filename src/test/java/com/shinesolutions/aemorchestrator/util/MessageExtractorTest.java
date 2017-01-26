@@ -19,11 +19,12 @@ public class MessageExtractorTest {
     @SuppressWarnings("resource")
     public void testExtractEventMessageSuccess() throws Exception {
 
-        File sampleFile = new File(getClass().getResource("/sample-sqs-message-body-1.json").getFile());
-        String sampleFileContent = new Scanner(sampleFile).useDelimiter("\\Z").next();
+        File sampleFileMessageOnly = new File(getClass().getResource("/sample-sqs-message-body-1.json").getFile());
+        File sampleFileFull = new File(getClass().getResource("/sample-sqs-message-body-2.json").getFile());
+        String sampleFileContent = new Scanner(sampleFileFull).useDelimiter("\\Z").next();
 
         ObjectMapper mapper = new ObjectMapper();
-        JsonNode root = mapper.readTree(sampleFile);
+        JsonNode root = mapper.readTree(sampleFileMessageOnly);
 
         EventMessage eventMsg = MessageExtractor.extractEventMessage(sampleFileContent);
 

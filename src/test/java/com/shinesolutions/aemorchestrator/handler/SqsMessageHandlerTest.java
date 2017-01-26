@@ -41,7 +41,7 @@ public class SqsMessageHandlerTest {
 
     @Before
     public void setup() throws Exception {
-        testMessage = createMessageFromFile("/sample-sqs-message-body-raw.txt");
+        testMessage = createMessageFromFile("/sample-sqs-message-body-2.json");
 
         mockEventHandler = mock(EventHandler.class);
 
@@ -61,7 +61,7 @@ public class SqsMessageHandlerTest {
         EventMessage eventMessage = eventMessageCaptor.getValue();
 
         assertThat(result, equalTo(true));
-        assertThat(eventMessage.getActivityId(), equalTo("d9acbc52-51c1-1175-a339-a472d0222a98"));
+        assertThat(eventMessage.getActivityId(), equalTo("fb11ba55-11c8-3375-a349-aa12d0222a98"));
     }
 
     @Test

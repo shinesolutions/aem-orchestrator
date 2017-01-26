@@ -1,0 +1,12 @@
+{
+ "Type" : "Notification",
+ "MessageId" : "82f1c8a0-81111-59b4-84f4-99acc2170312",
+ "TopicArn" : "<Topic Arn>",
+ "Subject" : "Auto Scaling: launch",
+ "Message" : "{\"Progress\": 50,\"AccountId\": \"589462795858\",\"Description\": \"Terminating EC2 instance: <Instance Id>\",\"RequestId\": \"fb11ba55-11c8-3375-a349-aa12d0222a98\",\"EndTime\": \"2017-01-11T00:00:00.000Z\",\"AutoScalingGroupARN\": \"<AutoScalingGroupARN>\",\"ActivityId\": \"fb11ba55-11c8-3375-a349-aa12d0222a98\",\"StartTime\": \"2017-01-11T00:00:00.000Z\",\"Service\": \"AWS Auto Scaling\",\"Time\": \"2017-01-11T00:00:00.000Z\",\"EC2InstanceId\": \"<Instance Id>\",\"StatusCode\": \"InProgress\",\"StatusMessage\": \"Fix in progress\",\"Details\": {\"Subnet ID\": \"subnet-aabbccdd\",\"Availability Zone\": \"ap-southeast-2b\"},\"AutoScalingGroupName\": \"<AutoScalingGroupName>\",\"Cause\": \"Accidental coffee spill\",\"Event\": \"autoscaling:EC2_INSTANCE_TERMINATE\"}",
+ "Timestamp" : "2017-01-11T00:00:00.000Z",
+ "SignatureVersion" : "1",
+ "Signature" : "DAFaXmSktOaVBwhWXmgQWQF0vHPrKy5L/NA+2pbJfdUXsQ6==",
+ "SigningCertURL" : "https://sns.ap-southeast-2.amazonaws.com/SimpleNotificationService.pem",
+ "UnsubscribeURL" : "https://sns.ap-southeast-2.amazonaws.com/?Action=Unsubscribe"
+}

@@ -4,6 +4,7 @@ import javax.jms.JMSException;
 import javax.jms.MessageConsumer;
 import javax.jms.Session;
 
+import org.springframework.beans.InvalidPropertyException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -63,15 +64,22 @@ public class AwsConfig {
     
     @Bean
     public Region awsRegion() {
-        return RegionUtils.getRegion(regionString);
+        Region region = RegionUtils.getRegion(regionString);
+        if(region == null) {
+            throw new InvalidPropertyException(Region.class, "aws.region", "Unknown AWS region: " + regionString);
+        }
+        return region;
     }
 
     @Bean
-    public SQSConnection sqsConnection(AWSCredentialsProvider awsCredentialsProvider, Region awsRegion) throws JMSException {
+    public SQSConnection sqsConnection(AWSCredentialsProvider awsCredentialsProvider, Region awsRegion, 
+        ClientConfiguration awsClientConfig) throws JMSException {
 
         SQSConnectionFactory connectionFactory = SQSConnectionFactory.builder()
             .withRegion(awsRegion)
-            .withAWSCredentialsProvider(awsCredentialsProvider).build();
+            .withAWSCredentialsProvider(awsCredentialsProvider)
+            .withClientConfiguration(awsClientConfig)
+            .build();
 
         // Create the connection
         SQSConnection connection = connectionFactory.createConnection();
