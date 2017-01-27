@@ -8,6 +8,8 @@ import java.util.stream.Collectors;
 
 import javax.annotation.Resource;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import com.amazonaws.services.autoscaling.AmazonAutoScaling;
@@ -29,6 +31,7 @@ import com.amazonaws.services.ec2.model.DescribeTagsResult;
 import com.amazonaws.services.ec2.model.EbsInstanceBlockDevice;
 import com.amazonaws.services.ec2.model.Filter;
 import com.amazonaws.services.ec2.model.InstanceBlockDeviceMapping;
+import com.amazonaws.services.ec2.model.InstanceState;
 import com.amazonaws.services.ec2.model.Tag;
 import com.amazonaws.services.ec2.model.TagDescription;
 import com.amazonaws.services.ec2.model.TerminateInstancesRequest;
@@ -42,6 +45,8 @@ import com.amazonaws.services.elasticloadbalancing.model.DescribeLoadBalancersRe
  */
 @Component
 public class AwsHelperService {
+    
+    private final Logger logger = LoggerFactory.getLogger(this.getClass());
     
     @Resource
     public AmazonEC2 amazonEC2Client;
@@ -91,6 +96,20 @@ public class AwsHelperService {
         }
         
         return privateIp;
+    }
+    
+    /**
+     * Checks if a instance is in a 'running' state. Will return false if the instance 
+     * is in any other of the possible states: pending, shutting-down, terminated, stopping or stopped.
+     * @param instanceId
+     * @return true if the instance is in a 'running' state. False for any other state
+     */
+    public boolean isInstanceRunning(String instanceId) {
+        DescribeInstancesResult result = amazonEC2Client.describeInstances(
+            new DescribeInstancesRequest().withInstanceIds(instanceId));
+        InstanceState state = result.getReservations().get(0).getInstances().get(0).getState();
+        logger.debug("AWS instance " +  instanceId + " currently in state: " + state.getName());
+        return state.getName().equals("running");
     }
     
     /**

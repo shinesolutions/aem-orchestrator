@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 
 import com.shinesolutions.aemorchestrator.actions.ScaleAction;
 import com.shinesolutions.aemorchestrator.model.EventMessage;
+import com.shinesolutions.aemorchestrator.service.AwsHelperService;
 
 @Component
 public class AutoscaleLaunchEventHandler implements EventHandler {
@@ -18,6 +19,9 @@ public class AutoscaleLaunchEventHandler implements EventHandler {
 
     @Resource
     private Map<String, ScaleAction> scaleUpAutoScaleGroupMappings;
+    
+    @Resource
+    private AwsHelperService awsHelperService;
 
     public boolean handleEvent(EventMessage message) {
         boolean success = false;
@@ -28,7 +32,11 @@ public class AutoscaleLaunchEventHandler implements EventHandler {
                     "Unable to find 'scale up' action for auto scaling group name: " + message.getAutoScalingGroupName()
                         + ". Please check the correct auto scaling group names were added to the application config");
             } else {
-                success = action.execute(message.getEC2InstanceId());
+                if(awsHelperService.isInstanceRunning(message.getEC2InstanceId())) {
+                    success = action.execute(message.getEC2InstanceId());
+                } else {
+                    logger.warn("Instance " + message.getEC2InstanceId() + " does not appear to be running. Ignoring 'scale up' action");
+                }
             }
         } catch (Exception e) {
             logger.error("Failed to execute 'scale up' action for auto scaling group name: " + 
