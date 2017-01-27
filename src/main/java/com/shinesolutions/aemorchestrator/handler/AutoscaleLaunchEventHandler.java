@@ -36,6 +36,7 @@ public class AutoscaleLaunchEventHandler implements EventHandler {
                     success = action.execute(message.getEC2InstanceId());
                 } else {
                     logger.warn("Instance " + message.getEC2InstanceId() + " does not appear to be running. Ignoring 'scale up' action");
+                    success = true;
                 }
             }
         } catch (Exception e) {
