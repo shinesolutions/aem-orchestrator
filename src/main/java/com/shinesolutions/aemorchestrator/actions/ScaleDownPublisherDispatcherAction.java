@@ -33,8 +33,7 @@ public class ScaleDownPublisherDispatcherAction implements ScaleAction {
             logger.warn("Unable to located paired publisher instance for publisher dispatcher id: " + instanceId);
         }
 
-        // Change publisher auto scaling group desired capacity to match
-        // dispatcher
+        // Change publisher auto scaling group desired capacity to match dispatcher
         int currentDispatcherDesiredCapacity = aemHelperService
             .getAutoScalingGroupDesiredCapacityForPublisherDispatcher();
         int currentPublisherDesiredCapacity = aemHelperService.getAutoScalingGroupDesiredCapacityForPublisher();

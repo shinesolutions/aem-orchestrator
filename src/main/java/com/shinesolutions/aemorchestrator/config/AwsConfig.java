@@ -20,8 +20,6 @@ import com.amazonaws.regions.Region;
 import com.amazonaws.regions.RegionUtils;
 import com.amazonaws.services.autoscaling.AmazonAutoScaling;
 import com.amazonaws.services.autoscaling.AmazonAutoScalingClient;
-import com.amazonaws.services.cloudformation.AmazonCloudFormation;
-import com.amazonaws.services.cloudformation.AmazonCloudFormationClient;
 import com.amazonaws.services.ec2.AmazonEC2;
 import com.amazonaws.services.ec2.AmazonEC2Client;
 import com.amazonaws.services.elasticloadbalancing.AmazonElasticLoadBalancing;
@@ -126,12 +124,6 @@ public class AwsConfig {
     public AmazonAutoScaling amazonAutoScalingClient(AWSCredentialsProvider awsCredentialsProvider, 
         ClientConfiguration awsClientConfig) {
         return new AmazonAutoScalingClient(awsCredentialsProvider, awsClientConfig);
-    }
-    
-    @Bean 
-    public AmazonCloudFormation amazonCloudFormationClient(AWSCredentialsProvider awsCredentialsProvider, 
-        ClientConfiguration awsClientConfig) {
-        return new AmazonCloudFormationClient(awsCredentialsProvider, awsClientConfig);
     }
 
 }
