@@ -35,6 +35,9 @@ public class AwsConfig {
     @Value("${aws.region}")
     private String regionString;
     
+    @Value("${aws.client.useProxy}")
+    private Boolean useProxy;
+    
     @Value("${aws.client.protocol}")
     private String clientProtocol;
     
@@ -100,12 +103,18 @@ public class AwsConfig {
     
     @Bean
     public ClientConfiguration awsClientConfig() {
-        return new ClientConfiguration()
-            .withProtocol(Protocol.valueOf(clientProtocol.toUpperCase()))
-            .withProxyHost(clientProxyHost)
-            .withProxyPort(clientProxyPort)
-            .withConnectionTimeout(clientConnectionTimeout)
-            .withMaxErrorRetry(clientMaxErrorRetry);
+        ClientConfiguration clientConfig = new ClientConfiguration();
+        
+        if(useProxy) {
+            clientConfig.setProxyHost(clientProxyHost);
+            clientConfig.setProxyPort(clientProxyPort);
+        }
+        
+        clientConfig.setProtocol(Protocol.valueOf(clientProtocol.toUpperCase()));
+        clientConfig.setConnectionTimeout(clientConnectionTimeout);
+        clientConfig.setMaxErrorRetry(clientMaxErrorRetry);
+        
+        return clientConfig;
     }
     
     @Bean
