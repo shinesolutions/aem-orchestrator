@@ -11,20 +11,13 @@ import javax.annotation.Resource;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import com.shinesolutions.aemorchestrator.model.AutoScaleGroupNames;
+
 /*
  * Service used for finding URLs, IDs etc of AEM/AWS instances
  */
 @Component
 public class AemHelperService {
-    
-    @Value("${aws.autoscale.group.name.publisherDispatcher}")
-    private String awsPublisherDispatcherGroupName;
-
-    @Value("${aws.autoscale.group.name.publisher}")
-    private String awsPublisherGroupName;
-
-    @Value("${aws.autoscale.group.name.authorDispatcher}")
-    private String awsAuthorDispatcherGroupName;
     
     @Value("${aem.protocol.publisherDispatcher}")
     private String aemPublisherDispatcherProtocol;
@@ -43,6 +36,9 @@ public class AemHelperService {
 
     @Value("${aem.port.authorDispatcher}")
     private Integer aemAuthorDispatcherPort;
+    
+    @Resource
+    private AutoScaleGroupNames asgNames;
     
     @Resource
     private AwsHelperService awsHelperService;
@@ -64,7 +60,7 @@ public class AemHelperService {
     public String getAemUrlForAuthorElb() {
         //Author can be accessed from the load balancer
         return String.format(URL_FORMAT, aemAuthorDispatcherProtocol, 
-            awsHelperService.getElbDnsName(awsAuthorDispatcherGroupName), aemAuthorDispatcherPort);
+            awsHelperService.getElbDnsName(asgNames.getAuthorDispatcher()), aemAuthorDispatcherPort);
     }
     
     public String getAemUrlForAuthorDispatcher(String instanceId) {
@@ -74,7 +70,7 @@ public class AemHelperService {
     }
 
     public String getPublisherIdForPairedDispatcher(String dispatcherInstanceId) {
-        List<String> publisherIds = awsHelperService.getInstanceIdsForAutoScalingGroup(awsPublisherGroupName);
+        List<String> publisherIds = awsHelperService.getInstanceIdsForAutoScalingGroup(asgNames.getPublisher());
         
         return publisherIds.stream().filter(p -> dispatcherInstanceId.equals(
             awsHelperService.getTags(p).get(PAIR_INSTANCE_ID.getTagName()))).findFirst().get();
@@ -82,7 +78,7 @@ public class AemHelperService {
     }
     
     public String getDispatcherIdForPairedPublisher(String publisherInstanceId) {
-        List<String> dispatcherIds = awsHelperService.getInstanceIdsForAutoScalingGroup(awsPublisherDispatcherGroupName);
+        List<String> dispatcherIds = awsHelperService.getInstanceIdsForAutoScalingGroup(asgNames.getPublisherDispatcher());
         
         return dispatcherIds.stream().filter(d -> publisherInstanceId.equals(
             awsHelperService.getTags(d).get(PAIR_INSTANCE_ID.getTagName()))).findFirst().get();
@@ -90,19 +86,19 @@ public class AemHelperService {
     }
     
     public int getAutoScalingGroupDesiredCapacityForPublisher() {
-        return awsHelperService.getAutoScalingGroupDesiredCapacity(awsPublisherGroupName);
+        return awsHelperService.getAutoScalingGroupDesiredCapacity(asgNames.getPublisher());
     }
     
     public int getAutoScalingGroupDesiredCapacityForPublisherDispatcher() {
-        return awsHelperService.getAutoScalingGroupDesiredCapacity(awsPublisherDispatcherGroupName);
+        return awsHelperService.getAutoScalingGroupDesiredCapacity(asgNames.getPublisherDispatcher());
     }
     
     public void setAutoScalingGroupDesiredCapacityForPublisher(int desiredCapacity) {
-        awsHelperService.setAutoScalingGroupDesiredCapacity(awsPublisherGroupName, desiredCapacity);
+        awsHelperService.setAutoScalingGroupDesiredCapacity(asgNames.getPublisher(), desiredCapacity);
     }
     
     public String getPublisherIdToSnapshotFrom(String excludeInstanceId) {
-        List<String> publisherIds = awsHelperService.getInstanceIdsForAutoScalingGroup(awsPublisherGroupName);
+        List<String> publisherIds = awsHelperService.getInstanceIdsForAutoScalingGroup(asgNames.getPublisher());
         return publisherIds.stream().filter(s -> !s.equals(excludeInstanceId)).findFirst().get();
     }
     
@@ -125,7 +121,7 @@ public class AemHelperService {
     }
     
     public String findUnpairedPublisherDispatcher() {
-        List<String> dispatcherIds = awsHelperService.getInstanceIdsForAutoScalingGroup(awsPublisherDispatcherGroupName);
+        List<String> dispatcherIds = awsHelperService.getInstanceIdsForAutoScalingGroup(asgNames.getPublisherDispatcher());
         return dispatcherIds.stream().filter(d -> !awsHelperService.getTags(d).containsKey(PAIR_INSTANCE_ID.getTagName()))
             .findFirst().get();
     }

@@ -4,6 +4,8 @@ import javax.jms.JMSException;
 import javax.jms.MessageConsumer;
 import javax.jms.Session;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.InvalidPropertyException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -24,10 +26,14 @@ import com.amazonaws.services.ec2.AmazonEC2;
 import com.amazonaws.services.ec2.AmazonEC2Client;
 import com.amazonaws.services.elasticloadbalancing.AmazonElasticLoadBalancing;
 import com.amazonaws.services.elasticloadbalancing.AmazonElasticLoadBalancingClient;
+import com.shinesolutions.aemorchestrator.model.AutoScaleGroupNames;
+import com.shinesolutions.aemorchestrator.service.AwsHelperService;
 
 @Configuration
 @Profile("default")
 public class AwsConfig {
+    
+    private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     @Value("${aws.sqs.queueName}")
     private String queueName;
@@ -52,6 +58,18 @@ public class AwsConfig {
     
     @Value("${aws.client.max.errorRetry}")
     private Integer clientMaxErrorRetry;
+    
+    @Value("${aws.autoscale.tag.name.publisherDispatcher}")
+    private String awsPublisherDispatcherTagName;
+
+    @Value("${aws.autoscale.tag.name.publisher}")
+    private String awsPublisherTagName;
+
+    @Value("${aws.autoscale.tag.name.authorDispatcher}")
+    private String awsAuthorDispatcherTagName;
+    
+    private static final String AUTO_SCALING_GROUP_IDENTIFIER_TAG = "Name";
+    
     
     @Bean
     public AWSCredentialsProvider awsCredentialsProvider() {
@@ -134,5 +152,28 @@ public class AwsConfig {
         ClientConfiguration awsClientConfig) {
         return new AmazonAutoScalingClient(awsCredentialsProvider, awsClientConfig);
     }
+    
+    @Bean
+    public AutoScaleGroupNames autoScaleGroupNames(AwsHelperService awsHelperService) {
+        AutoScaleGroupNames asgNames = new AutoScaleGroupNames();
+        
+        asgNames.setPublisherDispatcher(awsHelperService.getAutoScalingGroupNameForTag(
+            AUTO_SCALING_GROUP_IDENTIFIER_TAG, awsPublisherDispatcherTagName));
+        
+        logger.info("Resolved auto scaling group name for publisher dispatcher to: " + asgNames.getPublisherDispatcher());
+        
+        asgNames.setPublisher(awsHelperService.getAutoScalingGroupNameForTag(
+            AUTO_SCALING_GROUP_IDENTIFIER_TAG, awsPublisherTagName));
+        
+        logger.info("Resolved auto scaling group name for publisher to: " + asgNames.getPublisher());
+        
+        asgNames.setAuthorDispatcher(awsHelperService.getAutoScalingGroupNameForTag(
+            AUTO_SCALING_GROUP_IDENTIFIER_TAG, awsAuthorDispatcherTagName));
+        
+        logger.info("Resolved auto scaling group name for author dispatcher to: " + asgNames.getAuthorDispatcher());
+        
+        return asgNames;
+    }
+
 
 }

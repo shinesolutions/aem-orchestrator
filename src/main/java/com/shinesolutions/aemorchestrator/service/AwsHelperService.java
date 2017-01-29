@@ -204,7 +204,27 @@ public class AwsHelperService {
         return result.getSnapshot().getSnapshotId();
     }
     
+    /**
+     * Finds the auto scaling group name for an instance with a tag
+     * @param tagName the name of the instance tag to filter by
+     * @param tagValue the value assigned to the tag
+     * @return Auto scaling group name
+     */
+    public String getAutoScalingGroupNameForTag(String tagName, String tagValue) {
+        String groupName = null;
+        Filter filter = new Filter("tag:" + tagName, Arrays.asList(tagValue));
 
+        DescribeInstancesResult result = amazonEC2Client.describeInstances(
+            new DescribeInstancesRequest().withFilters(filter));
+        
+        try {
+            groupName = result.getReservations().get(0).getGroupNames().get(0);
+        } catch (Exception e) {
+            logger.debug("Unable to find auto scaling group for tag " + tagName + " and value " + tagValue, e);
+        }
+        
+        return groupName;
+    }
     
     
     private AutoScalingGroup getAutoScalingGroup(String groupName) {

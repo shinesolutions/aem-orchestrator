@@ -18,12 +18,11 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
+import com.shinesolutions.aemorchestrator.model.AutoScaleGroupNames;
+
 @RunWith(MockitoJUnitRunner.class)
 public class AemHelperServiceTest {
     
-    private String awsPublisherDispatcherGroupName;
-    private String awsPublisherGroupName;
-    private String awsAuthorDispatcherGroupName;
     private String aemPublisherDispatcherProtocol;
     private String aemPublisherProtocol;
     private String aemAuthorDispatcherProtocol;
@@ -37,6 +36,8 @@ public class AemHelperServiceTest {
     @InjectMocks
     private AemHelperService aemHelperService;
     
+    private AutoScaleGroupNames asgNames;
+    
     private String instanceId;
     private String privateIp;
     
@@ -45,9 +46,11 @@ public class AemHelperServiceTest {
         instanceId = "test-123456789";
         privateIp = "11.22.33.44";
         
-        awsPublisherDispatcherGroupName = "publisherDispatcherTestName";
-        awsPublisherGroupName = "publisherTestName";
-        awsAuthorDispatcherGroupName = "authorTestName";
+        asgNames = new AutoScaleGroupNames()
+            .withPublisherDispatcher("publisherDispatcherTestName")
+            .withPublisher("publisherTestName")
+            .withAuthorDispatcher("authorTestName");
+        
         aemPublisherDispatcherProtocol = "pdpd";
         aemPublisherProtocol = "pppp";
         aemAuthorDispatcherProtocol = "aaaa";
@@ -55,9 +58,7 @@ public class AemHelperServiceTest {
         aemPublisherPort = 2222;
         aemAuthorDispatcherPort = 3333;
         
-        setField(aemHelperService, "awsPublisherDispatcherGroupName", awsPublisherDispatcherGroupName);
-        setField(aemHelperService, "awsPublisherGroupName", awsPublisherGroupName);
-        setField(aemHelperService, "awsAuthorDispatcherGroupName", awsAuthorDispatcherGroupName);
+        setField(aemHelperService, "asgNames", asgNames);
         
         setField(aemHelperService, "aemPublisherDispatcherProtocol", aemPublisherDispatcherProtocol);
         setField(aemHelperService, "aemPublisherProtocol", aemPublisherProtocol);
@@ -88,7 +89,7 @@ public class AemHelperServiceTest {
     
     @Test
     public void testGetAemUrlForAuthorElb() throws Exception {
-        when(awsHelperService.getElbDnsName(awsAuthorDispatcherGroupName)).thenReturn(privateIp);
+        when(awsHelperService.getElbDnsName(asgNames.getAuthorDispatcher())).thenReturn(privateIp);
         
         String aemUrl = aemHelperService.getAemUrlForAuthorElb();
         
@@ -112,7 +113,7 @@ public class AemHelperServiceTest {
         instanceIds.add(instanceId);
         instanceIds.add("extra-89351");
         
-        when(awsHelperService.getInstanceIdsForAutoScalingGroup(awsPublisherGroupName)).thenReturn(instanceIds);
+        when(awsHelperService.getInstanceIdsForAutoScalingGroup(asgNames.getPublisher())).thenReturn(instanceIds);
         String resultInstanceId = aemHelperService.getPublisherIdToSnapshotFrom(excludeInstanceId);
         
         assertThat(resultInstanceId, equalTo(instanceId));
@@ -135,7 +136,7 @@ public class AemHelperServiceTest {
         instanceIds.add(instance3);
         
         
-        when(awsHelperService.getInstanceIdsForAutoScalingGroup(awsPublisherDispatcherGroupName)).thenReturn(instanceIds);
+        when(awsHelperService.getInstanceIdsForAutoScalingGroup(asgNames.getPublisherDispatcher())).thenReturn(instanceIds);
         when(awsHelperService.getTags(instance1)).thenReturn(tagsWithPairName);
         when(awsHelperService.getTags(instance2)).thenReturn(tagsWithoutPairName); //Instance 2 is the winner
         when(awsHelperService.getTags(instance3)).thenReturn(tagsWithPairName);
@@ -168,7 +169,7 @@ public class AemHelperServiceTest {
         instanceIds.add(instance3);
         instanceIds.add(instance4);
         
-        when(awsHelperService.getInstanceIdsForAutoScalingGroup(awsPublisherGroupName)).thenReturn(instanceIds);
+        when(awsHelperService.getInstanceIdsForAutoScalingGroup(asgNames.getPublisher())).thenReturn(instanceIds);
         when(awsHelperService.getTags(instance1)).thenReturn(tagsWithoutPair);
         when(awsHelperService.getTags(instance2)).thenReturn(tagsMissingPair); 
         when(awsHelperService.getTags(instance3)).thenReturn(tagsWithPair); //Instance 3 is the winner
