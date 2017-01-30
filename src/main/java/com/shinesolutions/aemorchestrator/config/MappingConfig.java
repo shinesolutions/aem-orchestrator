@@ -42,8 +42,8 @@ public class MappingConfig {
 
         Map<String, ScaleAction> mappings = new HashMap<String, ScaleAction>();
         
-        mappings.put(asgNames.getPublisherDispatcher(), scaleDownPublisherDispatcherAction);
-        mappings.put(asgNames.getPublisher(), scaleDownPublisherAction);
+        mappings.put(asgNames.getPublishDispatcher(), scaleDownPublisherDispatcherAction);
+        mappings.put(asgNames.getPublish(), scaleDownPublisherAction);
         mappings.put(asgNames.getAuthorDispatcher(), scaleDownAuthorDispatcherAction);
 
         return mappings;
@@ -58,8 +58,8 @@ public class MappingConfig {
 
         Map<String, ScaleAction> mappings = new HashMap<String, ScaleAction>();
    
-        mappings.put(asgNames.getPublisherDispatcher(), scaleUpPublisherDispatcherAction);
-        mappings.put(asgNames.getPublisher(), scaleUpPublisherAction);
+        mappings.put(asgNames.getPublishDispatcher(), scaleUpPublisherDispatcherAction);
+        mappings.put(asgNames.getPublish(), scaleUpPublisherAction);
         mappings.put(asgNames.getAuthorDispatcher(), scaleUpAuthorDispatcherAction);
 
         return mappings;

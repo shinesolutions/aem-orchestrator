@@ -2,8 +2,8 @@ package com.shinesolutions.aemorchestrator.model;
 
 public class AutoScaleGroupNames {
     private String authorDispatcher;
-    private String publisher;
-    private String publisherDispatcher;
+    private String publish;
+    private String publishDispatcher;
 
     public String getAuthorDispatcher() {
         return authorDispatcher;
@@ -18,29 +18,29 @@ public class AutoScaleGroupNames {
         return this;
     }
 
-    public String getPublisher() {
-        return publisher;
+    public String getPublish() {
+        return publish;
     }
 
-    public void setPublisher(String publisher) {
-        this.publisher = publisher;
+    public void setPublish(String publisher) {
+        this.publish = publisher;
     }
     
-    public AutoScaleGroupNames withPublisher(String publisher) {
-        this.setPublisher(publisher);
+    public AutoScaleGroupNames withPublish(String publisher) {
+        this.setPublish(publisher);
         return this;
     }
 
-    public String getPublisherDispatcher() {
-        return publisherDispatcher;
+    public String getPublishDispatcher() {
+        return publishDispatcher;
     }
 
-    public void setPublisherDispatcher(String publisherDispatcher) {
-        this.publisherDispatcher = publisherDispatcher;
+    public void setPublishDispatcher(String publisherDispatcher) {
+        this.publishDispatcher = publisherDispatcher;
     }
     
-    public AutoScaleGroupNames withPublisherDispatcher(String publisherDispatcher) {
-        this.setPublisherDispatcher(publisherDispatcher);
+    public AutoScaleGroupNames withPublishDispatcher(String publisherDispatcher) {
+        this.setPublishDispatcher(publisherDispatcher);
         return this;
     }
 

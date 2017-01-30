@@ -23,11 +23,11 @@ import com.shinesolutions.aemorchestrator.model.AutoScaleGroupNames;
 @RunWith(MockitoJUnitRunner.class)
 public class AemHelperServiceTest {
     
-    private String aemPublisherDispatcherProtocol;
-    private String aemPublisherProtocol;
+    private String aemPublishDispatcherProtocol;
+    private String aemPublishProtocol;
     private String aemAuthorDispatcherProtocol;
-    private Integer aemPublisherDispatcherPort;
-    private Integer aemPublisherPort;
+    private Integer aemPublishDispatcherPort;
+    private Integer aemPublishPort;
     private Integer aemAuthorDispatcherPort;
     
     @Mock
@@ -47,25 +47,25 @@ public class AemHelperServiceTest {
         privateIp = "11.22.33.44";
         
         asgNames = new AutoScaleGroupNames()
-            .withPublisherDispatcher("publisherDispatcherTestName")
-            .withPublisher("publisherTestName")
+            .withPublishDispatcher("publisherDispatcherTestName")
+            .withPublish("publisherTestName")
             .withAuthorDispatcher("authorTestName");
         
-        aemPublisherDispatcherProtocol = "pdpd";
-        aemPublisherProtocol = "pppp";
+        aemPublishDispatcherProtocol = "pdpd";
+        aemPublishProtocol = "pppp";
         aemAuthorDispatcherProtocol = "aaaa";
-        aemPublisherDispatcherPort = 1111;
-        aemPublisherPort = 2222;
+        aemPublishDispatcherPort = 1111;
+        aemPublishPort = 2222;
         aemAuthorDispatcherPort = 3333;
         
         setField(aemHelperService, "asgNames", asgNames);
         
-        setField(aemHelperService, "aemPublisherDispatcherProtocol", aemPublisherDispatcherProtocol);
-        setField(aemHelperService, "aemPublisherProtocol", aemPublisherProtocol);
+        setField(aemHelperService, "aemPublishDispatcherProtocol", aemPublishDispatcherProtocol);
+        setField(aemHelperService, "aemPublishProtocol", aemPublishProtocol);
         setField(aemHelperService, "aemAuthorDispatcherProtocol", aemAuthorDispatcherProtocol);
         
-        setField(aemHelperService, "aemPublisherDispatcherPort", aemPublisherDispatcherPort);
-        setField(aemHelperService, "aemPublisherPort", aemPublisherPort);
+        setField(aemHelperService, "aemPublishDispatcherPort", aemPublishDispatcherPort);
+        setField(aemHelperService, "aemPublishPort", aemPublishPort);
         setField(aemHelperService, "aemAuthorDispatcherPort", aemAuthorDispatcherPort);
     }
 
@@ -75,7 +75,7 @@ public class AemHelperServiceTest {
         
         String aemUrl = aemHelperService.getAemUrlForPublisherDispatcher(instanceId);
         
-        assertThat(aemUrl, equalTo(aemPublisherDispatcherProtocol + "://" + privateIp + ":" + aemPublisherDispatcherPort));
+        assertThat(aemUrl, equalTo(aemPublishDispatcherProtocol + "://" + privateIp + ":" + aemPublishDispatcherPort));
     }
     
     @Test
@@ -84,7 +84,7 @@ public class AemHelperServiceTest {
         
         String aemUrl = aemHelperService.getAemUrlForPublisher(instanceId);
         
-        assertThat(aemUrl, equalTo(aemPublisherProtocol + "://" + privateIp + ":" + aemPublisherPort));
+        assertThat(aemUrl, equalTo(aemPublishProtocol + "://" + privateIp + ":" + aemPublishPort));
     }
     
     @Test
@@ -113,7 +113,7 @@ public class AemHelperServiceTest {
         instanceIds.add(instanceId);
         instanceIds.add("extra-89351");
         
-        when(awsHelperService.getInstanceIdsForAutoScalingGroup(asgNames.getPublisher())).thenReturn(instanceIds);
+        when(awsHelperService.getInstanceIdsForAutoScalingGroup(asgNames.getPublish())).thenReturn(instanceIds);
         String resultInstanceId = aemHelperService.getPublisherIdToSnapshotFrom(excludeInstanceId);
         
         assertThat(resultInstanceId, equalTo(instanceId));
@@ -136,7 +136,7 @@ public class AemHelperServiceTest {
         instanceIds.add(instance3);
         
         
-        when(awsHelperService.getInstanceIdsForAutoScalingGroup(asgNames.getPublisherDispatcher())).thenReturn(instanceIds);
+        when(awsHelperService.getInstanceIdsForAutoScalingGroup(asgNames.getPublishDispatcher())).thenReturn(instanceIds);
         when(awsHelperService.getTags(instance1)).thenReturn(tagsWithPairName);
         when(awsHelperService.getTags(instance2)).thenReturn(tagsWithoutPairName); //Instance 2 is the winner
         when(awsHelperService.getTags(instance3)).thenReturn(tagsWithPairName);
@@ -169,7 +169,7 @@ public class AemHelperServiceTest {
         instanceIds.add(instance3);
         instanceIds.add(instance4);
         
-        when(awsHelperService.getInstanceIdsForAutoScalingGroup(asgNames.getPublisher())).thenReturn(instanceIds);
+        when(awsHelperService.getInstanceIdsForAutoScalingGroup(asgNames.getPublish())).thenReturn(instanceIds);
         when(awsHelperService.getTags(instance1)).thenReturn(tagsWithoutPair);
         when(awsHelperService.getTags(instance2)).thenReturn(tagsMissingPair); 
         when(awsHelperService.getTags(instance3)).thenReturn(tagsWithPair); //Instance 3 is the winner

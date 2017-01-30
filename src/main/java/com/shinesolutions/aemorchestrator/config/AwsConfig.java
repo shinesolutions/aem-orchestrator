@@ -61,19 +61,19 @@ public class AwsConfig {
     @Value("${aws.client.max.errorRetry}")
     private Integer clientMaxErrorRetry;
     
-    @Value("${aws.cloudformation.stackName.publisherDispatcher}")
+    @Value("${aws.cloudformation.stackName.publishDispatcher}")
     private String awsPublisherDispatcherStackName;
     
-    @Value("${aws.cloudformation.stackName.publisher}")
+    @Value("${aws.cloudformation.stackName.publish}")
     private String awsPublisherStackName;
     
     @Value("${aws.cloudformation.stackName.authorDispatcher}")
     private String awsAuthorDispatcherStackName;
 
-    @Value("${aws.cloudformation.autoScaleGroup.logicalId.publisherDispatcher}")
+    @Value("${aws.cloudformation.autoScaleGroup.logicalId.publishDispatcher}")
     private String awsPublisherDispatcherLogicalId;
 
-    @Value("${aws.cloudformation.autoScaleGroup.logicalId.publisher}")
+    @Value("${aws.cloudformation.autoScaleGroup.logicalId.publish}")
     private String awsPublisherLogicalId;
 
     @Value("${aws.cloudformation.autoScaleGroup.logicalId.authorDispatcher}")
@@ -181,14 +181,14 @@ public class AwsConfig {
     public AutoScaleGroupNames autoScaleGroupNames(final AwsHelperService awsHelper) {
         AutoScaleGroupNames asgNames = new AutoScaleGroupNames();
 
-        asgNames.setPublisherDispatcher(
+        asgNames.setPublishDispatcher(
             awsHelper.getStackPhysicalResourceId(awsPublisherDispatcherStackName, awsPublisherDispatcherLogicalId));
-        logger.info("Resolved auto scaling group name for publisher dispatcher to: " + asgNames.getPublisherDispatcher());
+        logger.info("Resolved auto scaling group name for publisher dispatcher to: " + asgNames.getPublishDispatcher());
 
-        asgNames.setPublisher(
+        asgNames.setPublish(
             awsHelper.getStackPhysicalResourceId(awsPublisherStackName, awsPublisherLogicalId));
         
-        logger.info("Resolved auto scaling group name for publisher to: " + asgNames.getPublisher());
+        logger.info("Resolved auto scaling group name for publisher to: " + asgNames.getPublish());
 
         asgNames.setAuthorDispatcher(
             awsHelper.getStackPhysicalResourceId(awsAuthorDispatcherStackName, awsAuthorDispatcherLogicalId));
