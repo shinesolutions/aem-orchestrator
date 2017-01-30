@@ -18,6 +18,9 @@ import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsRequest
 import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsResult;
 import com.amazonaws.services.autoscaling.model.Instance;
 import com.amazonaws.services.autoscaling.model.SetDesiredCapacityRequest;
+import com.amazonaws.services.cloudformation.AmazonCloudFormation;
+import com.amazonaws.services.cloudformation.model.DescribeStackResourcesRequest;
+import com.amazonaws.services.cloudformation.model.DescribeStackResourcesResult;
 import com.amazonaws.services.ec2.AmazonEC2;
 import com.amazonaws.services.ec2.model.CreateSnapshotRequest;
 import com.amazonaws.services.ec2.model.CreateSnapshotResult;
@@ -56,6 +59,9 @@ public class AwsHelperService {
     
     @Resource
     public AmazonAutoScaling amazonAutoScalingClient;
+    
+    @Resource
+    public AmazonCloudFormation amazonCloudFormationClient;
     
     
     private static final int NUM_RETRIES = 20;
@@ -101,7 +107,7 @@ public class AwsHelperService {
     /**
      * Checks if a instance is in a 'running' state. Will return false if the instance 
      * is in any other of the possible states: pending, shutting-down, terminated, stopping or stopped.
-     * @param instanceId
+     * @param instanceId EC2 instance id
      * @return true if the instance is in a 'running' state. False for any other state
      */
     public boolean isInstanceRunning(String instanceId) {
@@ -205,25 +211,17 @@ public class AwsHelperService {
     }
     
     /**
-     * Finds the auto scaling group name for an instance with a tag
-     * @param tagName the name of the instance tag to filter by
-     * @param tagValue the value assigned to the tag
-     * @return Auto scaling group name
+     * Gets a physical resource ID on a given stack for a logical resource ID 
+     * @param stackName the name of the cloud formation stack
+     * @param logicalResourceId the logical name of the stack resource
+     * @return Physical resource ID
      */
-    public String getAutoScalingGroupNameForTag(String tagName, String tagValue) {
-        String groupName = null;
-        Filter filter = new Filter("tag:" + tagName, Arrays.asList(tagValue));
-
-        DescribeInstancesResult result = amazonEC2Client.describeInstances(
-            new DescribeInstancesRequest().withFilters(filter));
+    public String getStackPhysicalResourceId(String stackName, String logicalResourceId) {
+        DescribeStackResourcesResult result = amazonCloudFormationClient.describeStackResources(
+            new DescribeStackResourcesRequest().withStackName(stackName));
         
-        try {
-            groupName = result.getReservations().get(0).getGroupNames().get(0);
-        } catch (Exception e) {
-            logger.debug("Unable to find auto scaling group for tag " + tagName + " and value " + tagValue, e);
-        }
-        
-        return groupName;
+        return result.getStackResources().stream().filter(s -> s.getLogicalResourceId().equals(logicalResourceId))
+            .findFirst().get().getPhysicalResourceId();
     }
     
     

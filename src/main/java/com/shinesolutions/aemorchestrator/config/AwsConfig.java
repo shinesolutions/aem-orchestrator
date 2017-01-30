@@ -21,18 +21,20 @@ import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
 import com.amazonaws.regions.Region;
 import com.amazonaws.regions.RegionUtils;
 import com.amazonaws.services.autoscaling.AmazonAutoScaling;
-import com.amazonaws.services.autoscaling.AmazonAutoScalingClient;
+import com.amazonaws.services.autoscaling.AmazonAutoScalingClientBuilder;
+import com.amazonaws.services.cloudformation.AmazonCloudFormation;
+import com.amazonaws.services.cloudformation.AmazonCloudFormationClientBuilder;
 import com.amazonaws.services.ec2.AmazonEC2;
-import com.amazonaws.services.ec2.AmazonEC2Client;
+import com.amazonaws.services.ec2.AmazonEC2ClientBuilder;
 import com.amazonaws.services.elasticloadbalancing.AmazonElasticLoadBalancing;
-import com.amazonaws.services.elasticloadbalancing.AmazonElasticLoadBalancingClient;
+import com.amazonaws.services.elasticloadbalancing.AmazonElasticLoadBalancingClientBuilder;
 import com.shinesolutions.aemorchestrator.model.AutoScaleGroupNames;
 import com.shinesolutions.aemorchestrator.service.AwsHelperService;
 
 @Configuration
 @Profile("default")
 public class AwsConfig {
-    
+
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     @Value("${aws.sqs.queueName}")
@@ -40,37 +42,44 @@ public class AwsConfig {
 
     @Value("${aws.region}")
     private String regionString;
-    
+
     @Value("${aws.client.useProxy}")
     private Boolean useProxy;
-    
+
     @Value("${aws.client.protocol}")
     private String clientProtocol;
-    
+
     @Value("${aws.client.proxy.host}")
     private String clientProxyHost;
-    
+
     @Value("${aws.client.proxy.port}")
     private Integer clientProxyPort;
-    
+
     @Value("${aws.client.connection.timeout}")
     private Integer clientConnectionTimeout;
-    
+
     @Value("${aws.client.max.errorRetry}")
     private Integer clientMaxErrorRetry;
     
-    @Value("${aws.autoscale.tag.name.publisherDispatcher}")
-    private String awsPublisherDispatcherTagName;
+    @Value("${aws.cloudformation.stackName.publisherDispatcher}")
+    private String awsPublisherDispatcherStackName;
+    
+    @Value("${aws.cloudformation.stackName.publisher}")
+    private String awsPublisherStackName;
+    
+    @Value("${aws.cloudformation.stackName.authorDispatcher}")
+    private String awsAuthorDispatcherStackName;
 
-    @Value("${aws.autoscale.tag.name.publisher}")
-    private String awsPublisherTagName;
+    @Value("${aws.cloudformation.autoScaleGroup.logicalId.publisherDispatcher}")
+    private String awsPublisherDispatcherLogicalId;
 
-    @Value("${aws.autoscale.tag.name.authorDispatcher}")
-    private String awsAuthorDispatcherTagName;
-    
-    private static final String AUTO_SCALING_GROUP_IDENTIFIER_TAG = "Name";
-    
-    
+    @Value("${aws.cloudformation.autoScaleGroup.logicalId.publisher}")
+    private String awsPublisherLogicalId;
+
+    @Value("${aws.cloudformation.autoScaleGroup.logicalId.authorDispatcher}")
+    private String awsAuthorDispatcherLogicalId;
+
+
     @Bean
     public AWSCredentialsProvider awsCredentialsProvider() {
         /*
@@ -80,25 +89,22 @@ public class AwsConfig {
          */
         return new DefaultAWSCredentialsProviderChain();
     }
-    
+
     @Bean
     public Region awsRegion() {
         Region region = RegionUtils.getRegion(regionString);
-        if(region == null) {
+        if (region == null) {
             throw new InvalidPropertyException(Region.class, "aws.region", "Unknown AWS region: " + regionString);
         }
         return region;
     }
 
     @Bean
-    public SQSConnection sqsConnection(AWSCredentialsProvider awsCredentialsProvider, Region awsRegion, 
+    public SQSConnection sqsConnection(AWSCredentialsProvider awsCredentialsProvider, Region awsRegion,
         ClientConfiguration awsClientConfig) throws JMSException {
 
-        SQSConnectionFactory connectionFactory = SQSConnectionFactory.builder()
-            .withRegion(awsRegion)
-            .withAWSCredentialsProvider(awsCredentialsProvider)
-            .withClientConfiguration(awsClientConfig)
-            .build();
+        SQSConnectionFactory connectionFactory = SQSConnectionFactory.builder().withRegion(awsRegion)
+            .withAWSCredentialsProvider(awsCredentialsProvider).withClientConfiguration(awsClientConfig).build();
 
         // Create the connection
         SQSConnection connection = connectionFactory.createConnection();
@@ -118,62 +124,78 @@ public class AwsConfig {
 
         return consumer;
     }
-    
+
     @Bean
     public ClientConfiguration awsClientConfig() {
         ClientConfiguration clientConfig = new ClientConfiguration();
-        
-        if(useProxy) {
+
+        if (useProxy) {
             clientConfig.setProxyHost(clientProxyHost);
             clientConfig.setProxyPort(clientProxyPort);
         }
-        
+
         clientConfig.setProtocol(Protocol.valueOf(clientProtocol.toUpperCase()));
         clientConfig.setConnectionTimeout(clientConnectionTimeout);
         clientConfig.setMaxErrorRetry(clientMaxErrorRetry);
-        
+
         return clientConfig;
     }
-    
+
     @Bean
-    public AmazonEC2 amazonEC2Client(AWSCredentialsProvider awsCredentialsProvider, 
+    public AmazonEC2 amazonEC2Client(AWSCredentialsProvider awsCredentialsProvider,
         ClientConfiguration awsClientConfig) {
-        return new AmazonEC2Client(awsCredentialsProvider, awsClientConfig);
-    }
-    
-    @Bean
-    public AmazonElasticLoadBalancing amazonElbClient(AWSCredentialsProvider awsCredentialsProvider, 
-        ClientConfiguration awsClientConfig) {
-        return new AmazonElasticLoadBalancingClient(awsCredentialsProvider, awsClientConfig);
-    }
-    
-    @Bean 
-    public AmazonAutoScaling amazonAutoScalingClient(AWSCredentialsProvider awsCredentialsProvider, 
-        ClientConfiguration awsClientConfig) {
-        return new AmazonAutoScalingClient(awsCredentialsProvider, awsClientConfig);
-    }
-    
-    @Bean
-    public AutoScaleGroupNames autoScaleGroupNames(AwsHelperService awsHelperService) {
-        AutoScaleGroupNames asgNames = new AutoScaleGroupNames();
-        
-        asgNames.setPublisherDispatcher(awsHelperService.getAutoScalingGroupNameForTag(
-            AUTO_SCALING_GROUP_IDENTIFIER_TAG, awsPublisherDispatcherTagName));
-        
-        logger.info("Resolved auto scaling group name for publisher dispatcher to: " + asgNames.getPublisherDispatcher());
-        
-        asgNames.setPublisher(awsHelperService.getAutoScalingGroupNameForTag(
-            AUTO_SCALING_GROUP_IDENTIFIER_TAG, awsPublisherTagName));
-        
-        logger.info("Resolved auto scaling group name for publisher to: " + asgNames.getPublisher());
-        
-        asgNames.setAuthorDispatcher(awsHelperService.getAutoScalingGroupNameForTag(
-            AUTO_SCALING_GROUP_IDENTIFIER_TAG, awsAuthorDispatcherTagName));
-        
-        logger.info("Resolved auto scaling group name for author dispatcher to: " + asgNames.getAuthorDispatcher());
-        
-        return asgNames;
+        return AmazonEC2ClientBuilder.standard()
+            .withCredentials(awsCredentialsProvider)
+            .withClientConfiguration(awsClientConfig)
+            .build();
     }
 
+    @Bean
+    public AmazonElasticLoadBalancing amazonElbClient(AWSCredentialsProvider awsCredentialsProvider,
+        ClientConfiguration awsClientConfig) {
+        return AmazonElasticLoadBalancingClientBuilder.standard()
+            .withCredentials(awsCredentialsProvider)
+            .withClientConfiguration(awsClientConfig)
+            .build();
+    }
+
+    @Bean
+    public AmazonAutoScaling amazonAutoScalingClient(AWSCredentialsProvider awsCredentialsProvider,
+        ClientConfiguration awsClientConfig) {
+        return AmazonAutoScalingClientBuilder.standard()
+            .withCredentials(awsCredentialsProvider)
+            .withClientConfiguration(awsClientConfig)
+            .build();
+    }
+
+    @Bean
+    public AmazonCloudFormation amazonCloudFormationClient(AWSCredentialsProvider awsCredentialsProvider,
+        ClientConfiguration awsClientConfig) {
+        return AmazonCloudFormationClientBuilder.standard()
+            .withCredentials(awsCredentialsProvider)
+            .withClientConfiguration(awsClientConfig)
+            .build();
+    }
+
+    @Bean
+    public AutoScaleGroupNames autoScaleGroupNames(final AwsHelperService awsHelper) {
+        AutoScaleGroupNames asgNames = new AutoScaleGroupNames();
+
+        asgNames.setPublisherDispatcher(
+            awsHelper.getStackPhysicalResourceId(awsPublisherDispatcherStackName, awsPublisherDispatcherLogicalId));
+        logger.info("Resolved auto scaling group name for publisher dispatcher to: " + asgNames.getPublisherDispatcher());
+
+        asgNames.setPublisher(
+            awsHelper.getStackPhysicalResourceId(awsPublisherStackName, awsPublisherLogicalId));
+        
+        logger.info("Resolved auto scaling group name for publisher to: " + asgNames.getPublisher());
+
+        asgNames.setAuthorDispatcher(
+            awsHelper.getStackPhysicalResourceId(awsAuthorDispatcherStackName, awsAuthorDispatcherLogicalId));
+        
+        logger.info("Resolved auto scaling group name for author dispatcher to: " + asgNames.getAuthorDispatcher());
+
+        return asgNames;
+    }
 
 }
