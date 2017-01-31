@@ -238,6 +238,15 @@
       <artifactId>spring-boot-starter-actuator</artifactId>
     </dependency>
     <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-aop</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.retry</groupId>
+      <artifactId>spring-retry</artifactId>
+    </dependency>
+    
+    <dependency>
       <groupId>com.amazonaws</groupId>
       <artifactId>amazon-sqs-java-messaging-lib</artifactId>
       <version>1.0.1</version>
@@ -258,6 +267,7 @@
       <groupId>com.amazonaws</groupId>
       <artifactId>aws-java-sdk-cloudformation</artifactId>
     </dependency>
+
 
     <!-- Test -->
     <dependency>

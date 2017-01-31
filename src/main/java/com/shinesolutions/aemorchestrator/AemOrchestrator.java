@@ -21,9 +21,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.ComponentScan;
+import org.springframework.retry.annotation.EnableRetry;
 
 @SpringBootApplication
 @ComponentScan
+@EnableRetry
 public class AemOrchestrator {
 
     private final static Logger logger = LoggerFactory.getLogger(AemOrchestrator.class);

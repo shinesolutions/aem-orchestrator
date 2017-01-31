@@ -3,15 +3,17 @@ package com.shinesolutions.aemorchestrator.service;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import javax.annotation.Resource;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Component;
 
+import com.amazonaws.AmazonServiceException;
 import com.amazonaws.services.autoscaling.AmazonAutoScaling;
 import com.amazonaws.services.autoscaling.model.AutoScalingGroup;
 import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsRequest;
@@ -63,10 +65,6 @@ public class AwsHelperService {
     @Resource
     public AmazonCloudFormation amazonCloudFormationClient;
     
-    
-    private static final int NUM_RETRIES = 20;
-    private static final int SECONDS_TO_WAIT_BETWEEN_RETRIES = 5;
-    
     /**
      * Return the DNS name for a given AWS ELB group name
      * @param elbName the ELB group name
@@ -80,28 +78,21 @@ public class AwsHelperService {
     
     /**
      * Gets the private IP of a given AWS EC2 instance
+     * Will automatically retry 10 times every 10 seconds if no instance is found
      * @param instanceId the EC2 instance ID
      * @return String private IP
      */
+    @Retryable(maxAttempts=10, value=AmazonServiceException.class, backoff=@Backoff(delay=10000))
     public String getPrivateIp(String instanceId) {
         DescribeInstancesResult result = amazonEC2Client.describeInstances(
             new DescribeInstancesRequest().withInstanceIds(instanceId));
         
-        String privateIp = null;
-        if(result.getReservations().size() > 0) {
-            
-            //If instance is still spinning up, then may need to wait
-            for(int i = 0; i < NUM_RETRIES && privateIp != null; i++) {
-                privateIp = result.getReservations().get(0).getInstances().get(0).getPrivateIpAddress();
-                if(privateIp == null) {
-                    try {
-                        Thread.sleep(TimeUnit.SECONDS.toMillis(SECONDS_TO_WAIT_BETWEEN_RETRIES));
-                    } catch (InterruptedException e) {}
-                }
-            }
+        try {
+            return result.getReservations().get(0).getInstances().get(0).getPrivateIpAddress();
+        } catch (Exception e) {
+            throw new AmazonServiceException("Failed to get IP for instance ID: " + 
+                instanceId + ". Instance may not be active", e);
         }
-        
-        return privateIp;
     }
     
     /**
