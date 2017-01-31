@@ -27,7 +27,7 @@ import com.amazonaws.services.ec2.AmazonEC2ClientBuilder;
 import com.amazonaws.services.elasticloadbalancing.AmazonElasticLoadBalancing;
 import com.amazonaws.services.elasticloadbalancing.AmazonElasticLoadBalancingClientBuilder;
 import com.amazonaws.util.EC2MetadataUtils;
-import com.shinesolutions.aemorchestrator.model.AutoScaleGroupNames;
+import com.shinesolutions.aemorchestrator.model.EnvironmentValues;
 import com.shinesolutions.aemorchestrator.service.AwsHelperService;
 
 @Configuration
@@ -65,15 +65,23 @@ public class AwsConfig {
     
     @Value("${aws.cloudformation.stackName.authorDispatcher}")
     private String awsAuthorDispatcherStackName;
+    
+    @Value("${aws.cloudformation.stackName.author}")
+    private String awsAuthorStackName;
 
     @Value("${aws.cloudformation.autoScaleGroup.logicalId.publishDispatcher}")
-    private String awsPublisherDispatcherLogicalId;
+    private String awsPublisherDispatcherAutoScaleGroupLogicalId;
 
     @Value("${aws.cloudformation.autoScaleGroup.logicalId.publish}")
-    private String awsPublisherLogicalId;
+    private String awsPublisherAutoScaleGroupLogicalId;
 
     @Value("${aws.cloudformation.autoScaleGroup.logicalId.authorDispatcher}")
-    private String awsAuthorDispatcherLogicalId;
+    private String awsAuthorDispatcherAutoScaleGroupLogicalId;
+    
+    @Value("${aws.cloudformation.loadBalancer.logicalId.author}")
+    private String awsAuthorLoadBalancerLogicalId;
+    
+    
 
 
     @Bean
@@ -165,24 +173,33 @@ public class AwsConfig {
     }
 
     @Bean
-    public AutoScaleGroupNames autoScaleGroupNames(final AwsHelperService awsHelper) {
-        AutoScaleGroupNames asgNames = new AutoScaleGroupNames();
+    public EnvironmentValues envValues(final AwsHelperService awsHelper) {
+        EnvironmentValues envValues = new EnvironmentValues();
 
-        asgNames.setPublishDispatcher(
-            awsHelper.getStackPhysicalResourceId(awsPublisherDispatcherStackName, awsPublisherDispatcherLogicalId));
-        logger.info("Resolved auto scaling group name for publisher dispatcher to: " + asgNames.getPublishDispatcher());
+        envValues.setAutoScaleGroupNameForPublishDispatcher(
+            awsHelper.getStackPhysicalResourceId(awsPublisherDispatcherStackName, awsPublisherDispatcherAutoScaleGroupLogicalId));
+        logger.info("Resolved auto scaling group name for publisher dispatcher to: " + 
+            envValues.getAutoScaleGroupNameForPublishDispatcher());
 
-        asgNames.setPublish(
-            awsHelper.getStackPhysicalResourceId(awsPublisherStackName, awsPublisherLogicalId));
+        envValues.setAutoScaleGroupNameForPublish(
+            awsHelper.getStackPhysicalResourceId(awsPublisherStackName, awsPublisherAutoScaleGroupLogicalId));
         
-        logger.info("Resolved auto scaling group name for publisher to: " + asgNames.getPublish());
+        logger.info("Resolved auto scaling group name for publisher to: " + 
+            envValues.getAutoScaleGroupNameForPublish());
 
-        asgNames.setAuthorDispatcher(
-            awsHelper.getStackPhysicalResourceId(awsAuthorDispatcherStackName, awsAuthorDispatcherLogicalId));
+        envValues.setAutoScaleGroupNameForAuthorDispatcher(
+            awsHelper.getStackPhysicalResourceId(awsAuthorDispatcherStackName, awsAuthorDispatcherAutoScaleGroupLogicalId));
         
-        logger.info("Resolved auto scaling group name for author dispatcher to: " + asgNames.getAuthorDispatcher());
+        logger.info("Resolved auto scaling group name for author dispatcher to: " + 
+            envValues.getAutoScaleGroupNameForAuthorDispatcher());
+        
+        envValues.setElasticLoadBalancerNameForAuthor(
+            awsHelper.getStackPhysicalResourceId(awsAuthorStackName, awsAuthorLoadBalancerLogicalId));
+        
+        logger.info("Resolved elastic load balancer name for author to: " + 
+            envValues.getElasticLoadBalancerNameForAuthor());
 
-        return asgNames;
+        return envValues;
     }
 
 }

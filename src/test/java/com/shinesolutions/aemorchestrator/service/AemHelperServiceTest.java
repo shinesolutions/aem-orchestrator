@@ -18,7 +18,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import com.shinesolutions.aemorchestrator.model.AutoScaleGroupNames;
+import com.shinesolutions.aemorchestrator.model.EnvironmentValues;
 
 @RunWith(MockitoJUnitRunner.class)
 public class AemHelperServiceTest {
@@ -36,7 +36,7 @@ public class AemHelperServiceTest {
     @InjectMocks
     private AemHelperService aemHelperService;
     
-    private AutoScaleGroupNames asgNames;
+    private EnvironmentValues envValues;
     
     private String instanceId;
     private String privateIp;
@@ -46,10 +46,10 @@ public class AemHelperServiceTest {
         instanceId = "test-123456789";
         privateIp = "11.22.33.44";
         
-        asgNames = new AutoScaleGroupNames()
-            .withPublishDispatcher("publisherDispatcherTestName")
-            .withPublish("publisherTestName")
-            .withAuthorDispatcher("authorTestName");
+        envValues = new EnvironmentValues();
+        envValues.setAutoScaleGroupNameForPublishDispatcher("publisherDispatcherTestName");
+        envValues.setAutoScaleGroupNameForPublish("publisherTestName");
+        envValues.setAutoScaleGroupNameForAuthorDispatcher("authorTestName");
         
         aemPublishDispatcherProtocol = "pdpd";
         aemPublishProtocol = "pppp";
@@ -58,7 +58,7 @@ public class AemHelperServiceTest {
         aemPublishPort = 2222;
         aemAuthorDispatcherPort = 3333;
         
-        setField(aemHelperService, "asgNames", asgNames);
+        setField(aemHelperService, "envValues", envValues);
         
         setField(aemHelperService, "aemPublishDispatcherProtocol", aemPublishDispatcherProtocol);
         setField(aemHelperService, "aemPublishProtocol", aemPublishProtocol);
@@ -89,7 +89,7 @@ public class AemHelperServiceTest {
     
     @Test
     public void testGetAemUrlForAuthorElb() throws Exception {
-        when(awsHelperService.getElbDnsName(asgNames.getAuthorDispatcher())).thenReturn(privateIp);
+        when(awsHelperService.getElbDnsName(envValues.getElasticLoadBalancerNameForAuthor())).thenReturn(privateIp);
         
         String aemUrl = aemHelperService.getAemUrlForAuthorElb();
         
@@ -113,7 +113,7 @@ public class AemHelperServiceTest {
         instanceIds.add(instanceId);
         instanceIds.add("extra-89351");
         
-        when(awsHelperService.getInstanceIdsForAutoScalingGroup(asgNames.getPublish())).thenReturn(instanceIds);
+        when(awsHelperService.getInstanceIdsForAutoScalingGroup(envValues.getAutoScaleGroupNameForPublish())).thenReturn(instanceIds);
         String resultInstanceId = aemHelperService.getPublisherIdToSnapshotFrom(excludeInstanceId);
         
         assertThat(resultInstanceId, equalTo(instanceId));
@@ -136,7 +136,7 @@ public class AemHelperServiceTest {
         instanceIds.add(instance3);
         
         
-        when(awsHelperService.getInstanceIdsForAutoScalingGroup(asgNames.getPublishDispatcher())).thenReturn(instanceIds);
+        when(awsHelperService.getInstanceIdsForAutoScalingGroup(envValues.getAutoScaleGroupNameForPublishDispatcher())).thenReturn(instanceIds);
         when(awsHelperService.getTags(instance1)).thenReturn(tagsWithPairName);
         when(awsHelperService.getTags(instance2)).thenReturn(tagsWithoutPairName); //Instance 2 is the winner
         when(awsHelperService.getTags(instance3)).thenReturn(tagsWithPairName);
@@ -169,7 +169,7 @@ public class AemHelperServiceTest {
         instanceIds.add(instance3);
         instanceIds.add(instance4);
         
-        when(awsHelperService.getInstanceIdsForAutoScalingGroup(asgNames.getPublish())).thenReturn(instanceIds);
+        when(awsHelperService.getInstanceIdsForAutoScalingGroup(envValues.getAutoScaleGroupNameForPublish())).thenReturn(instanceIds);
         when(awsHelperService.getTags(instance1)).thenReturn(tagsWithoutPair);
         when(awsHelperService.getTags(instance2)).thenReturn(tagsMissingPair); 
         when(awsHelperService.getTags(instance3)).thenReturn(tagsWithPair); //Instance 3 is the winner

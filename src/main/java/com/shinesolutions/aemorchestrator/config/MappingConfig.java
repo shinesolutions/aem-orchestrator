@@ -16,7 +16,7 @@ import com.shinesolutions.aemorchestrator.actions.ScaleUpPublisherDispatcherActi
 import com.shinesolutions.aemorchestrator.handler.AutoscaleLaunchEventHandler;
 import com.shinesolutions.aemorchestrator.handler.AutoscaleTerminateEventHandler;
 import com.shinesolutions.aemorchestrator.handler.EventHandler;
-import com.shinesolutions.aemorchestrator.model.AutoScaleGroupNames;
+import com.shinesolutions.aemorchestrator.model.EnvironmentValues;
 
 @Configuration
 public class MappingConfig {
@@ -38,13 +38,13 @@ public class MappingConfig {
         final ScaleDownPublisherDispatcherAction scaleDownPublisherDispatcherAction,
         final ScaleDownPublisherAction scaleDownPublisherAction,
         final ScaleDownAuthorDispatcherAction scaleDownAuthorDispatcherAction,
-        final AutoScaleGroupNames asgNames) {
+        final EnvironmentValues envValues) {
 
         Map<String, ScaleAction> mappings = new HashMap<String, ScaleAction>();
         
-        mappings.put(asgNames.getPublishDispatcher(), scaleDownPublisherDispatcherAction);
-        mappings.put(asgNames.getPublish(), scaleDownPublisherAction);
-        mappings.put(asgNames.getAuthorDispatcher(), scaleDownAuthorDispatcherAction);
+        mappings.put(envValues.getAutoScaleGroupNameForPublishDispatcher(), scaleDownPublisherDispatcherAction);
+        mappings.put(envValues.getAutoScaleGroupNameForPublish(), scaleDownPublisherAction);
+        mappings.put(envValues.getAutoScaleGroupNameForAuthorDispatcher(), scaleDownAuthorDispatcherAction);
 
         return mappings;
     }
@@ -54,13 +54,13 @@ public class MappingConfig {
         final ScaleUpPublisherDispatcherAction scaleUpPublisherDispatcherAction,
         final ScaleUpPublisherAction scaleUpPublisherAction,
         final ScaleUpAuthorDispatcherAction scaleUpAuthorDispatcherAction,
-        final AutoScaleGroupNames asgNames) {
+        final EnvironmentValues envValues) {
 
         Map<String, ScaleAction> mappings = new HashMap<String, ScaleAction>();
    
-        mappings.put(asgNames.getPublishDispatcher(), scaleUpPublisherDispatcherAction);
-        mappings.put(asgNames.getPublish(), scaleUpPublisherAction);
-        mappings.put(asgNames.getAuthorDispatcher(), scaleUpAuthorDispatcherAction);
+        mappings.put(envValues.getAutoScaleGroupNameForPublishDispatcher(), scaleUpPublisherDispatcherAction);
+        mappings.put(envValues.getAutoScaleGroupNameForPublish(), scaleUpPublisherAction);
+        mappings.put(envValues.getAutoScaleGroupNameForAuthorDispatcher(), scaleUpAuthorDispatcherAction);
 
         return mappings;
     }
