@@ -6,7 +6,6 @@ import javax.jms.Session;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.InvalidPropertyException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -18,7 +17,6 @@ import com.amazonaws.ClientConfiguration;
 import com.amazonaws.Protocol;
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
-import com.amazonaws.regions.Region;
 import com.amazonaws.regions.RegionUtils;
 import com.amazonaws.services.autoscaling.AmazonAutoScaling;
 import com.amazonaws.services.autoscaling.AmazonAutoScalingClientBuilder;
@@ -28,6 +26,7 @@ import com.amazonaws.services.ec2.AmazonEC2;
 import com.amazonaws.services.ec2.AmazonEC2ClientBuilder;
 import com.amazonaws.services.elasticloadbalancing.AmazonElasticLoadBalancing;
 import com.amazonaws.services.elasticloadbalancing.AmazonElasticLoadBalancingClientBuilder;
+import com.amazonaws.util.EC2MetadataUtils;
 import com.shinesolutions.aemorchestrator.model.AutoScaleGroupNames;
 import com.shinesolutions.aemorchestrator.service.AwsHelperService;
 
@@ -39,9 +38,6 @@ public class AwsConfig {
 
     @Value("${aws.sqs.queueName}")
     private String queueName;
-
-    @Value("${aws.region}")
-    private String regionString;
 
     @Value("${aws.client.useProxy}")
     private Boolean useProxy;
@@ -91,25 +87,16 @@ public class AwsConfig {
     }
 
     @Bean
-    public Region awsRegion() {
-        Region region = RegionUtils.getRegion(regionString);
-        if (region == null) {
-            throw new InvalidPropertyException(Region.class, "aws.region", "Unknown AWS region: " + regionString);
-        }
-        return region;
-    }
-
-    @Bean
-    public SQSConnection sqsConnection(AWSCredentialsProvider awsCredentialsProvider, Region awsRegion,
+    public SQSConnection sqsConnection(AWSCredentialsProvider awsCredentialsProvider,
         ClientConfiguration awsClientConfig) throws JMSException {
+        
+        SQSConnectionFactory connectionFactory = SQSConnectionFactory.builder()
+            .withRegion(RegionUtils.getRegion(EC2MetadataUtils.getEC2InstanceRegion())) //Gets region form meta data
+            .withAWSCredentialsProvider(awsCredentialsProvider)
+            .withClientConfiguration(awsClientConfig)
+            .build();
 
-        SQSConnectionFactory connectionFactory = SQSConnectionFactory.builder().withRegion(awsRegion)
-            .withAWSCredentialsProvider(awsCredentialsProvider).withClientConfiguration(awsClientConfig).build();
-
-        // Create the connection
-        SQSConnection connection = connectionFactory.createConnection();
-
-        return connection;
+        return connectionFactory.createConnection();
     }
 
     @Bean
