@@ -2,10 +2,10 @@ package com.shinesolutions.aemorchestrator.service;
 
 public enum InstanceTags {
 
-    PAIR_INSTANCE_ID("pair_instance_id"), 
-    AEM_PUBLISHER_HOST("aem_publisher_host"), 
-    AEM_DISPATCHER_HOST("aem_dispatcher_host"), 
-    SNAPSHOT_ID("snapshot_id");
+    PAIR_INSTANCE_ID("PairInstanceId"), 
+    AEM_PUBLISHER_HOST("PublishHost"), 
+    AEM_DISPATCHER_HOST("PublishDispatcherHost"), 
+    SNAPSHOT_ID("SnapshotId");
 
     private final String tagName;
 
