@@ -3,8 +3,8 @@ package com.shinesolutions.aemorchestrator.service;
 public enum InstanceTags {
 
     PAIR_INSTANCE_ID("PairInstanceId"), 
-    AEM_PUBLISHER_HOST("PublishHost"), 
-    AEM_DISPATCHER_HOST("PublishDispatcherHost"), 
+    AEM_PUBLISH_HOST("PublishHost"), 
+    AEM_PUBLISH_DISPATCHER_HOST("PublishDispatcherHost"), 
     SNAPSHOT_ID("SnapshotId");
 
     private final String tagName;

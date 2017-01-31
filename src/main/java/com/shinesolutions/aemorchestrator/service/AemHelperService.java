@@ -45,14 +45,14 @@ public class AemHelperService {
     
     private static final String URL_FORMAT = "%s://%s:%s";
     
-    public String getAemUrlForPublisherDispatcher(String instanceId) {
-        //Publisher dispatcher must be accessed via private IP
+    public String getAemUrlForPublishDispatcher(String instanceId) {
+        //Publish dispatcher must be accessed via private IP
         return String.format(URL_FORMAT, aemPublishDispatcherProtocol, 
             awsHelperService.getPrivateIp(instanceId), aemPublishDispatcherPort);
     }
     
-    public String getAemUrlForPublisher(String instanceId) {
-        //Publisher must be accessed via private IP
+    public String getAemUrlForPublish(String instanceId) {
+        //Publish must be accessed via private IP
         return String.format(URL_FORMAT, aemPublishProtocol, 
             awsHelperService.getPrivateIp(instanceId), aemPublishPort);
     }
@@ -69,38 +69,38 @@ public class AemHelperService {
             awsHelperService.getPrivateIp(instanceId), aemAuthorDispatcherPort);
     }
 
-    public String getPublisherIdForPairedDispatcher(String dispatcherInstanceId) {
-        List<String> publisherIds = awsHelperService.getInstanceIdsForAutoScalingGroup(
+    public String getPublishIdForPairedDispatcher(String dispatcherInstanceId) {
+        List<String> publishIds = awsHelperService.getInstanceIdsForAutoScalingGroup(
             envValues.getAutoScaleGroupNameForPublish());
         
-        return publisherIds.stream().filter(p -> dispatcherInstanceId.equals(
+        return publishIds.stream().filter(p -> dispatcherInstanceId.equals(
             awsHelperService.getTags(p).get(PAIR_INSTANCE_ID.getTagName()))).findFirst().get();
     }
     
-    public String getDispatcherIdForPairedPublisher(String publisherInstanceId) {
+    public String getDispatcherIdForPairedPublish(String publishInstanceId) {
         List<String> dispatcherIds = awsHelperService.getInstanceIdsForAutoScalingGroup(
             envValues.getAutoScaleGroupNameForPublishDispatcher());
         
-        return dispatcherIds.stream().filter(d -> publisherInstanceId.equals(
+        return dispatcherIds.stream().filter(d -> publishInstanceId.equals(
             awsHelperService.getTags(d).get(PAIR_INSTANCE_ID.getTagName()))).findFirst().get();
     }
     
-    public int getAutoScalingGroupDesiredCapacityForPublisher() {
+    public int getAutoScalingGroupDesiredCapacityForPublish() {
         return awsHelperService.getAutoScalingGroupDesiredCapacity(envValues.getAutoScaleGroupNameForPublish());
     }
     
-    public int getAutoScalingGroupDesiredCapacityForPublisherDispatcher() {
+    public int getAutoScalingGroupDesiredCapacityForPublishDispatcher() {
         return awsHelperService.getAutoScalingGroupDesiredCapacity(envValues.getAutoScaleGroupNameForPublishDispatcher());
     }
     
-    public void setAutoScalingGroupDesiredCapacityForPublisher(int desiredCapacity) {
+    public void setAutoScalingGroupDesiredCapacityForPublish(int desiredCapacity) {
         awsHelperService.setAutoScalingGroupDesiredCapacity(envValues.getAutoScaleGroupNameForPublish(), desiredCapacity);
     }
     
-    public String getPublisherIdToSnapshotFrom(String excludeInstanceId) {
-        List<String> publisherIds = awsHelperService.getInstanceIdsForAutoScalingGroup(
+    public String getPublishIdToSnapshotFrom(String excludeInstanceId) {
+        List<String> publishIds = awsHelperService.getInstanceIdsForAutoScalingGroup(
             envValues.getAutoScaleGroupNameForPublish());
-        return publisherIds.stream().filter(s -> !s.equals(excludeInstanceId)).findFirst().get();
+        return publishIds.stream().filter(s -> !s.equals(excludeInstanceId)).findFirst().get();
     }
     
     public void tagInstanceWithSnapshotId(String instanceId, String snapshotId) {
@@ -109,19 +109,19 @@ public class AemHelperService {
         awsHelperService.addTags(instanceId, tags);
     }
     
-    public void pairPublisherWithDispatcher(String publisherId, String dispatcherId) {
-        Map<String, String> publisherTags = new HashMap<String, String>();
-        publisherTags.put(AEM_DISPATCHER_HOST.getTagName(), awsHelperService.getPrivateIp(dispatcherId));
-        publisherTags.put(PAIR_INSTANCE_ID.getTagName(), dispatcherId);
-        awsHelperService.addTags(publisherId, publisherTags);
+    public void pairPublishWithDispatcher(String publishId, String dispatcherId) {
+        Map<String, String> publishTags = new HashMap<String, String>();
+        publishTags.put(AEM_PUBLISH_DISPATCHER_HOST.getTagName(), awsHelperService.getPrivateIp(dispatcherId));
+        publishTags.put(PAIR_INSTANCE_ID.getTagName(), dispatcherId);
+        awsHelperService.addTags(publishId, publishTags);
         
         Map<String, String> dispatcherTags = new HashMap<String, String>();
-        dispatcherTags.put(AEM_PUBLISHER_HOST.getTagName(), awsHelperService.getPrivateIp(publisherId));
-        dispatcherTags.put(PAIR_INSTANCE_ID.getTagName(), publisherId);
+        dispatcherTags.put(AEM_PUBLISH_HOST.getTagName(), awsHelperService.getPrivateIp(publishId));
+        dispatcherTags.put(PAIR_INSTANCE_ID.getTagName(), publishId);
         awsHelperService.addTags(dispatcherId, dispatcherTags);
     }
     
-    public String findUnpairedPublisherDispatcher() {
+    public String findUnpairedPublishDispatcher() {
         List<String> dispatcherIds = awsHelperService.getInstanceIdsForAutoScalingGroup(
             envValues.getAutoScaleGroupNameForPublishDispatcher());
         return dispatcherIds.stream().filter(d -> !awsHelperService.getTags(d).containsKey(PAIR_INSTANCE_ID.getTagName()))

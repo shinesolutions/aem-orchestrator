@@ -13,7 +13,7 @@ import com.shinesolutions.aemorchestrator.service.AwsHelperService;
 import com.shinesolutions.swaggeraem4j.ApiException;
 
 @Component
-public class ScaleDownPublisherAction implements ScaleAction {
+public class ScaleDownPublishAction implements ScaleAction {
     
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
     
@@ -27,14 +27,14 @@ public class ScaleDownPublisherAction implements ScaleAction {
     private ReplicationAgentManager replicationAgentManager;
 
     public boolean execute(String instanceId) {
-        logger.info("ScaleDownPublisherAction executing");
+        logger.info("ScaleDownPublishAction executing");
         
         // Delete paired dispatcher
-        String pairedDispatcherId = aemHelperService.getDispatcherIdForPairedPublisher(instanceId);
+        String pairedDispatcherId = aemHelperService.getDispatcherIdForPairedPublish(instanceId);
         if(pairedDispatcherId != null) {
             awsHelperService.terminateInstance(pairedDispatcherId);
         } else {
-            logger.warn("Unable to find paired dispatcher for publisher " + instanceId);
+            logger.warn("Unable to find paired dispatcher for publish id " + instanceId);
         }
         
         // Delete replication agent on author
@@ -43,7 +43,7 @@ public class ScaleDownPublisherAction implements ScaleAction {
         try {
             replicationAgentManager.deleteReplicationAgent(instanceId, authorAemBaseUrl, AgentRunMode.AUTHOR);
         } catch (ApiException e) {
-            logger.error("Failed to delete replication agent on author for publisher id " + instanceId + 
+            logger.error("Failed to delete replication agent on author for publish id " + instanceId + 
                 " and auth URL: " + authorAemBaseUrl, e);
         }
         

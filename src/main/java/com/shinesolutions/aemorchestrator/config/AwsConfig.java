@@ -58,10 +58,10 @@ public class AwsConfig {
     private Integer clientMaxErrorRetry;
     
     @Value("${aws.cloudformation.stackName.publishDispatcher}")
-    private String awsPublisherDispatcherStackName;
+    private String awsPublishDispatcherStackName;
     
     @Value("${aws.cloudformation.stackName.publish}")
-    private String awsPublisherStackName;
+    private String awsPublishStackName;
     
     @Value("${aws.cloudformation.stackName.authorDispatcher}")
     private String awsAuthorDispatcherStackName;
@@ -70,10 +70,10 @@ public class AwsConfig {
     private String awsAuthorStackName;
 
     @Value("${aws.cloudformation.autoScaleGroup.logicalId.publishDispatcher}")
-    private String awsPublisherDispatcherAutoScaleGroupLogicalId;
+    private String awsPublishDispatcherAutoScaleGroupLogicalId;
 
     @Value("${aws.cloudformation.autoScaleGroup.logicalId.publish}")
-    private String awsPublisherAutoScaleGroupLogicalId;
+    private String awsPublishAutoScaleGroupLogicalId;
 
     @Value("${aws.cloudformation.autoScaleGroup.logicalId.authorDispatcher}")
     private String awsAuthorDispatcherAutoScaleGroupLogicalId;
@@ -177,14 +177,14 @@ public class AwsConfig {
         EnvironmentValues envValues = new EnvironmentValues();
 
         envValues.setAutoScaleGroupNameForPublishDispatcher(
-            awsHelper.getStackPhysicalResourceId(awsPublisherDispatcherStackName, awsPublisherDispatcherAutoScaleGroupLogicalId));
-        logger.info("Resolved auto scaling group name for publisher dispatcher to: " + 
+            awsHelper.getStackPhysicalResourceId(awsPublishDispatcherStackName, awsPublishDispatcherAutoScaleGroupLogicalId));
+        logger.info("Resolved auto scaling group name for publish dispatcher to: " + 
             envValues.getAutoScaleGroupNameForPublishDispatcher());
 
         envValues.setAutoScaleGroupNameForPublish(
-            awsHelper.getStackPhysicalResourceId(awsPublisherStackName, awsPublisherAutoScaleGroupLogicalId));
+            awsHelper.getStackPhysicalResourceId(awsPublishStackName, awsPublishAutoScaleGroupLogicalId));
         
-        logger.info("Resolved auto scaling group name for publisher to: " + 
+        logger.info("Resolved auto scaling group name for publish to: " + 
             envValues.getAutoScaleGroupNameForPublish());
 
         envValues.setAutoScaleGroupNameForAuthorDispatcher(

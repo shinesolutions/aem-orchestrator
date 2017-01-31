@@ -8,11 +8,11 @@ import org.springframework.context.annotation.Configuration;
 
 import com.shinesolutions.aemorchestrator.actions.ScaleAction;
 import com.shinesolutions.aemorchestrator.actions.ScaleDownAuthorDispatcherAction;
-import com.shinesolutions.aemorchestrator.actions.ScaleDownPublisherAction;
-import com.shinesolutions.aemorchestrator.actions.ScaleDownPublisherDispatcherAction;
+import com.shinesolutions.aemorchestrator.actions.ScaleDownPublishAction;
+import com.shinesolutions.aemorchestrator.actions.ScaleDownPublishDispatcherAction;
 import com.shinesolutions.aemorchestrator.actions.ScaleUpAuthorDispatcherAction;
-import com.shinesolutions.aemorchestrator.actions.ScaleUpPublisherAction;
-import com.shinesolutions.aemorchestrator.actions.ScaleUpPublisherDispatcherAction;
+import com.shinesolutions.aemorchestrator.actions.ScaleUpPublishAction;
+import com.shinesolutions.aemorchestrator.actions.ScaleUpPublishDispatcherAction;
 import com.shinesolutions.aemorchestrator.handler.AutoscaleLaunchEventHandler;
 import com.shinesolutions.aemorchestrator.handler.AutoscaleTerminateEventHandler;
 import com.shinesolutions.aemorchestrator.handler.EventHandler;
@@ -35,15 +35,15 @@ public class MappingConfig {
 
     @Bean
     public Map<String, ScaleAction> scaleDownAutoScaleGroupMappings(
-        final ScaleDownPublisherDispatcherAction scaleDownPublisherDispatcherAction,
-        final ScaleDownPublisherAction scaleDownPublisherAction,
+        final ScaleDownPublishDispatcherAction scaleDownPublishDispatcherAction,
+        final ScaleDownPublishAction scaleDownPublishAction,
         final ScaleDownAuthorDispatcherAction scaleDownAuthorDispatcherAction,
         final EnvironmentValues envValues) {
 
         Map<String, ScaleAction> mappings = new HashMap<String, ScaleAction>();
         
-        mappings.put(envValues.getAutoScaleGroupNameForPublishDispatcher(), scaleDownPublisherDispatcherAction);
-        mappings.put(envValues.getAutoScaleGroupNameForPublish(), scaleDownPublisherAction);
+        mappings.put(envValues.getAutoScaleGroupNameForPublishDispatcher(), scaleDownPublishDispatcherAction);
+        mappings.put(envValues.getAutoScaleGroupNameForPublish(), scaleDownPublishAction);
         mappings.put(envValues.getAutoScaleGroupNameForAuthorDispatcher(), scaleDownAuthorDispatcherAction);
 
         return mappings;
@@ -51,15 +51,15 @@ public class MappingConfig {
     
     @Bean
     public Map<String, ScaleAction> scaleUpAutoScaleGroupMappings(
-        final ScaleUpPublisherDispatcherAction scaleUpPublisherDispatcherAction,
-        final ScaleUpPublisherAction scaleUpPublisherAction,
+        final ScaleUpPublishDispatcherAction scaleUpPublishDispatcherAction,
+        final ScaleUpPublishAction scaleUpPublishAction,
         final ScaleUpAuthorDispatcherAction scaleUpAuthorDispatcherAction,
         final EnvironmentValues envValues) {
 
         Map<String, ScaleAction> mappings = new HashMap<String, ScaleAction>();
    
-        mappings.put(envValues.getAutoScaleGroupNameForPublishDispatcher(), scaleUpPublisherDispatcherAction);
-        mappings.put(envValues.getAutoScaleGroupNameForPublish(), scaleUpPublisherAction);
+        mappings.put(envValues.getAutoScaleGroupNameForPublishDispatcher(), scaleUpPublishDispatcherAction);
+        mappings.put(envValues.getAutoScaleGroupNameForPublish(), scaleUpPublishAction);
         mappings.put(envValues.getAutoScaleGroupNameForAuthorDispatcher(), scaleUpAuthorDispatcherAction);
 
         return mappings;

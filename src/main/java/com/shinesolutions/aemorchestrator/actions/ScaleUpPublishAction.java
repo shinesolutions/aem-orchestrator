@@ -13,7 +13,7 @@ import com.shinesolutions.aemorchestrator.service.AwsHelperService;
 import com.shinesolutions.swaggeraem4j.ApiException;
 
 @Component
-public class ScaleUpPublisherAction implements ScaleAction {
+public class ScaleUpPublishAction implements ScaleAction {
     
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
     
@@ -29,60 +29,60 @@ public class ScaleUpPublisherAction implements ScaleAction {
     private static final String DEVICE_NAME = "/dev/sdb";
 
     public boolean execute(String instanceId) {
-        logger.info("ScaleUpPublisherAction executing");
+        logger.info("ScaleUpPublishAction executing");
         
         boolean success = true;
         
-        // First create replication agent on publisher
-        String publisherAemBaseUrl = aemHelperService.getAemUrlForPublisher(instanceId);
+        // First create replication agent on publish instance
+        String publishAemBaseUrl = aemHelperService.getAemUrlForPublish(instanceId);
         String authorAemBaseUrl = aemHelperService.getAemUrlForAuthorElb();
         try {
             replicationAgentManager.createReplicationAgent(
-                instanceId, publisherAemBaseUrl, authorAemBaseUrl, AgentRunMode.PUBLISH);
+                instanceId, publishAemBaseUrl, authorAemBaseUrl, AgentRunMode.PUBLISH);
             
             // Immediately pause agent
             replicationAgentManager.pauseReplicationAgent(instanceId, authorAemBaseUrl, AgentRunMode.PUBLISH);
         } catch (ApiException e) {
-            logger.error("Error while attempting to set up new publisher replication agent", e);
+            logger.error("Error while attempting to set up new publish replication agent", e);
             success = false;
         }
         
-        // Create a new publisher from a snapshot of an active publisher
+        // Create a new publish from a snapshot of an active publish instance
         if(success) {
-            String activePublisherId = aemHelperService.getPublisherIdToSnapshotFrom(instanceId);
-            // Pause active publisher's replication agent before taking snapshot
+            String activePublishId = aemHelperService.getPublishIdToSnapshotFrom(instanceId);
+            // Pause active publish's replication agent before taking snapshot
             try {
-                replicationAgentManager.pauseReplicationAgent(activePublisherId, authorAemBaseUrl, AgentRunMode.PUBLISH);
+                replicationAgentManager.pauseReplicationAgent(activePublishId, authorAemBaseUrl, AgentRunMode.PUBLISH);
                 // Take snapshot
-                String volumeId = awsHelperService.getVolumeId(activePublisherId, DEVICE_NAME);
+                String volumeId = awsHelperService.getVolumeId(activePublishId, DEVICE_NAME);
                 if(volumeId != null) {
                     String snapshotShotId = awsHelperService.createSnapshot(volumeId, 
-                        "Snapshot of publisher " + activePublisherId + " and volume id " + volumeId);
+                        "Snapshot of publish instance id " + activePublishId + " and volume id " + volumeId);
                     aemHelperService.tagInstanceWithSnapshotId(instanceId, snapshotShotId);
                     
                 } else {
                     // Not good
                     logger.error("Unable to find volume id for block device '" + DEVICE_NAME + 
-                        "' and instance id " + activePublisherId);
+                        "' and instance id " + activePublishId);
                     success = false;
                 }
                 
             } catch (ApiException e) {
-                logger.error("Error while pausing and attempting to snapshot an active publisher", e);
+                logger.error("Error while pausing and attempting to snapshot an active publish instance", e);
                 success = false;
             }
         }
         
-        // Find unpaired publisher dispatcher and pair it with tags
+        // Find unpaired publish dispatcher and pair it with tags
         if(success) {
-            String unpairedDispatcherId = aemHelperService.findUnpairedPublisherDispatcher();
-            aemHelperService.pairPublisherWithDispatcher(instanceId, unpairedDispatcherId);
+            String unpairedDispatcherId = aemHelperService.findUnpairedPublishDispatcher();
+            aemHelperService.pairPublishWithDispatcher(instanceId, unpairedDispatcherId);
             
             // Resume paused replication agents
             try {
                 replicationAgentManager.restartReplicationAgent(instanceId, authorAemBaseUrl, AgentRunMode.PUBLISH);
             } catch (ApiException e) {
-                logger.error("Error while attempting to restart replication agent on publisher: " + instanceId);
+                logger.error("Error while attempting to restart replication agent on publish instance: " + instanceId);
             }
         }
         

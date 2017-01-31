@@ -41,7 +41,7 @@ public class AgentRequestFactory {
     }
     
     public PostAgentWithHttpInfoRequest getCreateReplicationAgentRequest(
-        AgentRunMode runMode, String agentName, String publisherAemBaseUrl, String user, String password) {
+        AgentRunMode runMode, String agentName, String publishAemBaseUrl, String user, String password) {
 
         return new PostAgentWithHttpInfoRequest()
             .withRunMode(runMode.name().toLowerCase())
@@ -51,7 +51,7 @@ public class AgentRequestFactory {
             .withJcrContentJcrTitle(agentName)
             .withJcrContentJcrDescription("Replication Agent for " + runMode.name().toLowerCase())
             .withJcrContentSlingResourceType(SLING_RESOURCE_TYPE)
-            .withJcrContentTransportUri(publisherAemBaseUrl + "/bin/receive?sling:authRequestLogin=1")
+            .withJcrContentTransportUri(publishAemBaseUrl + "/bin/receive?sling:authRequestLogin=1")
             .withJcrContentTransportUser(user)
             .withJcrContentTransportPassword(password)
             .withJcrContentLogLevel("error")

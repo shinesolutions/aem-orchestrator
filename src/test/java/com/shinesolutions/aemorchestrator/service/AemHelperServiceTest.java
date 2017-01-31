@@ -47,8 +47,8 @@ public class AemHelperServiceTest {
         privateIp = "11.22.33.44";
         
         envValues = new EnvironmentValues();
-        envValues.setAutoScaleGroupNameForPublishDispatcher("publisherDispatcherTestName");
-        envValues.setAutoScaleGroupNameForPublish("publisherTestName");
+        envValues.setAutoScaleGroupNameForPublishDispatcher("publishDispatcherTestName");
+        envValues.setAutoScaleGroupNameForPublish("publishTestName");
         envValues.setAutoScaleGroupNameForAuthorDispatcher("authorTestName");
         
         aemPublishDispatcherProtocol = "pdpd";
@@ -70,19 +70,19 @@ public class AemHelperServiceTest {
     }
 
     @Test
-    public void testGetAemUrlForPublisherDispatcher() throws Exception {
+    public void testGetAemUrlForPublishDispatcher() throws Exception {
         when(awsHelperService.getPrivateIp(instanceId)).thenReturn(privateIp);
         
-        String aemUrl = aemHelperService.getAemUrlForPublisherDispatcher(instanceId);
+        String aemUrl = aemHelperService.getAemUrlForPublishDispatcher(instanceId);
         
         assertThat(aemUrl, equalTo(aemPublishDispatcherProtocol + "://" + privateIp + ":" + aemPublishDispatcherPort));
     }
     
     @Test
-    public void testGetAemUrlForPublisher() throws Exception {
+    public void testGetAemUrlForPublish() throws Exception {
         when(awsHelperService.getPrivateIp(instanceId)).thenReturn(privateIp);
         
-        String aemUrl = aemHelperService.getAemUrlForPublisher(instanceId);
+        String aemUrl = aemHelperService.getAemUrlForPublish(instanceId);
         
         assertThat(aemUrl, equalTo(aemPublishProtocol + "://" + privateIp + ":" + aemPublishPort));
     }
@@ -106,7 +106,7 @@ public class AemHelperServiceTest {
     }
     
     @Test
-    public void testGetPublisherIdToSnapshotFrom() throws Exception {
+    public void testGetPublishIdToSnapshotFrom() throws Exception {
         String excludeInstanceId = "exclude-352768";
         List<String> instanceIds = new ArrayList<String>();
         instanceIds.add(excludeInstanceId);
@@ -114,13 +114,13 @@ public class AemHelperServiceTest {
         instanceIds.add("extra-89351");
         
         when(awsHelperService.getInstanceIdsForAutoScalingGroup(envValues.getAutoScaleGroupNameForPublish())).thenReturn(instanceIds);
-        String resultInstanceId = aemHelperService.getPublisherIdToSnapshotFrom(excludeInstanceId);
+        String resultInstanceId = aemHelperService.getPublishIdToSnapshotFrom(excludeInstanceId);
         
         assertThat(resultInstanceId, equalTo(instanceId));
     }
     
     @Test
-    public void testFindUnpairedPublisherDispatcher() throws Exception {
+    public void testFindUnpairedPublishDispatcher() throws Exception {
         String instance1 = "1st-324983";
         String instance2 = "2nd-348894";
         String instance3 = "3rd-134333";
@@ -141,13 +141,13 @@ public class AemHelperServiceTest {
         when(awsHelperService.getTags(instance2)).thenReturn(tagsWithoutPairName); //Instance 2 is the winner
         when(awsHelperService.getTags(instance3)).thenReturn(tagsWithPairName);
         
-        String resultInstanceId = aemHelperService.findUnpairedPublisherDispatcher();
+        String resultInstanceId = aemHelperService.findUnpairedPublishDispatcher();
         
         assertThat(resultInstanceId, equalTo(instance2));
     }
     
     @Test
-    public void testGetPublisherIdForPairedDispatcher() throws Exception {
+    public void testGetPublishIdForPairedDispatcher() throws Exception {
         String instance1 = "1st-876543";
         String instance2 = "2nd-546424";
         String instance3 = "3rd-134777";
@@ -175,7 +175,7 @@ public class AemHelperServiceTest {
         when(awsHelperService.getTags(instance3)).thenReturn(tagsWithPair); //Instance 3 is the winner
         when(awsHelperService.getTags(instance4)).thenReturn(tagsWithoutPair);
         
-        String resultInstanceId = aemHelperService.getPublisherIdForPairedDispatcher(dispatcherId);
+        String resultInstanceId = aemHelperService.getPublishIdForPairedDispatcher(dispatcherId);
         
         assertThat(resultInstanceId, equalTo(instance3));
     }

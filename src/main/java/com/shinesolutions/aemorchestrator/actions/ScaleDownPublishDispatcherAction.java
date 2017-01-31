@@ -1,0 +1,54 @@
+package com.shinesolutions.aemorchestrator.actions;
+
+import javax.annotation.Resource;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
+
+import com.shinesolutions.aemorchestrator.service.AemHelperService;
+import com.shinesolutions.aemorchestrator.service.AwsHelperService;
+
+@Component
+public class ScaleDownPublishDispatcherAction implements ScaleAction {
+
+    private final Logger logger = LoggerFactory.getLogger(this.getClass());
+
+    @Resource
+    private AemHelperService aemHelperService;
+
+    @Resource
+    private AwsHelperService awsHelperService;
+
+    public boolean execute(String instanceId) {
+        logger.info("ScaleDownPublishDispatcherAction executing");
+
+        // Find and terminate paired publish instance
+        String pairedPublishId = aemHelperService.getPublishIdForPairedDispatcher(instanceId);
+
+        if (pairedPublishId != null) {
+            // Terminate paired publish instance
+            awsHelperService.terminateInstance(pairedPublishId);
+        } else {
+            logger.warn("Unable to located paired publish instance for publish dispatcher id: " + instanceId);
+        }
+
+        // Change publish auto scaling group desired capacity to match dispatcher
+        int currentDispatcherDesiredCapacity = aemHelperService
+            .getAutoScalingGroupDesiredCapacityForPublishDispatcher();
+        int currentPublishDesiredCapacity = aemHelperService.getAutoScalingGroupDesiredCapacityForPublish();
+
+        if (currentDispatcherDesiredCapacity == currentPublishDesiredCapacity) {
+            // If desired capacity already the same, then don't do anything
+            logger.info("Desired capacity already matching for publish and dispatcher. No changes will be made");
+        } else {
+            logger.info("Changing publish auto scaling group capacity of " + currentPublishDesiredCapacity + 
+                " to match dispatcher's capacity of " + currentDispatcherDesiredCapacity);
+            aemHelperService.setAutoScalingGroupDesiredCapacityForPublish(currentDispatcherDesiredCapacity);
+        }
+        
+
+        return true;
+    }
+
+}
