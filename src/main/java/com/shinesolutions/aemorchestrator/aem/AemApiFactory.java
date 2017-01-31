@@ -21,6 +21,9 @@ public class AemApiFactory {
     @Value("${aem.orchestrator.password}")
     private String orchestratorPassword;
     
+    @Value("${aem.swaggeraem4j.useDebugging}")
+    private Boolean useApiClientDebugging;
+    
     private static enum UserType {
         ORCHESTRATOR,
         REPLICATOR
@@ -37,7 +40,7 @@ public class AemApiFactory {
         ApiClient client = new ApiClient();
         
         client.setBasePath(basePath);
-        client.setDebugging(false);
+        client.setDebugging(useApiClientDebugging);
         
         if(user == UserType.REPLICATOR) {
             client.setUsername(replicatorUsername);
