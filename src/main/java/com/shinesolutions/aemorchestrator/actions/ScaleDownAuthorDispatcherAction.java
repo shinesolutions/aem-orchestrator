@@ -30,6 +30,7 @@ public class ScaleDownAuthorDispatcherAction implements ScaleAction {
         boolean success = false;
         
         try {
+            logger.debug("Attempting to delete flush agent at base AEM path: " + aemBasePath);
             flushAgentManager.deleteFlushAgent(instanceId, aemBasePath, AgentRunMode.AUTHOR);
             success = true;
         } catch (ApiException e) {

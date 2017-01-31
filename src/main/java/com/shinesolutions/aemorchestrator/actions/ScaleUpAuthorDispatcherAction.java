@@ -31,6 +31,8 @@ public class ScaleUpAuthorDispatcherAction implements ScaleAction {
         String authElbAemBaseUrl = aemHelperService.getAemUrlForAuthorElb();
 
         try {
+            logger.debug("Attempting to create flush agent at base AEM path: " + authElbAemBaseUrl);
+            
             flushAgentManager.createFlushAgent(instanceId, authElbAemBaseUrl, authDispatcherAemBaseUrl,
                 AgentRunMode.AUTHOR);
             success = true;
