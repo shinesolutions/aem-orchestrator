@@ -3,7 +3,6 @@ package com.shinesolutions.aemorchestrator.service;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.annotation.Resource;
-import javax.jms.JMSException;
 import javax.jms.Message;
 import javax.jms.MessageConsumer;
 import javax.jms.MessageListener;
@@ -52,7 +51,7 @@ public class MessageReceiver implements  MessageListener {
 				logger.info("Null message received");
 			}
 
-		} catch (JMSException e) {
+		} catch (Exception e) {
 			logger.error("Error while recieving message", e);
 		}
 	}

@@ -5,6 +5,7 @@ public enum InstanceTags {
     PAIR_INSTANCE_ID("PairInstanceId"), 
     AEM_PUBLISH_HOST("PublishHost"), 
     AEM_PUBLISH_DISPATCHER_HOST("PublishDispatcherHost"), 
+    AEM_AUTHOR_HOST("AuthorHost"),
     SNAPSHOT_ID("SnapshotId");
 
     private final String tagName;

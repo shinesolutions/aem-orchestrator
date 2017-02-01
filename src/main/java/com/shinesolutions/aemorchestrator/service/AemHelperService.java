@@ -103,6 +103,12 @@ public class AemHelperService {
         return publishIds.stream().filter(s -> !s.equals(excludeInstanceId)).findFirst().get();
     }
     
+    public void tagAuthorDispatcherWithAuthorELB(String authorDispatcherId) {
+        Map<String, String> authorTags = new HashMap<String, String>();
+        authorTags.put(AEM_AUTHOR_HOST.getTagName(), envValues.getElasticLoadBalancerNameForAuthor());
+        awsHelperService.addTags(authorDispatcherId, authorTags);
+    }
+    
     public void tagInstanceWithSnapshotId(String instanceId, String snapshotId) {
         Map<String, String> tags = new HashMap<String, String>();
         tags.put(SNAPSHOT_ID.getTagName(), snapshotId);
@@ -124,8 +130,8 @@ public class AemHelperService {
     public String findUnpairedPublishDispatcher() {
         List<String> dispatcherIds = awsHelperService.getInstanceIdsForAutoScalingGroup(
             envValues.getAutoScaleGroupNameForPublishDispatcher());
-        return dispatcherIds.stream().filter(d -> !awsHelperService.getTags(d).containsKey(PAIR_INSTANCE_ID.getTagName()))
-            .findFirst().get();
+        return dispatcherIds.stream().filter(d -> !awsHelperService.getTags(d).containsKey(
+            PAIR_INSTANCE_ID.getTagName())).findFirst().get();
     }
     
 }
