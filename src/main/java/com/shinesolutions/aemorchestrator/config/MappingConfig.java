@@ -17,6 +17,7 @@ import com.shinesolutions.aemorchestrator.handler.AutoscaleLaunchEventHandler;
 import com.shinesolutions.aemorchestrator.handler.AutoscaleTerminateEventHandler;
 import com.shinesolutions.aemorchestrator.handler.EventHandler;
 import com.shinesolutions.aemorchestrator.model.EnvironmentValues;
+import com.shinesolutions.aemorchestrator.model.EventType;
 
 @Configuration
 public class MappingConfig {
@@ -27,8 +28,8 @@ public class MappingConfig {
         final AutoscaleLaunchEventHandler autoscaleLaunchEventHandler) {
 
         Map<String, EventHandler> mappings = new HashMap<String, EventHandler>();
-        mappings.put("autoscaling:EC2_INSTANCE_TERMINATE", autoscaleTerminateEventHandler);
-        mappings.put("autoscaling:EC2_INSTANCE_LAUNCH", autoscaleLaunchEventHandler);
+        mappings.put(EventType.AUTOSCALING_EC2_INSTANCE_TERMINATE.getValue(), autoscaleTerminateEventHandler);
+        mappings.put(EventType.AUTOSCALING_EC2_INSTANCE_LAUNCH.getValue(), autoscaleLaunchEventHandler);
 
         return mappings;
     }

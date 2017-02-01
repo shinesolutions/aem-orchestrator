@@ -38,7 +38,7 @@ public class ScaleUpAuthorDispatcherAction implements ScaleAction {
             success = true;
         } catch (ApiException e) {
             logger.error("Failed to create flush agent for dispatcher id: " + instanceId + ", and run mode: "
-                + AgentRunMode.AUTHOR.name(), e);
+                + AgentRunMode.AUTHOR.getValue(), e);
         }
 
         return success;

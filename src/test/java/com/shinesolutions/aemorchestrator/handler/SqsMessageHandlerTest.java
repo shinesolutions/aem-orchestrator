@@ -25,6 +25,7 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import com.shinesolutions.aemorchestrator.model.EventMessage;
+import com.shinesolutions.aemorchestrator.model.EventType;
 
 @RunWith(MockitoJUnitRunner.class)
 public class SqsMessageHandlerTest {
@@ -45,7 +46,8 @@ public class SqsMessageHandlerTest {
 
         mockEventHandler = mock(EventHandler.class);
 
-        when(eventTypeHandlerMappings.get("autoscaling:EC2_INSTANCE_TERMINATE")).thenReturn(mockEventHandler);
+        when(eventTypeHandlerMappings.get(
+            EventType.AUTOSCALING_EC2_INSTANCE_TERMINATE.getValue())).thenReturn(mockEventHandler);
     }
 
     @Test
@@ -77,7 +79,7 @@ public class SqsMessageHandlerTest {
 
     @Test
     public void testNoEventHandlerFound() {
-        when(eventTypeHandlerMappings.get("autoscaling:EC2_INSTANCE_TERMINATE")).thenReturn(null);
+        when(eventTypeHandlerMappings.get(EventType.AUTOSCALING_EC2_INSTANCE_TERMINATE.getValue())).thenReturn(null);
 
         boolean result = sqsMessageHandler.handleMessage(testMessage);
 

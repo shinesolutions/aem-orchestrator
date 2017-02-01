@@ -35,7 +35,7 @@ public class ScaleDownAuthorDispatcherAction implements ScaleAction {
             success = true;
         } catch (ApiException e) {
             logger.error("Failed to delete flush agent for dispatcher id: " + instanceId + ", and run mode: "
-                + AgentRunMode.AUTHOR.name(), e);
+                + AgentRunMode.AUTHOR.getValue(), e);
         }
         
         return success;

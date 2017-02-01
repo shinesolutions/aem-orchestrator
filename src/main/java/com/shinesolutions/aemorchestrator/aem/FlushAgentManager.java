@@ -31,7 +31,7 @@ public class FlushAgentManager {
     public void deleteFlushAgent(String dispatcherInstanceId, String aemBaseUrl, AgentRunMode runMode)
         throws ApiException {
         logger.info(
-            "Deleting flush agent for dispatcher id: " + dispatcherInstanceId + ", and run mode: " + runMode.name());
+            "Deleting flush agent for dispatcher id: " + dispatcherInstanceId + ", and run mode: " + runMode.getValue());
 
         SlingApi slingApi = aemApiFactory.getSlingApi(aemBaseUrl, AgentAction.DELETE);
         
@@ -43,7 +43,7 @@ public class FlushAgentManager {
     public void createFlushAgent(String dispatcherInstanceId, String aemBaseUrl, String aemDispatcherBaseUrl,
         AgentRunMode runMode) throws ApiException {
         logger.info(
-            "Creating flush agent for dispatcher id: " + dispatcherInstanceId + ", and run mode: " + runMode.name());
+            "Creating flush agent for dispatcher id: " + dispatcherInstanceId + ", and run mode: " + runMode.getValue());
 
         PostAgentWithHttpInfoRequest request = agentRequestFactory.getCreateFlushAgentRequest(runMode,
             getFlushAgentName(dispatcherInstanceId), aemDispatcherBaseUrl);

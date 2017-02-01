@@ -15,7 +15,7 @@ public class AgentRequestFactory {
     public PostAgentWithHttpInfoRequest getCreateFlushAgentRequest(AgentRunMode runMode, String agentName, String aemDispatcherBaseUrl) {
 
         return new PostAgentWithHttpInfoRequest()
-            .withRunMode(runMode.name().toLowerCase())
+            .withRunMode(runMode.getValue())
             .withName(agentName)
             .withJcrPrimaryType("cq:Page")
             .withJcrContentCqName(null)
@@ -44,7 +44,7 @@ public class AgentRequestFactory {
         AgentRunMode runMode, String agentName, String publishAemBaseUrl, String user, String password) {
 
         return new PostAgentWithHttpInfoRequest()
-            .withRunMode(runMode.name().toLowerCase())
+            .withRunMode(runMode.getValue())
             .withName(agentName)
             .withJcrPrimaryType("cq:Page")
             .withJcrContentCqName(null)
@@ -73,7 +73,7 @@ public class AgentRequestFactory {
         AgentRunMode runMode, String agentName, String authorAemBaseUrl, String user) {
 
         return new PostAgentWithHttpInfoRequest()
-            .withRunMode(runMode.name().toLowerCase())
+            .withRunMode(runMode.getValue())
             .withName(agentName)
             .withJcrPrimaryType("cq:Page")
             .withJcrContentCqName(null)
@@ -102,7 +102,7 @@ public class AgentRequestFactory {
         AgentRunMode runMode, String agentName, String authorAemBaseUrl, String user) {
 
         return new PostAgentWithHttpInfoRequest()
-            .withRunMode(runMode.name().toLowerCase())
+            .withRunMode(runMode.getValue())
             .withName(agentName)
             .withJcrPrimaryType("cq:Page")
             .withJcrContentCqName(null)

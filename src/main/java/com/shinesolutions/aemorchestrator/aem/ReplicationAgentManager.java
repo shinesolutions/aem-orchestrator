@@ -82,7 +82,7 @@ public class ReplicationAgentManager {
         
         SlingApi slingApi = aemApiFactory.getSlingApi(authorAemBaseUrl, AgentAction.DELETE);
 
-        ApiResponse<Void> response = slingApi.deleteAgentWithHttpInfo(runMode.name().toLowerCase(),
+        ApiResponse<Void> response = slingApi.deleteAgentWithHttpInfo(runMode.getValue(),
             getReplicationAgentName(publishId));
 
         logger.debug("ApiResponse status code: " + response.getStatusCode());
