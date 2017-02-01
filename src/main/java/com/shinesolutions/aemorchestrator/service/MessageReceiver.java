@@ -46,6 +46,8 @@ public class MessageReceiver implements  MessageListener {
 				if(removeMessageFromQueue) {
 				    logger.info("Acknowledged message (removing from queue): " + message.getJMSMessageID());
 				    message.acknowledge();
+				} else {
+				    logger.info("Leaving message: " + message.getJMSMessageID() + " on the queue");
 				}
 			} else {
 				logger.info("Null message received");
