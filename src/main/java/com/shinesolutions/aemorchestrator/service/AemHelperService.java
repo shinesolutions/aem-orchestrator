@@ -103,7 +103,7 @@ public class AemHelperService {
         return publishIds.stream().filter(s -> !s.equals(excludeInstanceId)).findFirst().get();
     }
     
-    public void tagAuthorDispatcherWithAuthorELB(String authorDispatcherId) {
+    public void tagAuthorDispatcherWithAuthorHost(String authorDispatcherId) {
         Map<String, String> authorTags = new HashMap<String, String>();
         authorTags.put(AEM_AUTHOR_HOST.getTagName(), envValues.getElasticLoadBalancerNameForAuthor());
         awsHelperService.addTags(authorDispatcherId, authorTags);

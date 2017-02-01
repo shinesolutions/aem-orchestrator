@@ -36,7 +36,7 @@ public class ScaleUpAuthorDispatcherAction implements ScaleAction {
             flushAgentManager.createFlushAgent(instanceId, authElbAemBaseUrl, authDispatcherAemBaseUrl,
                 AgentRunMode.AUTHOR);
             
-            aemHelperService.tagAuthorDispatcherWithAuthorELB(instanceId);
+            aemHelperService.tagAuthorDispatcherWithAuthorHost(instanceId);
             success = true;
         } catch (ApiException e) {
             logger.error("Failed to create flush agent for dispatcher id: " + instanceId + ", and run mode: "
