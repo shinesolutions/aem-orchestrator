@@ -45,10 +45,10 @@ public class AwsConfig {
     @Value("${aws.client.protocol}")
     private String clientProtocol;
 
-    @Value("${aws.client.proxy.host}")
+    @Value("${aws.client.proxy.host:@null}")
     private String clientProxyHost;
 
-    @Value("${aws.client.proxy.port}")
+    @Value("${aws.client.proxy.port:@null}")
     private Integer clientProxyPort;
 
     @Value("${aws.client.connection.timeout}")

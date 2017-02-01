@@ -21,8 +21,11 @@ public class AemApiFactory {
     @Value("${aem.orchestrator.password}")
     private String orchestratorPassword;
     
-    @Value("${aem.swaggeraem4j.useDebugging}")
-    private Boolean useApiClientDebugging;
+    @Value("${aem.client.api.debug}")
+    private Boolean useDebug;
+    
+    @Value("${aem.client.api.connection.timeout}")
+    private Integer connectionTimeout;
     
     private static enum UserType {
         ORCHESTRATOR,
@@ -40,7 +43,8 @@ public class AemApiFactory {
         ApiClient client = new ApiClient();
         
         client.setBasePath(basePath);
-        client.setDebugging(useApiClientDebugging);
+        client.setDebugging(useDebug);
+        client.setConnectTimeout(connectionTimeout);
         
         if(user == UserType.REPLICATOR) {
             client.setUsername(replicatorUsername);
