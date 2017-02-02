@@ -85,7 +85,8 @@ public class SqsMessageHandlerTest {
 
         verify(mockEventHandler, never()).handleEvent(any(EventMessage.class));
 
-        assertThat(result, equalTo(false));
+        //Ensure that it deletes unknown messages from the queue
+        assertThat(result, equalTo(true));
     }
 
     @Test

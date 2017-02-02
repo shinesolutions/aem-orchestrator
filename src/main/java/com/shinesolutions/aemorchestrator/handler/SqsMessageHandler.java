@@ -26,7 +26,7 @@ public class SqsMessageHandler implements MessageHandler {
 
     public boolean handleMessage(Message message) {
         
-        boolean handleSuccess = false;
+        boolean deleteMessage = false;
         EventMessage eventMessage = null;
         
         try {
@@ -45,10 +45,11 @@ public class SqsMessageHandler implements MessageHandler {
 
             if (eventHandler == null) {
                 logger.error("No event handler found for message type: " + eventType);
+                deleteMessage = true; //Delete unknown message type from the queue
             } else {
                 try {
                     logger.debug("Handling event: " + eventType);
-                    handleSuccess = eventHandler.handleEvent(eventMessage);
+                    deleteMessage = eventHandler.handleEvent(eventMessage);
                     
                 } catch (Exception e) {
                     logger.error("Failed to handle event for message type: " + eventType, e);
@@ -56,7 +57,7 @@ public class SqsMessageHandler implements MessageHandler {
             }
         }
 
-        return handleSuccess;
+        return deleteMessage;
     }
 
 }
