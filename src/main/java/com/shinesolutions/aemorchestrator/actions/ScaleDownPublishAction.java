@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 
 import com.shinesolutions.aemorchestrator.aem.AgentRunMode;
 import com.shinesolutions.aemorchestrator.aem.ReplicationAgentManager;
-import com.shinesolutions.aemorchestrator.service.AemHelperService;
+import com.shinesolutions.aemorchestrator.service.AemInstanceHelperService;
 import com.shinesolutions.aemorchestrator.service.AwsHelperService;
 import com.shinesolutions.swaggeraem4j.ApiException;
 
@@ -18,7 +18,7 @@ public class ScaleDownPublishAction implements ScaleAction {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
     
     @Resource
-    private AemHelperService aemHelperService;
+    private AemInstanceHelperService aemHelperService;
 
     @Resource
     private AwsHelperService awsHelperService;

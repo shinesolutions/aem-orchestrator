@@ -6,7 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
-import com.shinesolutions.aemorchestrator.service.AemHelperService;
+import com.shinesolutions.aemorchestrator.service.AemInstanceHelperService;
 import com.shinesolutions.aemorchestrator.service.AwsHelperService;
 
 @Component
@@ -15,7 +15,7 @@ public class ScaleDownPublishDispatcherAction implements ScaleAction {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     @Resource
-    private AemHelperService aemHelperService;
+    private AemInstanceHelperService aemHelperService;
 
     @Resource
     private AwsHelperService awsHelperService;

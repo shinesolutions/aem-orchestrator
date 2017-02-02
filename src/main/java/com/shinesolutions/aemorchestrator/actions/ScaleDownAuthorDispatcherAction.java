@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 
 import com.shinesolutions.aemorchestrator.aem.AgentRunMode;
 import com.shinesolutions.aemorchestrator.aem.FlushAgentManager;
-import com.shinesolutions.aemorchestrator.service.AemHelperService;
+import com.shinesolutions.aemorchestrator.service.AemInstanceHelperService;
 import com.shinesolutions.swaggeraem4j.ApiException;
 
 @Component
@@ -20,7 +20,7 @@ public class ScaleDownAuthorDispatcherAction implements ScaleAction {
     private FlushAgentManager flushAgentManager;
     
     @Resource
-    private AemHelperService aemHelperService;
+    private AemInstanceHelperService aemHelperService;
     
     public boolean execute(String instanceId) {
         logger.info("ScaleDownAuthorDispatcherAction executing");

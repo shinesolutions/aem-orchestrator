@@ -21,7 +21,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 import com.shinesolutions.aemorchestrator.model.EnvironmentValues;
 
 @RunWith(MockitoJUnitRunner.class)
-public class AemHelperServiceTest {
+public class AemInstanceHelperServiceTest {
     
     private String aemPublishDispatcherProtocol;
     private String aemPublishProtocol;
@@ -34,7 +34,7 @@ public class AemHelperServiceTest {
     private AwsHelperService awsHelperService;
     
     @InjectMocks
-    private AemHelperService aemHelperService;
+    private AemInstanceHelperService aemHelperService;
     
     private EnvironmentValues envValues;
     

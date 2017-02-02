@@ -6,7 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
-import com.shinesolutions.aemorchestrator.service.AemHelperService;
+import com.shinesolutions.aemorchestrator.service.AemInstanceHelperService;
 
 @Component
 public class ScaleUpPublishDispatcherAction implements ScaleAction {
@@ -14,7 +14,7 @@ public class ScaleUpPublishDispatcherAction implements ScaleAction {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
     
     @Resource
-    private AemHelperService aemHelperService;
+    private AemInstanceHelperService aemHelperService;
     
     public boolean execute(String instanceId) {
         logger.info("ScaleUpPublishDispatcherAction executing");
