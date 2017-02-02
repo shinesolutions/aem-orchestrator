@@ -31,8 +31,8 @@ public class AemOrchestrator {
     private final static Logger logger = LoggerFactory.getLogger(AemOrchestrator.class);
 
     public static void main(String[] args) throws Exception {
-        logger.info("Starting AEM Orchestrator");
         SpringApplication.run(AemOrchestrator.class, args);
+        logger.info("AEM Orchestrator Started");
     }
 
 }
