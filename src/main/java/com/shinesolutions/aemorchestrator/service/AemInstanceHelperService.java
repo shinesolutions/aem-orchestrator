@@ -170,7 +170,8 @@ public class AemInstanceHelperService {
      */
     public void tagAuthorDispatcherWithAuthorHost(String authorDispatcherInstanceId) {
         Map<String, String> authorTags = new HashMap<String, String>();
-        authorTags.put(AEM_AUTHOR_HOST.getTagName(), envValues.getElasticLoadBalancerNameForAuthor());
+        authorTags.put(AEM_AUTHOR_HOST.getTagName(), awsHelperService.getElbDnsName(
+            envValues.getElasticLoadBalancerNameForAuthor()));
         awsHelperService.addTags(authorDispatcherInstanceId, authorTags);
     }
     
