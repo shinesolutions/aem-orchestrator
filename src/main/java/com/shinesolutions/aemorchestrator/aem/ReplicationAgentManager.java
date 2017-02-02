@@ -4,9 +4,9 @@ import javax.annotation.Resource;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import com.shinesolutions.aemorchestrator.model.AemCredentials;
 import com.shinesolutions.swaggeraem4j.ApiException;
 import com.shinesolutions.swaggeraem4j.ApiResponse;
 import com.shinesolutions.swaggeraem4j.api.SlingApi;
@@ -19,11 +19,8 @@ import com.shinesolutions.swaggeraem4j.api.SlingApi;
 public class ReplicationAgentManager {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
-    @Value("${aem.replicator.username}")
-    private String replicatorUsername;
-
-    @Value("${aem.replicator.password}")
-    private String replicatorPassword;
+    @Resource
+    private AemCredentials aemCredentials;
 
     @Resource
     private AemApiFactory aemApiFactory;
@@ -39,7 +36,9 @@ public class ReplicationAgentManager {
         logger.info("Creating replication agent for publish id: " + publishId);
         
         PostAgentWithHttpInfoRequest request = agentRequestFactory.getCreateReplicationAgentRequest(runMode,
-            getReplicationAgentName(publishId), publishAemBaseUrl, replicatorUsername, replicatorPassword);
+            getReplicationAgentName(publishId), publishAemBaseUrl, 
+            aemCredentials.getReplicatorCredentials().getUserName(), 
+            aemCredentials.getReplicatorCredentials().getPassword());
 
         SlingApi slingApi = aemApiFactory.getSlingApi(authorAemBaseUrl, AgentAction.CREATE);
 

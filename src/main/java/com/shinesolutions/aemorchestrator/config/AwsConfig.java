@@ -4,8 +4,6 @@ import javax.jms.JMSException;
 import javax.jms.MessageConsumer;
 import javax.jms.Session;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -26,15 +24,13 @@ import com.amazonaws.services.ec2.AmazonEC2;
 import com.amazonaws.services.ec2.AmazonEC2ClientBuilder;
 import com.amazonaws.services.elasticloadbalancing.AmazonElasticLoadBalancing;
 import com.amazonaws.services.elasticloadbalancing.AmazonElasticLoadBalancingClientBuilder;
+import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.util.EC2MetadataUtils;
-import com.shinesolutions.aemorchestrator.model.EnvironmentValues;
-import com.shinesolutions.aemorchestrator.service.AwsHelperService;
 
 @Configuration
 @Profile("default")
 public class AwsConfig {
-
-    private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     @Value("${aws.sqs.queueName}")
     private String queueName;
@@ -56,34 +52,8 @@ public class AwsConfig {
 
     @Value("${aws.client.max.errorRetry}")
     private Integer clientMaxErrorRetry;
-    
-    @Value("${aws.cloudformation.stackName.publishDispatcher}")
-    private String awsPublishDispatcherStackName;
-    
-    @Value("${aws.cloudformation.stackName.publish}")
-    private String awsPublishStackName;
-    
-    @Value("${aws.cloudformation.stackName.authorDispatcher}")
-    private String awsAuthorDispatcherStackName;
-    
-    @Value("${aws.cloudformation.stackName.author}")
-    private String awsAuthorStackName;
 
-    @Value("${aws.cloudformation.autoScaleGroup.logicalId.publishDispatcher}")
-    private String awsPublishDispatcherAutoScaleGroupLogicalId;
-
-    @Value("${aws.cloudformation.autoScaleGroup.logicalId.publish}")
-    private String awsPublishAutoScaleGroupLogicalId;
-
-    @Value("${aws.cloudformation.autoScaleGroup.logicalId.authorDispatcher}")
-    private String awsAuthorDispatcherAutoScaleGroupLogicalId;
     
-    @Value("${aws.cloudformation.loadBalancer.logicalId.author}")
-    private String awsAuthorLoadBalancerLogicalId;
-    
-    
-
-
     @Bean
     public AWSCredentialsProvider awsCredentialsProvider() {
         /*
@@ -171,35 +141,13 @@ public class AwsConfig {
             .withClientConfiguration(awsClientConfig)
             .build();
     }
-
+    
     @Bean
-    public EnvironmentValues envValues(final AwsHelperService awsHelper) {
-        EnvironmentValues envValues = new EnvironmentValues();
-
-        envValues.setAutoScaleGroupNameForPublishDispatcher(
-            awsHelper.getStackPhysicalResourceId(awsPublishDispatcherStackName, awsPublishDispatcherAutoScaleGroupLogicalId));
-        logger.info("Resolved auto scaling group name for publish dispatcher to: " + 
-            envValues.getAutoScaleGroupNameForPublishDispatcher());
-
-        envValues.setAutoScaleGroupNameForPublish(
-            awsHelper.getStackPhysicalResourceId(awsPublishStackName, awsPublishAutoScaleGroupLogicalId));
-        
-        logger.info("Resolved auto scaling group name for publish to: " + 
-            envValues.getAutoScaleGroupNameForPublish());
-
-        envValues.setAutoScaleGroupNameForAuthorDispatcher(
-            awsHelper.getStackPhysicalResourceId(awsAuthorDispatcherStackName, awsAuthorDispatcherAutoScaleGroupLogicalId));
-        
-        logger.info("Resolved auto scaling group name for author dispatcher to: " + 
-            envValues.getAutoScaleGroupNameForAuthorDispatcher());
-        
-        envValues.setElasticLoadBalancerNameForAuthor(
-            awsHelper.getStackPhysicalResourceId(awsAuthorStackName, awsAuthorLoadBalancerLogicalId));
-        
-        logger.info("Resolved elastic load balancer name for author to: " + 
-            envValues.getElasticLoadBalancerNameForAuthor());
-
-        return envValues;
+    public AmazonS3 amazonS3Client(AWSCredentialsProvider awsCredentialsProvider, ClientConfiguration awsClientConfig) {
+        return AmazonS3ClientBuilder.standard()
+            .withCredentials(awsCredentialsProvider)
+            .withClientConfiguration(awsClientConfig)
+            .build();
     }
 
 }

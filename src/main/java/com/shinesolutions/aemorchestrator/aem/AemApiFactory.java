@@ -1,31 +1,25 @@
 package com.shinesolutions.aemorchestrator.aem;
 
+import javax.annotation.Resource;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import com.shinesolutions.aemorchestrator.model.AemCredentials;
 import com.shinesolutions.swaggeraem4j.ApiClient;
 import com.shinesolutions.swaggeraem4j.api.SlingApi;
 
 @Component
 public class AemApiFactory {
-    
-    @Value("${aem.replicator.username}")
-    private String replicatorUsername;
-    
-    @Value("${aem.replicator.password}")
-    private String replicatorPassword;
-    
-    @Value("${aem.orchestrator.username}")
-    private String orchestratorUsername;
-    
-    @Value("${aem.orchestrator.password}")
-    private String orchestratorPassword;
-    
+
     @Value("${aem.client.api.debug}")
     private Boolean useDebug;
     
     @Value("${aem.client.api.connection.timeout}")
     private Integer connectionTimeout;
+    
+    @Resource
+    private AemCredentials aemCredentials;
     
     private static enum UserType {
         ORCHESTRATOR,
@@ -47,12 +41,12 @@ public class AemApiFactory {
         client.setConnectTimeout(connectionTimeout);
         
         if(user == UserType.REPLICATOR) {
-            client.setUsername(replicatorUsername);
-            client.setPassword(replicatorPassword);
+            client.setUsername(aemCredentials.getReplicatorCredentials().getUserName());
+            client.setPassword(aemCredentials.getReplicatorCredentials().getPassword());
         } 
         else { //Default is ORCHESTRATOR
-            client.setUsername(orchestratorUsername);
-            client.setPassword(orchestratorPassword);
+            client.setUsername(aemCredentials.getOrchestratorCredentials().getUserName());
+            client.setPassword(aemCredentials.getOrchestratorCredentials().getPassword());
         }
         
         return client;

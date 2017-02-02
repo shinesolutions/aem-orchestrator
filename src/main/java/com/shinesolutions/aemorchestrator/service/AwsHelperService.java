@@ -1,5 +1,6 @@
 package com.shinesolutions.aemorchestrator.service;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -43,6 +44,11 @@ import com.amazonaws.services.ec2.model.TerminateInstancesRequest;
 import com.amazonaws.services.elasticloadbalancing.AmazonElasticLoadBalancing;
 import com.amazonaws.services.elasticloadbalancing.model.DescribeLoadBalancersRequest;
 import com.amazonaws.services.elasticloadbalancing.model.DescribeLoadBalancersResult;
+import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.AmazonS3URI;
+import com.amazonaws.services.s3.model.GetObjectRequest;
+import com.amazonaws.services.s3.model.S3Object;
+import com.amazonaws.util.IOUtils;
 
 
 /**
@@ -64,6 +70,9 @@ public class AwsHelperService {
     
     @Resource
     public AmazonCloudFormation amazonCloudFormationClient;
+    
+    @Resource
+    public AmazonS3 amazonS3Client;
     
     /**
      * Return the DNS name for a given AWS ELB group name
@@ -213,6 +222,19 @@ public class AwsHelperService {
         
         return result.getStackResources().stream().filter(s -> s.getLogicalResourceId().equals(logicalResourceId))
             .findFirst().get().getPhysicalResourceId();
+    }
+    
+    /**
+     * Reads a file from S3 into a String object
+     * @param s3Uri (eg. s3://bucket/file.ext)
+     * @return String containing the content of the file in S3
+     * @throws IOException if error reading file
+     */
+    public String readFileFromS3(String s3Uri) throws IOException {
+        AmazonS3URI s3FileUri = new AmazonS3URI(s3Uri);
+        S3Object s3object = amazonS3Client.getObject(new GetObjectRequest(s3FileUri.getBucket(), s3FileUri.getKey()));
+        
+        return IOUtils.toString(s3object.getObjectContent());
     }
     
     
