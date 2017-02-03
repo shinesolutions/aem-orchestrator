@@ -1,8 +1,12 @@
 package com.shinesolutions.aemorchestrator.service;
 
+import static com.shinesolutions.aemorchestrator.service.InstanceTags.AEM_PUBLISH_DISPATCHER_HOST;
+import static com.shinesolutions.aemorchestrator.service.InstanceTags.AEM_PUBLISH_HOST;
 import static com.shinesolutions.aemorchestrator.service.InstanceTags.PAIR_INSTANCE_ID;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.util.ReflectionTestUtils.setField;
 
@@ -14,6 +18,8 @@ import java.util.Map;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
@@ -35,6 +41,10 @@ public class AemInstanceHelperServiceTest {
     
     @InjectMocks
     private AemInstanceHelperService aemHelperService;
+    
+    @Captor
+    private ArgumentCaptor<Map<String, String>> mapCaptor;
+    
     
     private EnvironmentValues envValues;
     
@@ -198,5 +208,90 @@ public class AemInstanceHelperServiceTest {
         assertThat(resultInstanceId, equalTo(null));
     }
     
+    @Test
+    public void testGetDispatcherIdForPairedPublishWithFoundPair() throws Exception {
+        String instance1 = "1st-876543";
+        String instance2 = "2nd-546424";
+        String instance3 = "3rd-134777";
+        String instance4 = "4th-736544";
+        
+        String publishId = "dis-4385974";
+        
+        Map<String, String> tagsWithPair = new HashMap<String, String>();
+        tagsWithPair.put(PAIR_INSTANCE_ID.getTagName(), publishId);
+        
+        Map<String, String> tagsWithoutPair = new HashMap<String, String>();
+        tagsWithoutPair.put(PAIR_INSTANCE_ID.getTagName(), "abc-35734685");
+        
+        Map<String, String> tagsMissingPair = new HashMap<String, String>();
+        
+        // Mock adding a bunch of instances to the auto sacling group
+        List<String> instanceIds = new ArrayList<String>();
+        instanceIds.add(instance1);
+        instanceIds.add(instance2);
+        instanceIds.add(instance3);
+        instanceIds.add(instance4);
+        
+        when(awsHelperService.getInstanceIdsForAutoScalingGroup(envValues.getAutoScaleGroupNameForPublishDispatcher())).thenReturn(instanceIds);
+        when(awsHelperService.getTags(instance1)).thenReturn(tagsWithoutPair);
+        when(awsHelperService.getTags(instance2)).thenReturn(tagsMissingPair); 
+        when(awsHelperService.getTags(instance3)).thenReturn(tagsWithoutPair); 
+        when(awsHelperService.getTags(instance4)).thenReturn(tagsWithPair); //Instance 4 is the winner
+        
+        String resultInstanceId = aemHelperService.getDispatcherIdForPairedPublish(publishId);
+        
+        assertThat(resultInstanceId, equalTo(instance4));
+    }
+    
+    @Test
+    public void testGetDispatcherIdForPairedPublishWithNoPair() throws Exception {
+        String instance1 = "1st-876543";
+        Map<String, String> tagsMissingPair = new HashMap<String, String>();
+        
+        List<String> instanceIds = new ArrayList<String>();
+        instanceIds.add("1st-876543");
+
+        when(awsHelperService.getInstanceIdsForAutoScalingGroup(envValues.getAutoScaleGroupNameForPublish())).thenReturn(instanceIds);
+        when(awsHelperService.getTags(instance1)).thenReturn(tagsMissingPair);
+
+        String resultInstanceId = aemHelperService.getDispatcherIdForPairedPublish("irrelevant-id");
+        
+        // If can't find pair, then should return null
+        assertThat(resultInstanceId, equalTo(null));
+    }
+    
+    public void testGetAutoScalingGroupDesiredCapacityForPublish() {
+        int capacityToReturn = 1337;
+        when(awsHelperService.getAutoScalingGroupDesiredCapacity(
+            envValues.getAutoScaleGroupNameForPublish())).thenReturn(capacityToReturn);
+        
+        int desiredCapacity = aemHelperService.getAutoScalingGroupDesiredCapacityForPublish();
+        assertThat(desiredCapacity, equalTo(capacityToReturn));
+        verify(awsHelperService, times(1)).getAutoScalingGroupDesiredCapacity(
+            envValues.getAutoScaleGroupNameForPublish());
+    }
+    
+
+    public void testGetAutoScalingGroupDesiredCapacityForPublishDispatcher() {
+         int capacityToReturn = 1338;
+         when(awsHelperService.getAutoScalingGroupDesiredCapacity(
+             envValues.getAutoScaleGroupNameForPublishDispatcher())).thenReturn(capacityToReturn);
+         
+         int desiredCapacity = aemHelperService.getAutoScalingGroupDesiredCapacityForPublishDispatcher();
+         assertThat(desiredCapacity, equalTo(capacityToReturn));
+         
+         verify(awsHelperService, times(1)).getAutoScalingGroupDesiredCapacity(
+             envValues.getAutoScaleGroupNameForPublishDispatcher());
+    }
+    
+
+    public void testSetAutoScalingGroupDesiredCapacityForPublish() {
+        int desiredCapacity = 1339;
+        
+        aemHelperService.setAutoScalingGroupDesiredCapacityForPublish(desiredCapacity);
+        
+        verify(awsHelperService, times(1)).setAutoScalingGroupDesiredCapacity(
+            envValues.getAutoScaleGroupNameForPublish(), desiredCapacity);
+    }
 
 }
