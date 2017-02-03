@@ -147,7 +147,7 @@ public class AemInstanceHelperServiceTest {
     }
     
     @Test
-    public void testGetPublishIdForPairedDispatcher() throws Exception {
+    public void testGetPublishIdForPairedDispatcherWithFoundPair() throws Exception {
         String instance1 = "1st-876543";
         String instance2 = "2nd-546424";
         String instance3 = "3rd-134777";
@@ -163,6 +163,7 @@ public class AemInstanceHelperServiceTest {
         
         Map<String, String> tagsMissingPair = new HashMap<String, String>();
         
+        // Mock adding a bunch of instances to the auto sacling group
         List<String> instanceIds = new ArrayList<String>();
         instanceIds.add(instance1);
         instanceIds.add(instance2);
@@ -178,6 +179,23 @@ public class AemInstanceHelperServiceTest {
         String resultInstanceId = aemHelperService.getPublishIdForPairedDispatcher(dispatcherId);
         
         assertThat(resultInstanceId, equalTo(instance3));
+    }
+    
+    @Test
+    public void testGetPublishIdForPairedDispatcherWithNoPair() throws Exception {
+        String instance1 = "1st-876543";
+        Map<String, String> tagsMissingPair = new HashMap<String, String>();
+        
+        List<String> instanceIds = new ArrayList<String>();
+        instanceIds.add("1st-876543");
+
+        when(awsHelperService.getInstanceIdsForAutoScalingGroup(envValues.getAutoScaleGroupNameForPublish())).thenReturn(instanceIds);
+        when(awsHelperService.getTags(instance1)).thenReturn(tagsMissingPair);
+
+        String resultInstanceId = aemHelperService.getPublishIdForPairedDispatcher("irrelevant-id");
+        
+        // If can't find pair, then should return null
+        assertThat(resultInstanceId, equalTo(null));
     }
     
 

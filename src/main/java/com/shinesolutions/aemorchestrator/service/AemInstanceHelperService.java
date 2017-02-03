@@ -92,28 +92,28 @@ public class AemInstanceHelperService {
      * Gets the Publish EC2 instance ID that is paired to the given Publish Dispatcher. 
      * Uses a tag on the instance to find the pair
      * @param dispatcherInstanceId EC2 instance ID of Publish Dispatcher
-     * @return Publish EC2 instance ID
+     * @return Publish EC2 instance ID. If no pair found, then returns null
      */
     public String getPublishIdForPairedDispatcher(String dispatcherInstanceId) {
         List<String> publishIds = awsHelperService.getInstanceIdsForAutoScalingGroup(
             envValues.getAutoScaleGroupNameForPublish());
         
         return publishIds.stream().filter(p -> dispatcherInstanceId.equals(
-            awsHelperService.getTags(p).get(PAIR_INSTANCE_ID.getTagName()))).findFirst().get();
+            awsHelperService.getTags(p).get(PAIR_INSTANCE_ID.getTagName()))).findFirst().orElse(null);
     }
     
     /**
      * Gets the Publish Dispatcher EC2 instance ID that is paired to the given Publish instance. 
      * Uses a tag on the instance to find the pair
      * @param publishInstanceId the Publish EC2 instance ID
-     * @return Publish Dispatcher EC2 instance ID
+     * @return Publish Dispatcher EC2 instance ID. If no pair found, then returns null
      */
     public String getDispatcherIdForPairedPublish(String publishInstanceId) {
         List<String> dispatcherIds = awsHelperService.getInstanceIdsForAutoScalingGroup(
             envValues.getAutoScaleGroupNameForPublishDispatcher());
         
         return dispatcherIds.stream().filter(d -> publishInstanceId.equals(
-            awsHelperService.getTags(d).get(PAIR_INSTANCE_ID.getTagName()))).findFirst().get();
+            awsHelperService.getTags(d).get(PAIR_INSTANCE_ID.getTagName()))).findFirst().orElse(null);
     }
     
     /**
