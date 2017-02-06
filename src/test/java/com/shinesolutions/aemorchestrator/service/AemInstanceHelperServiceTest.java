@@ -1,13 +1,16 @@
 package com.shinesolutions.aemorchestrator.service;
 
+import static com.shinesolutions.aemorchestrator.service.InstanceTags.AEM_AUTHOR_HOST;
 import static com.shinesolutions.aemorchestrator.service.InstanceTags.AEM_PUBLISH_DISPATCHER_HOST;
 import static com.shinesolutions.aemorchestrator.service.InstanceTags.AEM_PUBLISH_HOST;
 import static com.shinesolutions.aemorchestrator.service.InstanceTags.PAIR_INSTANCE_ID;
+import static com.shinesolutions.aemorchestrator.service.InstanceTags.SNAPSHOT_ID;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.eq;
 import static org.springframework.test.util.ReflectionTestUtils.setField;
 
 import java.util.ArrayList;
@@ -260,6 +263,7 @@ public class AemInstanceHelperServiceTest {
         assertThat(resultInstanceId, equalTo(null));
     }
     
+    @Test
     public void testGetAutoScalingGroupDesiredCapacityForPublish() {
         int capacityToReturn = 1337;
         when(awsHelperService.getAutoScalingGroupDesiredCapacity(
@@ -271,7 +275,7 @@ public class AemInstanceHelperServiceTest {
             envValues.getAutoScaleGroupNameForPublish());
     }
     
-
+    @Test
     public void testGetAutoScalingGroupDesiredCapacityForPublishDispatcher() {
          int capacityToReturn = 1338;
          when(awsHelperService.getAutoScalingGroupDesiredCapacity(
@@ -284,7 +288,7 @@ public class AemInstanceHelperServiceTest {
              envValues.getAutoScaleGroupNameForPublishDispatcher());
     }
     
-
+    @Test
     public void testSetAutoScalingGroupDesiredCapacityForPublish() {
         int desiredCapacity = 1339;
         
@@ -292,6 +296,65 @@ public class AemInstanceHelperServiceTest {
         
         verify(awsHelperService, times(1)).setAutoScalingGroupDesiredCapacity(
             envValues.getAutoScaleGroupNameForPublish(), desiredCapacity);
+    }
+    
+    @Test
+    public void testPairPublishWithDispatcher() {
+        String publishId = "pub-1";
+        String dispatcherId = "dis-1";
+        
+        String publishHost = "pub-host";
+        String dispatcherHost = "dis-host";
+        
+        when(awsHelperService.getPrivateIp(dispatcherId)).thenReturn(dispatcherHost);
+        when(awsHelperService.getPrivateIp(publishId)).thenReturn(publishHost);
+        
+        aemHelperService.pairPublishWithDispatcher(publishId, dispatcherId);
+        
+        verify(awsHelperService, times(1)).addTags(eq(publishId), mapCaptor.capture());
+        verify(awsHelperService, times(1)).addTags(eq(dispatcherId), mapCaptor.capture());
+        
+        Map<String, String> publishTags = mapCaptor.getAllValues().get(0);
+        
+        //Confirm that the correct tags and their values are set for publish instance
+        assertThat(publishTags.get(AEM_PUBLISH_DISPATCHER_HOST.getTagName()), equalTo(dispatcherHost));
+        assertThat(publishTags.get(PAIR_INSTANCE_ID.getTagName()), equalTo(dispatcherId));
+        
+        Map<String, String> dispatcherTags = mapCaptor.getAllValues().get(1);
+        
+        //Confirm that the correct tags and their values are set for publish dispatcher
+        assertThat(dispatcherTags.get(AEM_PUBLISH_HOST.getTagName()), equalTo(publishHost));
+        assertThat(dispatcherTags.get(PAIR_INSTANCE_ID.getTagName()), equalTo(publishId));
+    }
+    
+    @Test   
+    public void testTagInstanceWithSnapshotId() {
+        String instanceId = "instance-1";
+        String snapshotId = "snapshot-1";
+        
+        aemHelperService.tagInstanceWithSnapshotId(instanceId, snapshotId);
+        
+        verify(awsHelperService, times(1)).addTags(eq(instanceId), mapCaptor.capture());
+        
+        Map<String, String> tags = mapCaptor.getValue();
+        
+        assertThat(tags.get(SNAPSHOT_ID.getTagName()), equalTo(snapshotId));
+    }
+    
+    @Test
+    public void testTagAuthorDispatcherWithAuthorHost() {
+        String authorDispatcherInstanceId = "auth-dis-1";
+        String authorElbDns = "auth-elb-dns-1";
+        
+        when(awsHelperService.getElbDnsName(envValues.getElasticLoadBalancerNameForAuthor())).thenReturn(authorElbDns);
+        
+        aemHelperService.tagAuthorDispatcherWithAuthorHost(authorDispatcherInstanceId);
+        
+        verify(awsHelperService, times(1)).addTags(eq(authorDispatcherInstanceId), mapCaptor.capture());
+        
+        Map<String, String> tags = mapCaptor.getValue();
+        
+        assertThat(tags.get(AEM_AUTHOR_HOST.getTagName()), equalTo(authorElbDns));
     }
 
 }
