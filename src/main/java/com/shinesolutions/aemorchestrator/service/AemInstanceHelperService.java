@@ -1,14 +1,21 @@
 package com.shinesolutions.aemorchestrator.service;
 
-import static com.shinesolutions.aemorchestrator.service.InstanceTags.*;
+import static com.shinesolutions.aemorchestrator.service.InstanceTags.AEM_AUTHOR_HOST;
+import static com.shinesolutions.aemorchestrator.service.InstanceTags.AEM_PUBLISH_DISPATCHER_HOST;
+import static com.shinesolutions.aemorchestrator.service.InstanceTags.AEM_PUBLISH_HOST;
+import static com.shinesolutions.aemorchestrator.service.InstanceTags.PAIR_INSTANCE_ID;
+import static com.shinesolutions.aemorchestrator.service.InstanceTags.SNAPSHOT_ID;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 
 import javax.annotation.Resource;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Component;
 
 import com.shinesolutions.aemorchestrator.model.EnvironmentValues;
@@ -194,10 +201,12 @@ public class AemInstanceHelperService {
     
     /**
      * Looks at all Publish Dispatcher instances on the auto scaling group and retrieves the
-     * first one missing a pair ID tag (unpaired)
+     * first one missing a pair ID tag (unpaired).
      * @return Publish Dispatcher instance ID tag
+     * @throws NoSuchElementException if can't find unpaired Publish Dispatcher
      */
-    public String findUnpairedPublishDispatcher() {
+    @Retryable(maxAttempts=6, value=NoSuchElementException.class, backoff=@Backoff(delay=10000))
+    public String findUnpairedPublishDispatcher() throws NoSuchElementException {
         List<String> dispatcherIds = awsHelperService.getInstanceIdsForAutoScalingGroup(
             envValues.getAutoScaleGroupNameForPublishDispatcher());
         return dispatcherIds.stream().filter(d -> !awsHelperService.getTags(d).containsKey(
