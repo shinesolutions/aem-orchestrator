@@ -85,9 +85,8 @@ public class AwsConfig {
          * messages deletes them from the queue
          */
         Session session = connection.createSession(false, Session.CLIENT_ACKNOWLEDGE);
-        MessageConsumer consumer = session.createConsumer(session.createQueue(queueName));
 
-        return consumer;
+        return session.createConsumer(session.createQueue(queueName));
     }
 
     @Bean

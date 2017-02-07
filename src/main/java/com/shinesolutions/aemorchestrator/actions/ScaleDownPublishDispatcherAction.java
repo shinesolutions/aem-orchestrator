@@ -25,9 +25,11 @@ public class ScaleDownPublishDispatcherAction implements ScaleAction {
 
         // Find and terminate paired publish instance
         String pairedPublishId = aemHelperService.getPublishIdForPairedDispatcher(instanceId);
+        logger.debug("Paired publish instance ID=" + pairedPublishId);
 
         if (pairedPublishId != null) {
             // Terminate paired publish instance
+            logger.info("Terminating paired publish instance with ID: " + pairedPublishId);
             awsHelperService.terminateInstance(pairedPublishId);
         } else {
             logger.warn("Unable to located paired publish instance for publish dispatcher id: " + instanceId);
@@ -47,7 +49,6 @@ public class ScaleDownPublishDispatcherAction implements ScaleAction {
             aemHelperService.setAutoScalingGroupDesiredCapacityForPublish(currentDispatcherDesiredCapacity);
         }
         
-
         return true;
     }
 

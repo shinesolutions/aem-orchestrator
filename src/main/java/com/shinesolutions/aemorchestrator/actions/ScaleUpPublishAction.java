@@ -43,7 +43,7 @@ public class ScaleUpPublishAction implements ScaleAction {
             // Immediately pause agent
             replicationAgentManager.pauseReplicationAgent(instanceId, authorAemBaseUrl, AgentRunMode.PUBLISH);
         } catch (ApiException e) {
-            logger.error("Error while attempting to set up new publish replication agent", e);
+            logger.error("Error while attempting to set up new publish replication agent via author AEM URL: " + authorAemBaseUrl, e);
             success = false;
         }
         
@@ -55,11 +55,12 @@ public class ScaleUpPublishAction implements ScaleAction {
                 replicationAgentManager.pauseReplicationAgent(activePublishId, authorAemBaseUrl, AgentRunMode.PUBLISH);
                 // Take snapshot
                 String volumeId = awsHelperService.getVolumeId(activePublishId, DEVICE_NAME);
+                logger.debug("Volume ID for snapshot: " + volumeId);
                 if(volumeId != null) {
                     String snapshotShotId = awsHelperService.createSnapshot(volumeId, 
                         "Snapshot of publish instance id " + activePublishId + " and volume id " + volumeId);
                     aemHelperService.tagInstanceWithSnapshotId(instanceId, snapshotShotId);
-                    
+                    logger.debug("Snapshot ID: " + snapshotShotId);
                 } else {
                     // Not good
                     logger.error("Unable to find volume id for block device '" + DEVICE_NAME + 
@@ -76,6 +77,8 @@ public class ScaleUpPublishAction implements ScaleAction {
         // Find unpaired publish dispatcher and pair it with tags
         if(success) {
             String unpairedDispatcherId = aemHelperService.findUnpairedPublishDispatcher();
+            logger.debug("Pairing publish instance (" + instanceId + ") with pubish dispatcher (" + 
+                unpairedDispatcherId + ") via tags");
             aemHelperService.pairPublishWithDispatcher(instanceId, unpairedDispatcherId);
             
             // Resume paused replication agents

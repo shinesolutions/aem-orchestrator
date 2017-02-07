@@ -38,7 +38,7 @@ public class MessageReceiver implements  MessageListener {
 	public void onMessage(Message message) {
 		try {
 			if (message != null) {
-				logger.info("Message received with id: " + message.getJMSMessageID());
+				logger.info("Message received " + message.getJMSMessageID());
 
 				boolean removeMessageFromQueue = messageHandler.handleMessage(message);
 				
@@ -47,7 +47,7 @@ public class MessageReceiver implements  MessageListener {
 				    logger.info("Acknowledged message (removing from queue): " + message.getJMSMessageID());
 				    message.acknowledge();
 				} else {
-				    logger.info("Leaving message: " + message.getJMSMessageID() + " on the queue");
+				    logger.info("Leaving message " + message.getJMSMessageID() + " on the queue");
 				}
 			} else {
 				logger.info("Null message received");

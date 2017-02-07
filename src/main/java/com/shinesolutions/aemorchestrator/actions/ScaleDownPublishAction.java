@@ -31,7 +31,10 @@ public class ScaleDownPublishAction implements ScaleAction {
         
         // Delete paired dispatcher
         String pairedDispatcherId = aemHelperService.getDispatcherIdForPairedPublish(instanceId);
+        logger.debug("Paired publish dispatcher instance ID=" + pairedDispatcherId);
+        
         if(pairedDispatcherId != null) {
+            logger.info("Terminating paired publish dispatcher with ID: " + pairedDispatcherId);
             awsHelperService.terminateInstance(pairedDispatcherId);
         } else {
             logger.warn("Unable to find paired dispatcher for publish id " + instanceId);
