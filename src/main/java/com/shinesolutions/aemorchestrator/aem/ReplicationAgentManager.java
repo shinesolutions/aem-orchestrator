@@ -4,6 +4,8 @@ import javax.annotation.Resource;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Component;
 
 import com.shinesolutions.aemorchestrator.model.AemCredentials;
@@ -31,6 +33,7 @@ public class ReplicationAgentManager {
     @Resource
     private AemApiHelper aemApiHelper;
 
+    @Retryable(maxAttempts=10, value=ApiException.class, backoff=@Backoff(delay=10000))
     public void createReplicationAgent(String publishId, String publishAemBaseUrl, String authorAemBaseUrl,
         AgentRunMode runMode) throws ApiException {
         logger.info("Creating replication agent for publish id: " + publishId);
