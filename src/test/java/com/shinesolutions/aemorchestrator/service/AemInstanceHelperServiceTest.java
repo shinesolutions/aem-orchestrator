@@ -35,9 +35,11 @@ public class AemInstanceHelperServiceTest {
     private String aemPublishDispatcherProtocol;
     private String aemPublishProtocol;
     private String aemAuthorDispatcherProtocol;
+    private String aemAuthorProtocol;
     private Integer aemPublishDispatcherPort;
     private Integer aemPublishPort;
     private Integer aemAuthorDispatcherPort;
+    private Integer aemAuthorPort;
     
     @Mock
     private AwsHelperService awsHelperService;
@@ -66,20 +68,24 @@ public class AemInstanceHelperServiceTest {
         
         aemPublishDispatcherProtocol = "pdpd";
         aemPublishProtocol = "pppp";
-        aemAuthorDispatcherProtocol = "aaaa";
+        aemAuthorDispatcherProtocol = "adad";
+        aemAuthorProtocol = "aaaa";
         aemPublishDispatcherPort = 1111;
         aemPublishPort = 2222;
         aemAuthorDispatcherPort = 3333;
+        aemAuthorPort = 4444;
         
         setField(aemHelperService, "envValues", envValues);
         
         setField(aemHelperService, "aemPublishDispatcherProtocol", aemPublishDispatcherProtocol);
         setField(aemHelperService, "aemPublishProtocol", aemPublishProtocol);
         setField(aemHelperService, "aemAuthorDispatcherProtocol", aemAuthorDispatcherProtocol);
+        setField(aemHelperService, "aemAuthorProtocol", aemAuthorProtocol);
         
         setField(aemHelperService, "aemPublishDispatcherPort", aemPublishDispatcherPort);
         setField(aemHelperService, "aemPublishPort", aemPublishPort);
         setField(aemHelperService, "aemAuthorDispatcherPort", aemAuthorDispatcherPort);
+        setField(aemHelperService, "aemAuthorPort", aemAuthorPort);
     }
 
     @Test
@@ -106,7 +112,7 @@ public class AemInstanceHelperServiceTest {
         
         String aemUrl = aemHelperService.getAemUrlForAuthorElb();
         
-        assertThat(aemUrl, equalTo(aemAuthorDispatcherProtocol + "://" + privateIp + ":" + aemAuthorDispatcherPort));
+        assertThat(aemUrl, equalTo(aemAuthorProtocol + "://" + privateIp + ":" + aemAuthorPort));
     }
     
     @Test

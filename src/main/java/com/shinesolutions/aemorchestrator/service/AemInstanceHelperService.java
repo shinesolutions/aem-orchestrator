@@ -35,6 +35,9 @@ public class AemInstanceHelperService {
     @Value("${aem.protocol.authorDispatcher}")
     private String aemAuthorDispatcherProtocol;
     
+    @Value("${aem.protocol.author}")
+    private String aemAuthorProtocol;
+    
     @Value("${aem.port.publishDispatcher}")
     private Integer aemPublishDispatcherPort;
 
@@ -43,6 +46,9 @@ public class AemInstanceHelperService {
 
     @Value("${aem.port.authorDispatcher}")
     private Integer aemAuthorDispatcherPort;
+    
+    @Value("${aem.port.author}")
+    private Integer aemAuthorPort;
     
     @Resource
     private EnvironmentValues envValues;
@@ -91,8 +97,8 @@ public class AemInstanceHelperService {
      */
     public String getAemUrlForAuthorElb() {
         //Author can be accessed from the load balancer
-        return String.format(URL_FORMAT, aemAuthorDispatcherProtocol, awsHelperService.getElbDnsName(
-            envValues.getElasticLoadBalancerNameForAuthor()), aemAuthorDispatcherPort);
+        return String.format(URL_FORMAT, aemAuthorProtocol, awsHelperService.getElbDnsName(
+            envValues.getElasticLoadBalancerNameForAuthor()), aemAuthorPort);
     }
     
     /**
