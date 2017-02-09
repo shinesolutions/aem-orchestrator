@@ -47,9 +47,11 @@ public class FlushAgentManager {
         AgentRunMode runMode) throws ApiException {
         logger.info(
             "Creating flush agent for dispatcher id: " + dispatcherInstanceId + ", and run mode: " + runMode.getValue());
+        
+        String agentDescription = "Flush Agent for author-dispatcher " + dispatcherInstanceId;
 
         PostAgentWithHttpInfoRequest request = agentRequestFactory.getCreateFlushAgentRequest(runMode,
-            getFlushAgentName(dispatcherInstanceId), aemDispatcherBaseUrl);
+            getFlushAgentName(dispatcherInstanceId), agentDescription, aemDispatcherBaseUrl);
 
         SlingApi slingApi = aemApiFactory.getSlingApi(aemBaseUrl, AgentAction.CREATE);
 

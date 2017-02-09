@@ -12,7 +12,8 @@ public class AgentRequestFactory {
     private static final String SLING_RESOURCE_TYPE = "/libs/cq/replication/components/agent";
     private static final String CQ_TEMPLATE = "/libs/cq/replication/templates/agent";
     
-    public PostAgentWithHttpInfoRequest getCreateFlushAgentRequest(AgentRunMode runMode, String agentName, String aemDispatcherBaseUrl) {
+    public PostAgentWithHttpInfoRequest getCreateFlushAgentRequest(AgentRunMode runMode, String agentName, 
+        String agentDescription, String aemDispatcherBaseUrl) {
 
         return new PostAgentWithHttpInfoRequest()
             .withRunMode(runMode.getValue())
@@ -20,7 +21,7 @@ public class AgentRequestFactory {
             .withJcrPrimaryType("cq:Page")
             .withJcrContentCqName(null)
             .withJcrContentJcrTitle(agentName)
-            .withJcrContentJcrDescription("Flush Agent for Dispatcher")
+            .withJcrContentJcrDescription(agentDescription)
             .withJcrContentSlingResourceType(SLING_RESOURCE_TYPE)
             .withJcrContentTransportUri(aemDispatcherBaseUrl + "/dispatcher/invalidate.cache")
             .withJcrContentTransportUser("")
@@ -40,8 +41,8 @@ public class AgentRequestFactory {
 
     }
     
-    public PostAgentWithHttpInfoRequest getCreateReplicationAgentRequest(
-        AgentRunMode runMode, String agentName, String publishAemBaseUrl, String user, String password) {
+    public PostAgentWithHttpInfoRequest getCreateReplicationAgentRequest(AgentRunMode runMode, String agentName, 
+        String agentDescription, String publishAemBaseUrl, String user, String password) {
 
         return new PostAgentWithHttpInfoRequest()
             .withRunMode(runMode.getValue())
@@ -49,7 +50,7 @@ public class AgentRequestFactory {
             .withJcrPrimaryType("cq:Page")
             .withJcrContentCqName(null)
             .withJcrContentJcrTitle(agentName)
-            .withJcrContentJcrDescription("Replication Agent for " + runMode.name().toLowerCase())
+            .withJcrContentJcrDescription(agentDescription)
             .withJcrContentSlingResourceType(SLING_RESOURCE_TYPE)
             .withJcrContentTransportUri(publishAemBaseUrl + "/bin/receive?sling:authRequestLogin=1")
             .withJcrContentTransportUser(user)

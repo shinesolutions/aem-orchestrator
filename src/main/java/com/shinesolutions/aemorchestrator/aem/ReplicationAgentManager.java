@@ -38,8 +38,10 @@ public class ReplicationAgentManager {
         AgentRunMode runMode) throws ApiException {
         logger.info("Creating replication agent for publish id: " + publishId);
         
+        String agentDescription = "Replication agent for publish " + publishId;
+        
         PostAgentWithHttpInfoRequest request = agentRequestFactory.getCreateReplicationAgentRequest(runMode,
-            getReplicationAgentName(publishId), publishAemBaseUrl, 
+            getReplicationAgentName(publishId), agentDescription, publishAemBaseUrl, 
             aemCredentials.getReplicatorCredentials().getUserName(), 
             aemCredentials.getReplicatorCredentials().getPassword());
 
