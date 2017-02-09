@@ -11,6 +11,7 @@ import org.springframework.context.annotation.Profile;
 
 import com.amazon.sqs.javamessaging.SQSConnection;
 import com.amazon.sqs.javamessaging.SQSConnectionFactory;
+import com.amazon.sqs.javamessaging.SQSSession;
 import com.amazonaws.ClientConfiguration;
 import com.amazonaws.Protocol;
 import com.amazonaws.auth.AWSCredentialsProvider;
@@ -81,10 +82,11 @@ public class AwsConfig {
     public MessageConsumer sqsMessageConsumer(SQSConnection connection) throws JMSException {
 
         /*
-         * Create the session and use CLIENT_ACKNOWLEDGE mode. Acknowledging
-         * messages deletes them from the queue
+         * Create the session and use UNORDERED_ACKNOWLEDGE mode. Acknowledging
+         * messages deletes them from the queue. Each message must be individually
+         * acknowledged
          */
-        Session session = connection.createSession(false, Session.CLIENT_ACKNOWLEDGE);
+        Session session = connection.createSession(false, SQSSession.UNORDERED_ACKNOWLEDGE);
 
         return session.createConsumer(session.createQueue(queueName));
     }
