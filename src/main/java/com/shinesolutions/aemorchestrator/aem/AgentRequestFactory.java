@@ -42,7 +42,7 @@ public class AgentRequestFactory {
     }
     
     public PostAgentWithHttpInfoRequest getCreateReplicationAgentRequest(AgentRunMode runMode, String agentName, 
-        String agentDescription, String publishAemBaseUrl, String user, String password) {
+        String agentDescription, String aemBaseUrl, String user, String password) {
 
         return new PostAgentWithHttpInfoRequest()
             .withRunMode(runMode.getValue())
@@ -52,7 +52,7 @@ public class AgentRequestFactory {
             .withJcrContentJcrTitle(agentName)
             .withJcrContentJcrDescription(agentDescription)
             .withJcrContentSlingResourceType(SLING_RESOURCE_TYPE)
-            .withJcrContentTransportUri(publishAemBaseUrl + "/bin/receive?sling:authRequestLogin=1")
+            .withJcrContentTransportUri(aemBaseUrl + "/bin/receive?sling:authRequestLogin=1")
             .withJcrContentTransportUser(user)
             .withJcrContentTransportPassword(password)
             .withJcrContentLogLevel("error")
