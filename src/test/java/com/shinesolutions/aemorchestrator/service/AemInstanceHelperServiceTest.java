@@ -65,6 +65,8 @@ public class AemInstanceHelperServiceTest {
         envValues.setAutoScaleGroupNameForPublishDispatcher("publishDispatcherTestName");
         envValues.setAutoScaleGroupNameForPublish("publishTestName");
         envValues.setAutoScaleGroupNameForAuthorDispatcher("authorTestName");
+        envValues.setElasticLoadBalancerNameForAuthor("elasticLoadBalancerNameForAuthor");
+        envValues.setElasticLoadBalancerAuthorDns("elasticLoadBalancerAuthorDns");
         
         aemPublishDispatcherProtocol = "pdpd";
         aemPublishProtocol = "pppp";
@@ -108,11 +110,10 @@ public class AemInstanceHelperServiceTest {
     
     @Test
     public void testGetAemUrlForAuthorElb() throws Exception {
-        when(awsHelperService.getElbDnsName(envValues.getElasticLoadBalancerNameForAuthor())).thenReturn(privateIp);
-        
         String aemUrl = aemHelperService.getAemUrlForAuthorElb();
         
-        assertThat(aemUrl, equalTo(aemAuthorProtocol + "://" + privateIp + ":" + aemAuthorPort));
+        assertThat(aemUrl, equalTo(aemAuthorProtocol + "://" + 
+            envValues.getElasticLoadBalancerAuthorDns() + ":" + aemAuthorPort));
     }
     
     @Test
@@ -132,7 +133,8 @@ public class AemInstanceHelperServiceTest {
         instanceIds.add(instanceId);
         instanceIds.add("extra-89351");
         
-        when(awsHelperService.getInstanceIdsForAutoScalingGroup(envValues.getAutoScaleGroupNameForPublish())).thenReturn(instanceIds);
+        when(awsHelperService.getInstanceIdsForAutoScalingGroup(
+            envValues.getAutoScaleGroupNameForPublish())).thenReturn(instanceIds);
         String resultInstanceId = aemHelperService.getPublishIdToSnapshotFrom(excludeInstanceId);
         
         assertThat(resultInstanceId, equalTo(instanceId));
@@ -350,9 +352,6 @@ public class AemInstanceHelperServiceTest {
     @Test
     public void testTagAuthorDispatcherWithAuthorHost() {
         String authorDispatcherInstanceId = "auth-dis-1";
-        String authorElbDns = "auth-elb-dns-1";
-        
-        when(awsHelperService.getElbDnsName(envValues.getElasticLoadBalancerNameForAuthor())).thenReturn(authorElbDns);
         
         aemHelperService.tagAuthorDispatcherWithAuthorHost(authorDispatcherInstanceId);
         
@@ -360,7 +359,7 @@ public class AemInstanceHelperServiceTest {
         
         Map<String, String> tags = mapCaptor.getValue();
         
-        assertThat(tags.get(AEM_AUTHOR_HOST.getTagName()), equalTo(authorElbDns));
+        assertThat(tags.get(AEM_AUTHOR_HOST.getTagName()), equalTo(envValues.getElasticLoadBalancerAuthorDns()));
     }
 
 }

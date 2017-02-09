@@ -97,8 +97,7 @@ public class AemInstanceHelperService {
      */
     public String getAemUrlForAuthorElb() {
         //Author can be accessed from the load balancer
-        return String.format(URL_FORMAT, aemAuthorProtocol, awsHelperService.getElbDnsName(
-            envValues.getElasticLoadBalancerNameForAuthor()), aemAuthorPort);
+        return String.format(URL_FORMAT, aemAuthorProtocol, envValues.getElasticLoadBalancerAuthorDns(), aemAuthorPort);
     }
     
     /**
@@ -183,8 +182,7 @@ public class AemInstanceHelperService {
      */
     public void tagAuthorDispatcherWithAuthorHost(String authorDispatcherInstanceId) {
         Map<String, String> authorTags = new HashMap<String, String>();
-        authorTags.put(AEM_AUTHOR_HOST.getTagName(), awsHelperService.getElbDnsName(
-            envValues.getElasticLoadBalancerNameForAuthor()));
+        authorTags.put(AEM_AUTHOR_HOST.getTagName(), envValues.getElasticLoadBalancerAuthorDns());
         awsHelperService.addTags(authorDispatcherInstanceId, authorTags);
     }
     

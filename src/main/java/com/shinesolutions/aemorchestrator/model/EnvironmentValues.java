@@ -5,6 +5,7 @@ public class EnvironmentValues {
     private String autoScaleGroupNameForPublish;
     private String autoScaleGroupNameForPublishDispatcher;
     private String elasticLoadBalancerNameForAuthor;
+    private String elasticLoadBalancerAuthorDns;
 
     public String getAutoScaleGroupNameForAuthorDispatcher() {
         return autoScaleGroupNameForAuthorDispatcher;
@@ -36,5 +37,13 @@ public class EnvironmentValues {
 
     public void setElasticLoadBalancerNameForAuthor(String elasticLoadBalancerNameForAuthor) {
         this.elasticLoadBalancerNameForAuthor = elasticLoadBalancerNameForAuthor;
+    }
+
+    public String getElasticLoadBalancerAuthorDns() {
+        return elasticLoadBalancerAuthorDns;
+    }
+
+    public void setElasticLoadBalancerAuthorDns(String elasticLoadBalancerAuthorDns) {
+        this.elasticLoadBalancerAuthorDns = elasticLoadBalancerAuthorDns;
     }
 }

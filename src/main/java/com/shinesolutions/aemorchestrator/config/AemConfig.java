@@ -118,6 +118,12 @@ public class AemConfig {
         
         logger.debug("Resolved elastic load balancer name for author to: " + 
             envValues.getElasticLoadBalancerNameForAuthor());
+        
+        envValues.setElasticLoadBalancerAuthorDns(awsHelper.getElbDnsName(
+            envValues.getElasticLoadBalancerNameForAuthor()));
+        
+        logger.debug("Resolved elastic load balancer DNS for author to: " + 
+            envValues.getElasticLoadBalancerAuthorDns());
 
         return envValues;
     }
