@@ -41,11 +41,14 @@ public class ReplicationAgentManager {
         String agentDescription = "Replication agent for publish " + publishId;
         
         PostAgentWithHttpInfoRequest request = agentRequestFactory.getCreateReplicationAgentRequest(runMode,
-            getReplicationAgentName(publishId), agentDescription, authorAemBaseUrl, 
+            getReplicationAgentName(publishId), agentDescription, publishAemBaseUrl, 
             aemCredentials.getReplicatorCredentials().getUserName(), 
             aemCredentials.getReplicatorCredentials().getPassword());
 
-        SlingApi slingApi = aemApiFactory.getSlingApi(publishAemBaseUrl, AgentAction.CREATE);
+        SlingApi slingApi = aemApiFactory.getSlingApi(authorAemBaseUrl, AgentAction.CREATE);
+        
+        logger.debug(agentDescription + ", with transport URI: " + request.getJcrContentTransportUri() + 
+            ", and connection URL: " + authorAemBaseUrl);
 
         ApiResponse<Void> response = aemApiHelper.postAgentWithHttpInfo(slingApi, request);
 
