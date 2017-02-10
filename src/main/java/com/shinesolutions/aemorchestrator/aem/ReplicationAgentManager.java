@@ -60,8 +60,8 @@ public class ReplicationAgentManager {
         logger.info("Pausing replication agent for publish id: " + publishId);
 
         PostAgentWithHttpInfoRequest request = agentRequestFactory.getPauseReplicationAgentRequest(runMode,
-            getReplicationAgentName(publishId), authorAemBaseUrl, "orchestrator-pause");
-
+            getReplicationAgentName(publishId));
+        
         SlingApi slingApi = aemApiFactory.getSlingApi(authorAemBaseUrl, AgentAction.PAUSE);
 
         ApiResponse<Void> response = aemApiHelper.postAgentWithHttpInfo(slingApi, request);
@@ -74,7 +74,9 @@ public class ReplicationAgentManager {
         logger.info("Restarting replication agent for publish id: " + publishId);
         
         PostAgentWithHttpInfoRequest request = agentRequestFactory.getRestartReplicationAgentRequest(runMode,
-            getReplicationAgentName(publishId), authorAemBaseUrl, "admin");
+            getReplicationAgentName(publishId),  
+            aemCredentials.getReplicatorCredentials().getUserName(), 
+            aemCredentials.getReplicatorCredentials().getPassword());
 
         SlingApi slingApi = aemApiFactory.getSlingApi(authorAemBaseUrl, AgentAction.RESTART);
 

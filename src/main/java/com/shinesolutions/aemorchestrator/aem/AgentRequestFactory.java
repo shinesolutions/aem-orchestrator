@@ -71,7 +71,7 @@ public class AgentRequestFactory {
     }
     
     public PostAgentWithHttpInfoRequest getPauseReplicationAgentRequest(
-        AgentRunMode runMode, String agentName, String authorAemBaseUrl, String user) {
+        AgentRunMode runMode, String agentName) {
 
         return new PostAgentWithHttpInfoRequest()
             .withRunMode(runMode.getValue())
@@ -81,8 +81,8 @@ public class AgentRequestFactory {
             .withJcrContentJcrTitle(agentName)
             .withJcrContentJcrDescription(null)
             .withJcrContentSlingResourceType(SLING_RESOURCE_TYPE)
-            .withJcrContentTransportUri(authorAemBaseUrl + "/etc/replication/agents.author/" + agentName)
-            .withJcrContentTransportUser(user)
+            .withJcrContentTransportUri(null)
+            .withJcrContentTransportUser("orchestrator-pause") // Is meant be an invalid user
             .withJcrContentTransportPassword(null)
             .withJcrContentLogLevel(null)
             .withJcrContentNoVersioning(false)
@@ -100,7 +100,7 @@ public class AgentRequestFactory {
     }
     
     public PostAgentWithHttpInfoRequest getRestartReplicationAgentRequest(
-        AgentRunMode runMode, String agentName, String authorAemBaseUrl, String user) {
+        AgentRunMode runMode, String agentName, String user, String password) {
 
         return new PostAgentWithHttpInfoRequest()
             .withRunMode(runMode.getValue())
@@ -110,9 +110,9 @@ public class AgentRequestFactory {
             .withJcrContentJcrTitle(agentName)
             .withJcrContentJcrDescription(null)
             .withJcrContentSlingResourceType(SLING_RESOURCE_TYPE)
-            .withJcrContentTransportUri(authorAemBaseUrl + "/etc/replication/agents.author/" + agentName)
+            .withJcrContentTransportUri(null)
             .withJcrContentTransportUser(user)
-            .withJcrContentTransportPassword(null)
+            .withJcrContentTransportPassword(password)
             .withJcrContentLogLevel(null)
             .withJcrContentNoVersioning(false)
             .withJcrContentProtocolHTTPHeaders(Collections.emptyList())
@@ -124,7 +124,7 @@ public class AgentRequestFactory {
             .withJcrContentTriggerReceive(false)
             .withJcrContentTriggerSpecific(false)
             .withJcrContentCqTemplate(CQ_TEMPLATE)
-            .withJcrContentEnabled(false);
+            .withJcrContentEnabled(true);
 
     }
     
