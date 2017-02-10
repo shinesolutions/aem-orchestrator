@@ -38,6 +38,7 @@ import com.amazonaws.services.ec2.model.EbsInstanceBlockDevice;
 import com.amazonaws.services.ec2.model.Filter;
 import com.amazonaws.services.ec2.model.InstanceBlockDeviceMapping;
 import com.amazonaws.services.ec2.model.InstanceState;
+import com.amazonaws.services.ec2.model.InstanceStateName;
 import com.amazonaws.services.ec2.model.Tag;
 import com.amazonaws.services.ec2.model.TagDescription;
 import com.amazonaws.services.ec2.model.TerminateInstancesRequest;
@@ -115,7 +116,7 @@ public class AwsHelperService {
             new DescribeInstancesRequest().withInstanceIds(instanceId));
         InstanceState state = result.getReservations().get(0).getInstances().get(0).getState();
         logger.debug("AWS instance " +  instanceId + " currently in state: " + state.getName());
-        return state.getName().equals("running");
+        return InstanceStateName.fromValue(state.getName()) == InstanceStateName.Running;
     }
     
     /**
