@@ -28,6 +28,7 @@ import com.amazonaws.services.elasticloadbalancing.AmazonElasticLoadBalancingCli
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.util.EC2MetadataUtils;
+import com.shinesolutions.aemorchestrator.model.ProxyDetails;
 
 @Configuration
 @Profile("default")
@@ -92,12 +93,15 @@ public class AwsConfig {
     }
 
     @Bean
-    public ClientConfiguration awsClientConfig() {
+    public ClientConfiguration awsClientConfig(final ProxyDetails proxyDetails) {
         ClientConfiguration clientConfig = new ClientConfiguration();
 
         if (useProxy) {
             clientConfig.setProxyHost(clientProxyHost);
             clientConfig.setProxyPort(clientProxyPort);
+        } else if(proxyDetails != null) {
+            clientConfig.setProxyHost(proxyDetails.getHost());
+            clientConfig.setProxyPort(proxyDetails.getPort());
         }
 
         clientConfig.setProtocol(Protocol.valueOf(clientProtocol.toUpperCase()));
