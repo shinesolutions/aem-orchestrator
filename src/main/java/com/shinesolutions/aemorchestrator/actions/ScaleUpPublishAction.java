@@ -77,7 +77,10 @@ public class ScaleUpPublishAction implements ScaleAction {
             } finally {
                 // Need to resume active publish instance replication queue
                 try {
-                    replicationAgentManager.restartReplicationAgent(activePublishId, authorAemBaseUrl, AgentRunMode.PUBLISH);
+                    if(activePublishId != null) {
+                        replicationAgentManager.resumeReplicationAgent(activePublishId, authorAemBaseUrl, 
+                            AgentRunMode.PUBLISH);
+                    }
                 } catch (ApiException e) {
                     logger.error("Failed to restart replication queue for active publish instance: " + activePublishId, e);
                 }
@@ -95,7 +98,7 @@ public class ScaleUpPublishAction implements ScaleAction {
                 aemHelperService.pairPublishWithDispatcher(instanceId, unpairedDispatcherId);
 
                 // Resume paused replication agents
-                replicationAgentManager.restartReplicationAgent(instanceId, authorAemBaseUrl, AgentRunMode.PUBLISH);
+                replicationAgentManager.resumeReplicationAgent(instanceId, authorAemBaseUrl, AgentRunMode.PUBLISH);
             } catch (NoSuchElementException nse) {
                 logger.warn("Failed to find unpaired publish dispatcher", nse);
                 success = false;

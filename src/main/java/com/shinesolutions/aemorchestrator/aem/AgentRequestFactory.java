@@ -99,7 +99,7 @@ public class AgentRequestFactory {
 
     }
     
-    public PostAgentWithHttpInfoRequest getRestartReplicationAgentRequest(
+    public PostAgentWithHttpInfoRequest getResumeReplicationAgentRequest(
         AgentRunMode runMode, String agentName, String user, String password) {
 
         return new PostAgentWithHttpInfoRequest()
