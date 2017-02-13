@@ -74,6 +74,13 @@ public class ScaleUpPublishAction implements ScaleAction {
             } catch (ApiException e) {
                 logger.error("Error while pausing and attempting to snapshot an active publish instance", e);
                 success = false;
+            } finally {
+                // Need to resume active publish instance replication queue
+                try {
+                    replicationAgentManager.restartReplicationAgent(activePublishId, authorAemBaseUrl, AgentRunMode.PUBLISH);
+                } catch (ApiException e) {
+                    logger.error("Failed to restart replication queue for active publish instance: " + activePublishId, e);
+                }
             }
         }
 
