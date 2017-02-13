@@ -23,7 +23,7 @@ import com.shinesolutions.aemorchestrator.model.EventMessage;
 import com.shinesolutions.aemorchestrator.service.AwsHelperService;
 
 @RunWith(MockitoJUnitRunner.class)
-public class AutoscaleLaunchEventHandlerTest {
+public class AutoScalingEventHandlerTest {
     
     @Mock
     private Map<String, ScaleAction> scaleDownAutoScaleGroupMappings;
@@ -32,7 +32,7 @@ public class AutoscaleLaunchEventHandlerTest {
     private AwsHelperService awsHelperService;
     
     @InjectMocks
-    private AutoscaleLaunchEventHandler handler;
+    private AutoScalingEventHandler handler;
     
     private ScaleAction action;
     private EventMessage message;
