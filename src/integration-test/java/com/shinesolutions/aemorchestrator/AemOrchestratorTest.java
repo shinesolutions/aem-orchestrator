@@ -21,6 +21,8 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
+import com.shinesolutions.aemorchestrator.model.EnvironmentValues;
+
 @RunWith(SpringRunner.class)
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -33,6 +35,9 @@ public class AemOrchestratorTest {
 
     @Resource
     private MessageConsumer mockMessageConsumer;
+    
+    @Resource
+    private EnvironmentValues envValues;
     
     private Queue<Message> mockMessageQueue;
     
