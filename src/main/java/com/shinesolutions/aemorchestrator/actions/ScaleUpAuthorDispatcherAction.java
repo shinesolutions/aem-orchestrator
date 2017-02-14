@@ -38,9 +38,11 @@ public class ScaleUpAuthorDispatcherAction implements ScaleAction {
             
             aemHelperService.tagAuthorDispatcherWithAuthorHost(instanceId);
             success = true;
-        } catch (ApiException e) {
+        } catch (ApiException api) {
             logger.error("Failed to create flush agent for dispatcher id: " + instanceId + ", and run mode: "
-                + AgentRunMode.AUTHOR.getValue(), e);
+                + AgentRunMode.AUTHOR.getValue(), api);
+        } catch (Exception e) {
+            logger.error("Failed to add tags to author dispatcher", e);
         }
 
         return success;
