@@ -29,6 +29,8 @@ public class ScaleDownPublishAction implements ScaleAction {
     public boolean execute(String instanceId) {
         logger.info("ScaleDownPublishAction executing");
         
+        boolean success = false;
+        
         // Delete paired dispatcher
         String pairedDispatcherId = aemHelperService.getDispatcherIdForPairedPublish(instanceId);
         logger.debug("Paired publish dispatcher instance ID=" + pairedDispatcherId);
@@ -45,12 +47,13 @@ public class ScaleDownPublishAction implements ScaleAction {
         
         try {
             replicationAgentManager.deleteReplicationAgent(instanceId, authorAemBaseUrl, AgentRunMode.AUTHOR);
+            success = true;
         } catch (ApiException e) {
             logger.error("Failed to delete replication agent on author for publish id " + instanceId + 
                 " and auth URL: " + authorAemBaseUrl, e);
         }
         
-        return true;
+        return success;
     }
 
 }
