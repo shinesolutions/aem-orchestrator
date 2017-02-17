@@ -16,6 +16,9 @@ import com.amazonaws.ClientConfiguration;
 import com.amazonaws.Protocol;
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
+import com.amazonaws.regions.AwsRegionProvider;
+import com.amazonaws.regions.DefaultAwsRegionProviderChain;
+import com.amazonaws.regions.Region;
 import com.amazonaws.regions.RegionUtils;
 import com.amazonaws.services.autoscaling.AmazonAutoScaling;
 import com.amazonaws.services.autoscaling.AmazonAutoScalingClientBuilder;
@@ -27,12 +30,14 @@ import com.amazonaws.services.elasticloadbalancing.AmazonElasticLoadBalancing;
 import com.amazonaws.services.elasticloadbalancing.AmazonElasticLoadBalancingClientBuilder;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
-import com.amazonaws.util.EC2MetadataUtils;
 import com.shinesolutions.aemorchestrator.model.ProxyDetails;
 
 @Configuration
 @Profile("default")
 public class AwsConfig {
+    
+    @Value("${aws.region:@null}")
+    private String regionString;
 
     @Value("${aws.sqs.queueName}")
     private String queueName;
@@ -65,13 +70,26 @@ public class AwsConfig {
          */
         return new DefaultAWSCredentialsProviderChain();
     }
+    
+    @Bean
+    public Region awsRegion() {
+        Region region;
+        if(regionString == null) {
+            AwsRegionProvider regionProvider = new DefaultAwsRegionProviderChain();
+            region = RegionUtils.getRegion(regionProvider.getRegion());
+        } else {
+            region = RegionUtils.getRegion(regionString);
+        }
+        
+        return region;
+    }
 
     @Bean
-    public SQSConnection sqsConnection(AWSCredentialsProvider awsCredentialsProvider,
-        ClientConfiguration awsClientConfig) throws JMSException {
+    public SQSConnection sqsConnection(final AWSCredentialsProvider awsCredentialsProvider,
+        final ClientConfiguration awsClientConfig, final Region awsRegion) throws JMSException {
         
         SQSConnectionFactory connectionFactory = SQSConnectionFactory.builder()
-            .withRegion(RegionUtils.getRegion(EC2MetadataUtils.getEC2InstanceRegion())) //Gets region form meta data
+            .withRegion(awsRegion) //Gets region form meta data
             .withAWSCredentialsProvider(awsCredentialsProvider)
             .withClientConfiguration(awsClientConfig)
             .build();
@@ -80,7 +98,7 @@ public class AwsConfig {
     }
 
     @Bean
-    public MessageConsumer sqsMessageConsumer(SQSConnection connection) throws JMSException {
+    public MessageConsumer sqsMessageConsumer(final SQSConnection connection) throws JMSException {
 
         /*
          * Create the session and use UNORDERED_ACKNOWLEDGE mode. Acknowledging
@@ -112,46 +130,52 @@ public class AwsConfig {
     }
 
     @Bean
-    public AmazonEC2 amazonEC2Client(AWSCredentialsProvider awsCredentialsProvider,
-        ClientConfiguration awsClientConfig) {
+    public AmazonEC2 amazonEC2Client(final AWSCredentialsProvider awsCredentialsProvider,
+        final ClientConfiguration awsClientConfig, final Region awsRegion) {
         return AmazonEC2ClientBuilder.standard()
             .withCredentials(awsCredentialsProvider)
             .withClientConfiguration(awsClientConfig)
+            .withRegion(awsRegion.getName())
             .build();
     }
 
     @Bean
-    public AmazonElasticLoadBalancing amazonElbClient(AWSCredentialsProvider awsCredentialsProvider,
-        ClientConfiguration awsClientConfig) {
+    public AmazonElasticLoadBalancing amazonElbClient(final AWSCredentialsProvider awsCredentialsProvider,
+        final ClientConfiguration awsClientConfig, final Region awsRegion) {
         return AmazonElasticLoadBalancingClientBuilder.standard()
             .withCredentials(awsCredentialsProvider)
             .withClientConfiguration(awsClientConfig)
+            .withRegion(awsRegion.getName())
             .build();
     }
 
     @Bean
-    public AmazonAutoScaling amazonAutoScalingClient(AWSCredentialsProvider awsCredentialsProvider,
-        ClientConfiguration awsClientConfig) {
+    public AmazonAutoScaling amazonAutoScalingClient(final AWSCredentialsProvider awsCredentialsProvider,
+        final ClientConfiguration awsClientConfig, final Region awsRegion) {
         return AmazonAutoScalingClientBuilder.standard()
             .withCredentials(awsCredentialsProvider)
             .withClientConfiguration(awsClientConfig)
+            .withRegion(awsRegion.getName())
             .build();
     }
 
     @Bean
-    public AmazonCloudFormation amazonCloudFormationClient(AWSCredentialsProvider awsCredentialsProvider,
-        ClientConfiguration awsClientConfig) {
+    public AmazonCloudFormation amazonCloudFormationClient(final AWSCredentialsProvider awsCredentialsProvider,
+        final ClientConfiguration awsClientConfig, final Region awsRegion) {
         return AmazonCloudFormationClientBuilder.standard()
             .withCredentials(awsCredentialsProvider)
             .withClientConfiguration(awsClientConfig)
+            .withRegion(awsRegion.getName())
             .build();
     }
     
     @Bean
-    public AmazonS3 amazonS3Client(AWSCredentialsProvider awsCredentialsProvider, ClientConfiguration awsClientConfig) {
+    public AmazonS3 amazonS3Client(final AWSCredentialsProvider awsCredentialsProvider, 
+        final ClientConfiguration awsClientConfig, final Region awsRegion) {
         return AmazonS3ClientBuilder.standard()
             .withCredentials(awsCredentialsProvider)
             .withClientConfiguration(awsClientConfig)
+            .withRegion(awsRegion.getName())
             .build();
     }
 
