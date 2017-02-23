@@ -18,10 +18,10 @@ public class HttpUtil {
     /**
      * Performs a HTTP GET request for a provided URL and returns the response code.
      * Normally used for performing health checks
-     * @param url
-     * @return HTTP status code
-     * @throws IOException 
-     * @throws ClientProtocolException 
+     * @param url of the GET request
+     * @return HTTP status code (integer form)
+     * @throws IOException (normally if can't connect)
+     * @throws ClientProtocolException if there's an error in the HTTP protocol
      */
     public int getHttpResponseCode(String url) throws ClientProtocolException, IOException {
         HttpClient client = HttpClientBuilder.create().build();

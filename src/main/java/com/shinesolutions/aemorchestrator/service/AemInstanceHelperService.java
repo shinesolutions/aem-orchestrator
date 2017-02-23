@@ -110,8 +110,8 @@ public class AemInstanceHelperService {
     /**
      * Helper method for determining of the Author ELB is in a healthy state
      * @return true if the Author ELB is in a healthy state, false if not
-     * @throws IOException 
-     * @throws ClientProtocolException 
+     * @throws IOException (normally if can't connect)
+     * @throws ClientProtocolException if there's an error in the HTTP protocol
      */
     public boolean isAuthorElbHealthy() throws ClientProtocolException, IOException {
         String url = getAemUrlForAuthorElb() + "/system/health?tags=devops";
