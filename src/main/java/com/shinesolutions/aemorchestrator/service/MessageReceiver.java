@@ -1,6 +1,5 @@
 package com.shinesolutions.aemorchestrator.service;
 
-import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.annotation.Resource;
 import javax.jms.Message;
@@ -58,8 +57,7 @@ public class MessageReceiver implements  MessageListener {
 		}
 	}
 
-	@PostConstruct
-	public void initIt() throws Exception {
+	public void start() throws Exception {
 		logger.debug("Initialising message receiver, starting SQS connection");
 		consumer.setMessageListener(this);
 		connection.start();

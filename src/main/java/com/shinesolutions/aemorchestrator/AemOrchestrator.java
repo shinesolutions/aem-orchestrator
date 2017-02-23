@@ -20,6 +20,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.retry.annotation.EnableRetry;
 
@@ -31,8 +32,17 @@ public class AemOrchestrator {
     private final static Logger logger = LoggerFactory.getLogger(AemOrchestrator.class);
 
     public static void main(String[] args) throws Exception {
-        SpringApplication.run(AemOrchestrator.class, args);
-        logger.info("AEM Orchestrator Started");
+        ConfigurableApplicationContext context = SpringApplication.run(AemOrchestrator.class, args);
+        
+        //Need to wait for Author ELB is be in a healthy state before reading messages from the SQS queue
+        StartupManager startupManager = context.getBean(StartupManager.class);
+        
+        if(!startupManager.isStartupOk()) {
+            logger.info("Failed to start AEM Orchestrator");
+            context.close(); //Exit the application
+        } else {
+            logger.info("AEM Orchestrator started");
+        }
     }
 
 }

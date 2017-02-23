@@ -6,6 +6,7 @@ import static com.shinesolutions.aemorchestrator.service.InstanceTags.AEM_PUBLIS
 import static com.shinesolutions.aemorchestrator.service.InstanceTags.PAIR_INSTANCE_ID;
 import static com.shinesolutions.aemorchestrator.service.InstanceTags.SNAPSHOT_ID;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -13,12 +14,15 @@ import java.util.NoSuchElementException;
 
 import javax.annotation.Resource;
 
+import org.apache.http.HttpStatus;
+import org.apache.http.client.ClientProtocolException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Component;
 
 import com.shinesolutions.aemorchestrator.model.EnvironmentValues;
+import com.shinesolutions.aemorchestrator.util.HttpUtil;
 
 /*
  * Service used for finding URLs, IDs etc of AEM/AWS instances
@@ -55,6 +59,9 @@ public class AemInstanceHelperService {
     
     @Resource
     private AwsHelperService awsHelperService;
+    
+    @Resource
+    private HttpUtil httpUtil;
     
     private static final String URL_FORMAT = "%s://%s:%s";
     
@@ -98,6 +105,18 @@ public class AemInstanceHelperService {
     public String getAemUrlForAuthorElb() {
         //Author can be accessed from the load balancer
         return String.format(URL_FORMAT, aemAuthorProtocol, envValues.getElasticLoadBalancerAuthorDns(), aemAuthorPort);
+    }
+    
+    /**
+     * Helper method for determining of the Author ELB is in a healthy state
+     * @return true if the Author ELB is in a healthy state, false if not
+     * @throws IOException 
+     * @throws ClientProtocolException 
+     */
+    public boolean isAuthorElbHealthy() throws ClientProtocolException, IOException {
+        String url = getAemUrlForAuthorElb() + "/system/health?tags=devops";
+
+        return httpUtil.getHttpResponseCode(url) == HttpStatus.SC_OK;
     }
     
     /**

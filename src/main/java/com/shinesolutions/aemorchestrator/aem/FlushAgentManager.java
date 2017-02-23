@@ -4,8 +4,6 @@ import javax.annotation.Resource;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.retry.annotation.Backoff;
-import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Component;
 
 import com.shinesolutions.swaggeraem4j.ApiException;
@@ -42,7 +40,6 @@ public class FlushAgentManager {
         logger.debug("ApiResponse status code: " + response.getStatusCode());
     }
 
-    @Retryable(maxAttempts=10, value=ApiException.class, backoff=@Backoff(delay=10000))
     public void createFlushAgent(String dispatcherInstanceId, String aemBaseUrl, String aemDispatcherBaseUrl,
         AgentRunMode runMode) throws ApiException {
         logger.info(

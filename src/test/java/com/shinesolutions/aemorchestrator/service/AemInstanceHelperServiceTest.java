@@ -7,10 +7,12 @@ import static com.shinesolutions.aemorchestrator.service.InstanceTags.PAIR_INSTA
 import static com.shinesolutions.aemorchestrator.service.InstanceTags.SNAPSHOT_ID;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.startsWith;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.eq;
 import static org.springframework.test.util.ReflectionTestUtils.setField;
 
 import java.util.ArrayList;
@@ -18,6 +20,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.http.HttpStatus;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -28,6 +31,7 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import com.shinesolutions.aemorchestrator.model.EnvironmentValues;
+import com.shinesolutions.aemorchestrator.util.HttpUtil;
 
 @RunWith(MockitoJUnitRunner.class)
 public class AemInstanceHelperServiceTest {
@@ -43,6 +47,9 @@ public class AemInstanceHelperServiceTest {
     
     @Mock
     private AwsHelperService awsHelperService;
+    
+    @Mock
+    private HttpUtil httpUtil;
     
     @InjectMocks
     private AemInstanceHelperService aemHelperService;
@@ -360,6 +367,29 @@ public class AemInstanceHelperServiceTest {
         Map<String, String> tags = mapCaptor.getValue();
         
         assertThat(tags.get(AEM_AUTHOR_HOST.getTagName()), equalTo(envValues.getElasticLoadBalancerAuthorDns()));
+    }
+    
+    @Test
+    public void testIsAuthorElbHealthyOk() throws Exception {
+        ArgumentCaptor<String> urlCaptor = ArgumentCaptor.forClass(String.class);
+        when(httpUtil.getHttpResponseCode(urlCaptor.capture())).thenReturn(HttpStatus.SC_OK);
+        
+        boolean result = aemHelperService.isAuthorElbHealthy();
+        
+        String url = urlCaptor.getValue();
+        
+        assertThat(url, startsWith(aemAuthorProtocol + "://" + 
+            envValues.getElasticLoadBalancerAuthorDns() + ":" + aemAuthorPort));
+        assertThat(result, equalTo(true));
+    }
+    
+    @Test
+    public void testIsAuthorElbHealthyNotOk() throws Exception {
+        when(httpUtil.getHttpResponseCode(anyString())).thenReturn(HttpStatus.SC_BAD_REQUEST);
+        
+        boolean result = aemHelperService.isAuthorElbHealthy();
+        
+        assertThat(result, equalTo(false));
     }
 
 }

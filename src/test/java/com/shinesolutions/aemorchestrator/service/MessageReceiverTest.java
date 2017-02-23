@@ -87,9 +87,9 @@ public class MessageReceiverTest {
     }
     
     @Test
-    public void testInit() throws Exception {
+    public void testStart() throws Exception {
         
-        messageReceiver.initIt();
+        messageReceiver.start();
         
         verify(consumer, times(1)).setMessageListener(messageReceiver);
         verify(connection, times(1)).start();
