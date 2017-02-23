@@ -35,7 +35,7 @@ public class ProxyConfig {
                 logger.warn("Unable to parse " + ENV_HTTPS_PROXY + " environment variable", e);
             }
         } else {
-            logger.debug(ENV_HTTPS_PROXY + " environment variable not found, not proxy details set");
+            logger.debug(ENV_HTTPS_PROXY + " environment variable not found, no proxy details set");
         }
         
         return details;
