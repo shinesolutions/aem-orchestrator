@@ -4,6 +4,7 @@ import javax.jms.JMSException;
 import javax.jms.MessageConsumer;
 import javax.jms.Session;
 
+import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -74,11 +75,15 @@ public class AwsConfig {
     @Bean
     public Region awsRegion() {
         Region region;
-        if(regionString == null) {
+        if(regionString != null && !regionString.isEmpty()) {
+            region = RegionUtils.getRegion(regionString);
+        } else {
             AwsRegionProvider regionProvider = new DefaultAwsRegionProviderChain();
             region = RegionUtils.getRegion(regionProvider.getRegion());
-        } else {
-            region = RegionUtils.getRegion(regionString);
+        }
+        
+        if(region == null) {
+            throw new BeanInitializationException("Unable to determine AWS region");
         }
         
         return region;
