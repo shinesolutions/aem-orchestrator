@@ -68,7 +68,7 @@ public class ReplicationAgentManager {
 
     public void resumeReplicationAgent(String publishId, String authorAemBaseUrl, AgentRunMode runMode)
         throws ApiException {
-        logger.info("Restarting replication agent for publish id: " + publishId);
+        logger.info("Resuming replication agent for publish id: " + publishId);
         
         PostAgentWithHttpInfoRequest request = agentRequestFactory.getResumeReplicationAgentRequest(runMode,
             getReplicationAgentName(publishId),  
