@@ -36,8 +36,27 @@ public class ScaleUpPublishAction implements ScaleAction {
         boolean success = true;
 
         // First create replication agent on publish instance
-        String publishAemBaseUrl = aemHelperService.getAemUrlForPublish(instanceId);
         String authorAemBaseUrl = aemHelperService.getAemUrlForAuthorElb();
+        String publishAemBaseUrl = aemHelperService.getAemUrlForPublish(instanceId);
+
+        success = prepareReplicationAgent(instanceId, authorAemBaseUrl, publishAemBaseUrl);
+
+        // Create a new publish from a snapshot of an active publish instance
+        if (success) {
+            success = loadSnapshotFromActivePublisher(instanceId, authorAemBaseUrl);
+        }
+
+        // Find unpaired publish dispatcher and pair it with tags
+        if (success) {
+            success = pairAndTagWithDispatcher(instanceId, authorAemBaseUrl);
+        }
+
+        return success;
+    }
+    
+    
+    private boolean prepareReplicationAgent(String instanceId, String authorAemBaseUrl, String publishAemBaseUrl) {
+        boolean success = true;
         try {
             replicationAgentManager.createReplicationAgent(instanceId, publishAemBaseUrl, authorAemBaseUrl,
                 AgentRunMode.PUBLISH);
@@ -49,65 +68,75 @@ public class ScaleUpPublishAction implements ScaleAction {
                 + authorAemBaseUrl, e);
             success = false;
         }
-
-        // Create a new publish from a snapshot of an active publish instance
-        if (success) {
-            String activePublishId = aemHelperService.getPublishIdToSnapshotFrom(instanceId);
-            // Pause active publish's replication agent before taking snapshot
-            try {
-                replicationAgentManager.pauseReplicationAgent(activePublishId, authorAemBaseUrl, AgentRunMode.PUBLISH);
-                // Take snapshot
-                String volumeId = awsHelperService.getVolumeId(activePublishId, DEVICE_NAME);
-                logger.debug("Volume ID for snapshot: " + volumeId);
-                if (volumeId != null) {
-                    String snapshotShotId = awsHelperService.createSnapshot(volumeId,
-                        "Snapshot of publish instance id " + activePublishId + " and volume id " + volumeId);
-                    aemHelperService.tagInstanceWithSnapshotId(instanceId, snapshotShotId);
-                    logger.debug("Snapshot ID: " + snapshotShotId);
-                } else {
-                    // Not good
-                    logger.error("Unable to find volume id for block device '" + DEVICE_NAME + "' and instance id "
-                        + activePublishId);
-                    success = false;
-                }
-
-            } catch (ApiException e) {
-                logger.error("Error while pausing and attempting to snapshot an active publish instance", e);
+        return success;
+    }
+    
+    
+    private boolean loadSnapshotFromActivePublisher(String instanceId, String authorAemBaseUrl) {
+        boolean success = true;
+        
+        String activePublishId = aemHelperService.getPublishIdToSnapshotFrom(instanceId);
+        // Pause active publish's replication agent before taking snapshot
+        try {
+            replicationAgentManager.pauseReplicationAgent(activePublishId, authorAemBaseUrl, AgentRunMode.PUBLISH);
+            // Take snapshot
+            String volumeId = awsHelperService.getVolumeId(activePublishId, DEVICE_NAME);
+            
+            logger.debug("Volume ID for snapshot: " + volumeId);
+            
+            if (volumeId != null) {
+                String snapshotShotId = aemHelperService.createPublishSnapshot(activePublishId, volumeId);
+                logger.debug("Snapshot ID: " + snapshotShotId);
+                
+                aemHelperService.tagInstanceWithSnapshotId(instanceId, snapshotShotId);
+            } else {
+                // Not good
+                logger.error("Unable to find volume id for block device '" + DEVICE_NAME + "' and instance id "
+                    + activePublishId);
                 success = false;
-            } finally {
-                // Need to resume active publish instance replication queue
-                try {
-                    if(activePublishId != null) {
-                        replicationAgentManager.resumeReplicationAgent(activePublishId, authorAemBaseUrl, 
-                            AgentRunMode.PUBLISH);
-                    }
-                } catch (ApiException e) {
-                    logger.error("Failed to restart replication queue for active publish instance: " + activePublishId, e);
+            }
+
+        } catch (Exception e) {
+            logger.error("Error while pausing and attempting to snapshot an active publish instance", e);
+            success = false;
+        } finally {
+            // Need to resume active publish instance replication queue
+            try {
+                if(activePublishId != null) {
+                    replicationAgentManager.resumeReplicationAgent(activePublishId, authorAemBaseUrl, 
+                        AgentRunMode.PUBLISH);
                 }
+            } catch (ApiException e) {
+                logger.error("Failed to restart replication queue for active publish instance: " + activePublishId, e);
             }
         }
+        
+        return success;
+    }
+    
+    
+    private boolean pairAndTagWithDispatcher(String instanceId, String authorAemBaseUrl) {
+        boolean success = true;
+        
+        try {
+            // Find unpaired publish dispatcher and pair it with tags
+            logger.debug("Attempting to find unpaired publish dispatcher instance");
+            String unpairedDispatcherId = aemHelperService.findUnpairedPublishDispatcher();
 
-        if (success) {
-            try {
-                // Find unpaired publish dispatcher and pair it with tags
-                logger.debug("Attempting to find unpaired publish dispatcher instance");
-                String unpairedDispatcherId = aemHelperService.findUnpairedPublishDispatcher();
+            logger.debug("Pairing publish instance (" + instanceId + ") with pubish dispatcher ("
+                + unpairedDispatcherId + ") via tags");
+            aemHelperService.pairPublishWithDispatcher(instanceId, unpairedDispatcherId);
 
-                logger.debug("Pairing publish instance (" + instanceId + ") with pubish dispatcher ("
-                    + unpairedDispatcherId + ") via tags");
-                aemHelperService.pairPublishWithDispatcher(instanceId, unpairedDispatcherId);
-
-                // Resume paused replication agents
-                replicationAgentManager.resumeReplicationAgent(instanceId, authorAemBaseUrl, AgentRunMode.PUBLISH);
-            } catch (NoSuchElementException nse) {
-                logger.warn("Failed to find unpaired publish dispatcher", nse);
-                success = false;
-            } catch (ApiException e) {
-                logger.error("Error while attempting to restart replication agent on publish instance: " + 
-                    instanceId, e);
-            }
+            // Resume paused replication agents
+            replicationAgentManager.resumeReplicationAgent(instanceId, authorAemBaseUrl, AgentRunMode.PUBLISH);
+        } catch (NoSuchElementException nse) {
+            logger.warn("Failed to find unpaired publish dispatcher", nse);
+            success = false;
+        } catch (ApiException e) {
+            logger.error("Error while attempting to restart replication agent on publish instance: " + 
+                instanceId, e);
         }
-
+        
         return success;
     }
 

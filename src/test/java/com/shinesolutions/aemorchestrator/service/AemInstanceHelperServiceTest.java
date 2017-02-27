@@ -9,6 +9,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.startsWith;
 import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.anyMap;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -16,6 +17,7 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.util.ReflectionTestUtils.setField;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -390,6 +392,68 @@ public class AemInstanceHelperServiceTest {
         boolean result = aemHelperService.isAuthorElbHealthy();
         
         assertThat(result, equalTo(false));
+    }
+    
+    @Test
+    public void testCreatePublishSnapshotWithSelectedTags() throws Exception {
+        String tag1 = "testTag1";
+        String tag2 = "testTag2";
+        
+        String snapshotId = "x3289751048";
+        
+        List <String> tagsToApplyToSnapshot = Arrays.asList(tag1, tag2);
+        
+        setField(aemHelperService, "tagsToApplyToSnapshot", tagsToApplyToSnapshot);
+        
+        Map<String, String> activePublishTags = new HashMap<String, String>();
+        activePublishTags.put("someRandomTag1", "someRandomTag1");
+        activePublishTags.put(tag1, tag1);
+        activePublishTags.put("someRandomTag2", "someRandomTag2");
+        activePublishTags.put(tag2, tag2);
+        activePublishTags.put("someRandomTag3", "someRandomTag3");
+        
+        when(awsHelperService.getTags(instanceId)).thenReturn(activePublishTags);
+        
+        when(awsHelperService.createSnapshot(anyString(), anyString())).thenReturn(snapshotId);
+        
+        String resultId = aemHelperService.createPublishSnapshot(instanceId, "volumeId");
+        
+        verify(awsHelperService, times(1)).addTags(anyString(), mapCaptor.capture());
+        
+        Map<String, String> capturedTags = mapCaptor.getValue();
+        
+        //Ensure that it only uses the specified tags on the snapshot
+        assertThat(capturedTags.size(), equalTo(tagsToApplyToSnapshot.size()));
+        assertThat(capturedTags.get(tag1), equalTo(tag1));
+        assertThat(capturedTags.get(tag2), equalTo(tag2));
+        
+        assertThat(resultId, equalTo(snapshotId));
+    }
+    
+    
+    @Test
+    @SuppressWarnings("unchecked")
+    public void testCreatePublishSnapshotWithNoSelectedTags() throws Exception {
+        String snapshotId = "x3289751048";
+        
+        List <String> tagsToApplyToSnapshot = new ArrayList<String>();
+        
+        setField(aemHelperService, "tagsToApplyToSnapshot", tagsToApplyToSnapshot);
+        
+        Map<String, String> activePublishTags = new HashMap<String, String>();
+        activePublishTags.put("someRandomTag1", "someRandomTag1");
+        activePublishTags.put("someRandomTag2", "someRandomTag2");
+        activePublishTags.put("someRandomTag3", "someRandomTag3");
+        
+        when(awsHelperService.getTags(instanceId)).thenReturn(activePublishTags);
+        
+        when(awsHelperService.createSnapshot(anyString(), anyString())).thenReturn(snapshotId);
+        
+        String resultId = aemHelperService.createPublishSnapshot(instanceId, "volumeId");
+        
+        verify(awsHelperService, times(0)).addTags(anyString(), anyMap());
+        
+        assertThat(resultId, equalTo(snapshotId));
     }
 
 }

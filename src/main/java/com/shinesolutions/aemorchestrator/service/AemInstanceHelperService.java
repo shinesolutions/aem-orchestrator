@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.stream.Collectors;
 
 import javax.annotation.Resource;
 
@@ -53,6 +54,9 @@ public class AemInstanceHelperService {
     
     @Value("${aem.port.author}")
     private Integer aemAuthorPort;
+    
+    @Value("${aws.snapshot.tags}")
+    private List<String> tagsToApplyToSnapshot;
     
     @Resource
     private EnvironmentValues envValues;
@@ -203,6 +207,30 @@ public class AemInstanceHelperService {
         Map<String, String> authorTags = new HashMap<String, String>();
         authorTags.put(AEM_AUTHOR_HOST.getTagName(), envValues.getElasticLoadBalancerAuthorDns());
         awsHelperService.addTags(authorDispatcherInstanceId, authorTags);
+    }
+    
+    /**
+     * Creates and tags a snapshot resource with select tags taken from the publish instance.
+     * The tags to use are defined via properties (aws.snapshot.tags)
+     * @param instanceId the publish EC2 instance ID from which the snapshot was taken
+     * @param volumeId of where the snapshot will be stored
+     * @return snapshot ID
+     */
+    public String createPublishSnapshot(String instanceId, String volumeId) {
+        Map<String, String> activePublishTags = awsHelperService.getTags(instanceId);
+        
+        Map<String, String> tagsForSnapshot = activePublishTags.entrySet().stream()
+            .filter(map -> tagsToApplyToSnapshot.contains(map.getKey()))
+            .collect(Collectors.toMap(p -> p.getKey(), p -> p.getValue()));
+        
+        String snapshotId = awsHelperService.createSnapshot(volumeId,
+            "Snapshot of publish instance id " + instanceId + " and volume id " + volumeId);
+        
+        if(!tagsForSnapshot.isEmpty()) {
+            awsHelperService.addTags(snapshotId, tagsForSnapshot);
+        }
+        
+        return snapshotId;
     }
     
     /**
