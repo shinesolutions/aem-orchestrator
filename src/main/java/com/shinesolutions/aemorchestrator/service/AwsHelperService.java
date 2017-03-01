@@ -8,8 +8,6 @@ import java.util.stream.Collectors;
 
 import javax.annotation.Resource;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Component;
@@ -58,8 +56,6 @@ import com.amazonaws.util.IOUtils;
 @Component
 public class AwsHelperService {
     
-    private final Logger logger = LoggerFactory.getLogger(this.getClass());
-    
     @Resource
     public AmazonEC2 amazonEC2Client;
     
@@ -107,16 +103,22 @@ public class AwsHelperService {
     
     /**
      * Checks if a instance is in a 'running' state. Will return false if the instance 
-     * is in any other of the possible states: pending, shutting-down, terminated, stopping or stopped.
+     * is in any other of the possible states: pending, shutting-down, terminated, stopping, stopped or non-existent.
      * @param instanceId EC2 instance id
      * @return true if the instance is in a 'running' state. False for any other state
      */
     public boolean isInstanceRunning(String instanceId) {
+        boolean isInstanceRunning = false;
         DescribeInstancesResult result = amazonEC2Client.describeInstances(
             new DescribeInstancesRequest().withInstanceIds(instanceId));
-        InstanceState state = result.getReservations().get(0).getInstances().get(0).getState();
-        logger.debug("AWS instance " +  instanceId + " currently in state: " + state.getName());
-        return InstanceStateName.fromValue(state.getName()) == InstanceStateName.Running;
+        
+        try {
+            InstanceState state = result.getReservations().get(0).getInstances().get(0).getState();
+            isInstanceRunning = InstanceStateName.fromValue(state.getName()) == InstanceStateName.Running;
+        }
+        catch (IndexOutOfBoundsException e) {} //Instance is long gone
+
+        return isInstanceRunning;
     }
     
     /**
