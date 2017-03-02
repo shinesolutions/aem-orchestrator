@@ -4,7 +4,6 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -23,7 +22,7 @@ import com.shinesolutions.aemorchestrator.model.EventMessage;
 import com.shinesolutions.aemorchestrator.service.AwsHelperService;
 
 @RunWith(MockitoJUnitRunner.class)
-public class AutoScalingEventHandlerTest {
+public class AutoScalingTerminateEventHandlerTest {
     
     @Mock
     private Map<String, ScaleAction> scaleDownAutoScaleGroupMappings;
@@ -32,7 +31,7 @@ public class AutoScalingEventHandlerTest {
     private AwsHelperService awsHelperService;
     
     @InjectMocks
-    private AutoScalingEventHandler handler;
+    private AutoScalingTerminateEventHandler handler;
     
     private ScaleAction action;
     private EventMessage message;
@@ -54,17 +53,6 @@ public class AutoScalingEventHandlerTest {
         boolean result = handler.handleEvent(message);
         
         assertThat(result, equalTo(false));
-    }
-    
-    @Test
-    public void testInstanceNotRunning() throws Exception {
-        when(scaleDownAutoScaleGroupMappings.get(anyString())).thenReturn(action);
-        when(awsHelperService.isInstanceRunning(message.getEC2InstanceId())).thenReturn(false);
-        
-        boolean result = handler.handleEvent(message);
-        
-        assertThat(result, equalTo(true));
-        verify(action, never()).execute(message.getEC2InstanceId());
     }
     
     @Test

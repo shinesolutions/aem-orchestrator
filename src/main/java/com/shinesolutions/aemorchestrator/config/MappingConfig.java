@@ -3,7 +3,6 @@ package com.shinesolutions.aemorchestrator.config;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -14,19 +13,19 @@ import com.shinesolutions.aemorchestrator.actions.ScaleDownPublishDispatcherActi
 import com.shinesolutions.aemorchestrator.actions.ScaleUpAuthorDispatcherAction;
 import com.shinesolutions.aemorchestrator.actions.ScaleUpPublishAction;
 import com.shinesolutions.aemorchestrator.actions.ScaleUpPublishDispatcherAction;
-import com.shinesolutions.aemorchestrator.handler.AutoScalingEventHandler;
+import com.shinesolutions.aemorchestrator.handler.AutoScalingLaunchEventHandler;
+import com.shinesolutions.aemorchestrator.handler.AutoScalingTerminateEventHandler;
 import com.shinesolutions.aemorchestrator.handler.EventHandler;
 import com.shinesolutions.aemorchestrator.model.EnvironmentValues;
 import com.shinesolutions.aemorchestrator.model.EventType;
-import com.shinesolutions.aemorchestrator.service.AwsHelperService;
 
 @Configuration
 public class MappingConfig {
 
     @Bean
     public Map<String, EventHandler> eventTypeHandlerMappings(
-        @Qualifier("scaleDownEventHandler") final AutoScalingEventHandler scaleDownEventHandler,
-        @Qualifier("scaleUpEventHandler") final AutoScalingEventHandler scaleUpEventHandler) {
+        final AutoScalingTerminateEventHandler scaleDownEventHandler,
+        final AutoScalingLaunchEventHandler scaleUpEventHandler) {
 
         Map<String, EventHandler> mappings = new HashMap<String, EventHandler>();
         mappings.put(EventType.AUTOSCALING_EC2_INSTANCE_TERMINATE.getValue(), scaleDownEventHandler);
@@ -65,21 +64,5 @@ public class MappingConfig {
         mappings.put(envValues.getAutoScaleGroupNameForAuthorDispatcher(), scaleUpAuthorDispatcherAction);
 
         return mappings;
-    }
-    
-    @Bean(name="scaleDownEventHandler")
-    public AutoScalingEventHandler scaleDownEventHandler(
-        @Qualifier("scaleDownAutoScaleGroupMappings") final Map<String, ScaleAction> scaleDownAutoScaleGroupMappings,
-        final AwsHelperService awsHelperService) {
-        
-        return new AutoScalingEventHandler(scaleDownAutoScaleGroupMappings, awsHelperService);
-    }
-    
-    @Bean(name="scaleUpEventHandler")
-    public AutoScalingEventHandler scaleUpEventHandler(
-        @Qualifier("scaleUpAutoScaleGroupMappings") final Map<String, ScaleAction> scaleUpAutoScaleGroupMappings,
-        final AwsHelperService awsHelperService) {
-        
-        return new AutoScalingEventHandler(scaleUpAutoScaleGroupMappings, awsHelperService);
     }
 }

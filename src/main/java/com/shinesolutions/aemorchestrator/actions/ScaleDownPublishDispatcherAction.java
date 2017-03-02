@@ -32,7 +32,8 @@ public class ScaleDownPublishDispatcherAction implements ScaleAction {
             logger.info("Terminating paired publish instance with ID: " + pairedPublishId);
             awsHelperService.terminateInstance(pairedPublishId);
         } else {
-            logger.warn("Unable to located paired publish instance for publish dispatcher id: " + instanceId);
+            logger.warn("Unable to terminate paired publish instance with ID: " + pairedPublishId + 
+                ". It may already be terminated");
         }
 
         // Change publish auto scaling group desired capacity to match dispatcher

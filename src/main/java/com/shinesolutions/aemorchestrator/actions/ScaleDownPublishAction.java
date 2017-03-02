@@ -43,7 +43,8 @@ public class ScaleDownPublishAction implements ScaleAction {
             logger.info("Terminating paired publish dispatcher with ID: " + pairedDispatcherId);
             awsHelperService.terminateInstance(pairedDispatcherId);
         } else {
-            logger.warn("Unable to find paired dispatcher for publish id " + instanceId);
+            logger.warn("Unable to terminate paired publish dispatcher with ID: " + pairedDispatcherId + 
+                ". It may already be terminated");
         }
         
         // Delete replication agent on author
