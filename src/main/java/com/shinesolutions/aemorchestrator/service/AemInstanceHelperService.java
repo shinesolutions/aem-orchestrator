@@ -223,12 +223,12 @@ public class AemInstanceHelperService {
             .filter(map -> tagsToApplyToSnapshot.contains(map.getKey()))
             .collect(Collectors.toMap(p -> p.getKey(), p -> p.getValue()));
         
+        tagsForSnapshot.put("SnapshotType", "orchestration");
+        
         String snapshotId = awsHelperService.createSnapshot(volumeId,
             "Snapshot of publish instance id " + instanceId + " and volume id " + volumeId);
         
-        if(!tagsForSnapshot.isEmpty()) {
-            awsHelperService.addTags(snapshotId, tagsForSnapshot);
-        }
+        awsHelperService.addTags(snapshotId, tagsForSnapshot);
         
         return snapshotId;
     }

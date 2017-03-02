@@ -9,7 +9,6 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.startsWith;
 import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.anyMap;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -423,16 +422,16 @@ public class AemInstanceHelperServiceTest {
         Map<String, String> capturedTags = mapCaptor.getValue();
         
         //Ensure that it only uses the specified tags on the snapshot
-        assertThat(capturedTags.size(), equalTo(tagsToApplyToSnapshot.size()));
+        assertThat(capturedTags.size(), equalTo(tagsToApplyToSnapshot.size() + 1));
         assertThat(capturedTags.get(tag1), equalTo(tag1));
         assertThat(capturedTags.get(tag2), equalTo(tag2));
+        assertThat(capturedTags.get("SnapshotType"), equalTo("orchestration"));
         
         assertThat(resultId, equalTo(snapshotId));
     }
     
     
     @Test
-    @SuppressWarnings("unchecked")
     public void testCreatePublishSnapshotWithNoSelectedTags() throws Exception {
         String snapshotId = "x3289751048";
         
@@ -451,7 +450,13 @@ public class AemInstanceHelperServiceTest {
         
         String resultId = aemHelperService.createPublishSnapshot(instanceId, "volumeId");
         
-        verify(awsHelperService, times(0)).addTags(anyString(), anyMap());
+        verify(awsHelperService, times(1)).addTags(anyString(), mapCaptor.capture());
+        
+        Map<String, String> capturedTags = mapCaptor.getValue();
+        
+        //Ensure that it only uses the specified tags on the snapshot
+        assertThat(capturedTags.size(), equalTo(1));
+        assertThat(capturedTags.get("SnapshotType"), equalTo("orchestration"));
         
         assertThat(resultId, equalTo(snapshotId));
     }
