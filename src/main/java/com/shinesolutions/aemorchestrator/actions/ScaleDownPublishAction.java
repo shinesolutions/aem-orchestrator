@@ -4,6 +4,7 @@ import javax.annotation.Resource;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import com.shinesolutions.aemorchestrator.aem.AgentRunMode;
@@ -16,6 +17,9 @@ import com.shinesolutions.swaggeraem4j.ApiException;
 public class ScaleDownPublishAction implements ScaleAction {
     
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
+    
+    @Value("${aem.reverseReplication.enable}")
+    private boolean reverseReplicationEnabled;
     
     @Resource
     private AemInstanceHelperService aemHelperService;
@@ -51,6 +55,18 @@ public class ScaleDownPublishAction implements ScaleAction {
         } catch (ApiException e) {
             logger.error("Failed to delete replication agent on author for publish id " + instanceId + 
                 " and auth URL: " + authorAemBaseUrl, e);
+        }
+
+        if (reverseReplicationEnabled) {
+            logger.debug("Reverse replication is enabled");
+            try {
+                replicationAgentManager.deleteReverseReplicationAgent(instanceId, authorAemBaseUrl,
+                    AgentRunMode.AUTHOR);
+
+            } catch (ApiException e) {
+                logger.warn("Failed to delete reverse replication agent on author for publish id " + instanceId
+                    + " and auth URL: " + authorAemBaseUrl, e);
+            }
         }
         
         return success;

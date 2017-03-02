@@ -4,6 +4,8 @@ import javax.annotation.Resource;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.retry.annotation.Retryable;
+import org.springframework.retry.annotation.Backoff;
 import org.springframework.stereotype.Component;
 
 import com.shinesolutions.aemorchestrator.model.AemCredentials;
@@ -35,21 +37,28 @@ public class ReplicationAgentManager {
         AgentRunMode runMode) throws ApiException {
         logger.info("Creating replication agent for publish id: " + publishId);
         
-        String agentDescription = "Replication agent for publish " + publishId;
-        
         PostAgentWithHttpInfoRequest request = agentRequestFactory.getCreateReplicationAgentRequest(runMode,
-            getReplicationAgentName(publishId), agentDescription, publishAemBaseUrl, 
+            getReplicationAgentName(publishId), 
+            "Replication agent for publish " + publishId, 
+            publishAemBaseUrl, 
             aemCredentials.getReplicatorCredentials().getUserName(), 
             aemCredentials.getReplicatorCredentials().getPassword());
 
-        SlingApi slingApi = aemApiFactory.getSlingApi(authorAemBaseUrl, AgentAction.CREATE);
+        performPostAgentAction(request, authorAemBaseUrl, AgentAction.CREATE);
+    }
+    
+    public void createReverseReplicationAgent(String publishId, String publishAemBaseUrl, String authorAemBaseUrl,
+        AgentRunMode runMode) throws ApiException {
+        logger.info("Creating reverse replication agent for publish id: " + publishId);
         
-        logger.debug(agentDescription + ", with transport URI: " + request.getJcrContentTransportUri() + 
-            ", and connection URL: " + authorAemBaseUrl);
+        PostAgentWithHttpInfoRequest request = agentRequestFactory.getCreateReverseReplicationAgentRequest(runMode,
+            getReverseReplicationAgentName(publishId), 
+            "Reverse replication agent for publish " + publishId, 
+            publishAemBaseUrl, 
+            aemCredentials.getReplicatorCredentials().getUserName(), 
+            aemCredentials.getReplicatorCredentials().getPassword());
 
-        ApiResponse<Void> response = aemApiHelper.postAgentWithHttpInfo(slingApi, request);
-
-        logger.debug("ApiResponse status code: " + response.getStatusCode());
+        performPostAgentAction(request, authorAemBaseUrl, AgentAction.CREATE);
     }
 
     public void pauseReplicationAgent(String publishId, String authorAemBaseUrl, AgentRunMode runMode)
@@ -58,12 +67,8 @@ public class ReplicationAgentManager {
 
         PostAgentWithHttpInfoRequest request = agentRequestFactory.getPauseReplicationAgentRequest(runMode,
             getReplicationAgentName(publishId));
-        
-        SlingApi slingApi = aemApiFactory.getSlingApi(authorAemBaseUrl, AgentAction.PAUSE);
 
-        ApiResponse<Void> response = aemApiHelper.postAgentWithHttpInfo(slingApi, request);
-
-        logger.debug("ApiResponse status code: " + response.getStatusCode());
+        performPostAgentAction(request, authorAemBaseUrl, AgentAction.PAUSE);
     }
 
     public void resumeReplicationAgent(String publishId, String authorAemBaseUrl, AgentRunMode runMode)
@@ -71,30 +76,52 @@ public class ReplicationAgentManager {
         logger.info("Resuming replication agent for publish id: " + publishId);
         
         PostAgentWithHttpInfoRequest request = agentRequestFactory.getResumeReplicationAgentRequest(runMode,
-            getReplicationAgentName(publishId),  
+            getReplicationAgentName(publishId), 
             aemCredentials.getReplicatorCredentials().getUserName(), 
             aemCredentials.getReplicatorCredentials().getPassword());
 
-        SlingApi slingApi = aemApiFactory.getSlingApi(authorAemBaseUrl, AgentAction.RESTART);
+        performPostAgentAction(request, authorAemBaseUrl, AgentAction.RESTART);
+    }
+
+    public void deleteReplicationAgent(String publishId, String authorAemBaseUrl, AgentRunMode runMode)
+        throws ApiException {
+        logger.info("Deleting replication agent for publish id: " + publishId);
+
+        performDeleteAgentAction(getReplicationAgentName(publishId), authorAemBaseUrl, runMode);
+    }
+    
+    public void deleteReverseReplicationAgent(String publishId, String authorAemBaseUrl, AgentRunMode runMode)
+        throws ApiException {
+        logger.info("Deleting reverse replication agent for publish id: " + publishId);
+
+        performDeleteAgentAction(getReverseReplicationAgentName(publishId), authorAemBaseUrl, runMode);
+    }
+    
+    @Retryable(maxAttempts=5, value=ApiException.class, backoff=@Backoff(delay=5000))
+    private void performDeleteAgentAction(String agentName, String authorAemBaseUrl, AgentRunMode runMode)
+        throws ApiException {
+        SlingApi slingApi = aemApiFactory.getSlingApi(authorAemBaseUrl, AgentAction.DELETE);
+
+        ApiResponse<Void> response = slingApi.deleteAgentWithHttpInfo(runMode.getValue(), agentName);
+
+        logger.debug("ApiResponse status code: " + response.getStatusCode());
+    }
+    
+    @Retryable(maxAttempts=5, value=ApiException.class, backoff=@Backoff(delay=5000))
+    private void performPostAgentAction(PostAgentWithHttpInfoRequest request, String authorAemBaseUrl, 
+        AgentAction action) throws ApiException {
+        SlingApi slingApi = aemApiFactory.getSlingApi(authorAemBaseUrl, action);
 
         ApiResponse<Void> response = aemApiHelper.postAgentWithHttpInfo(slingApi, request);
 
         logger.debug("ApiResponse status code: " + response.getStatusCode());
     }
 
-    public void deleteReplicationAgent(String publishId, String authorAemBaseUrl, AgentRunMode runMode)
-        throws ApiException {
-        logger.info("Deleting replication agent for publish id: " + publishId);
-        
-        SlingApi slingApi = aemApiFactory.getSlingApi(authorAemBaseUrl, AgentAction.DELETE);
-
-        ApiResponse<Void> response = slingApi.deleteAgentWithHttpInfo(runMode.getValue(),
-            getReplicationAgentName(publishId));
-
-        logger.debug("ApiResponse status code: " + response.getStatusCode());
-    }
-
     private String getReplicationAgentName(String instanceId) {
         return "replicationAgent-" + instanceId;
+    }
+    
+    private String getReverseReplicationAgentName(String instanceId) {
+        return "reverseReplicationAgent-" + instanceId;
     }
 }

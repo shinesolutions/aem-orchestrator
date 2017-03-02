@@ -6,6 +6,7 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.util.ReflectionTestUtils.setField;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -59,6 +60,10 @@ public class ScaleDownPublishActionTest {
         verify(replicationAgentManager, times(1)).deleteReplicationAgent(instanceId, authorAemBaseUrl, 
             AgentRunMode.AUTHOR);
         
+        //Ensure reverse replication queue removal not called unless enabled
+        verify(replicationAgentManager, times(0)).deleteReverseReplicationAgent(instanceId, authorAemBaseUrl, 
+            AgentRunMode.AUTHOR);
+        
         assertThat(success, equalTo(true));
     }
     
@@ -88,6 +93,44 @@ public class ScaleDownPublishActionTest {
         verify(awsHelperService, times(1)).terminateInstance(pairedDispatcherId);
         
         assertThat(success, equalTo(false));
+    }
+    
+    @Test
+    public void testDeletesReverseReplicationQueueIfEnabled() throws Exception {
+        when(aemHelperService.getDispatcherIdForPairedPublish(instanceId)).thenReturn(pairedDispatcherId);
+        
+        setField(action, "reverseReplicationEnabled", true);
+        
+        boolean success = action.execute(instanceId);
+        
+        verify(awsHelperService, times(1)).terminateInstance(pairedDispatcherId);
+        
+        verify(replicationAgentManager, times(1)).deleteReplicationAgent(instanceId, authorAemBaseUrl, 
+            AgentRunMode.AUTHOR);
+        
+        verify(replicationAgentManager, times(1)).deleteReverseReplicationAgent(instanceId, authorAemBaseUrl, 
+            AgentRunMode.AUTHOR);
+        
+        assertThat(success, equalTo(true));
+    }
+    
+    @Test
+    public void testDeletesReverseReplicationWithException() throws Exception {
+        when(aemHelperService.getDispatcherIdForPairedPublish(instanceId)).thenReturn(pairedDispatcherId);
+        
+        doThrow(new ApiException()).when(replicationAgentManager).deleteReverseReplicationAgent(instanceId, authorAemBaseUrl, 
+            AgentRunMode.AUTHOR);
+        
+        setField(action, "reverseReplicationEnabled", true);
+        
+        boolean success = action.execute(instanceId);
+        
+        verify(awsHelperService, times(1)).terminateInstance(pairedDispatcherId);
+        
+        verify(replicationAgentManager, times(1)).deleteReplicationAgent(instanceId, authorAemBaseUrl, 
+            AgentRunMode.AUTHOR);
+        
+        assertThat(success, equalTo(true));
     }
 
 }

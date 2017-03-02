@@ -4,13 +4,22 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.concurrent.TimeUnit;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Component
 public class AgentRequestFactory {
     
-    private static final String SLING_RESOURCE_TYPE = "/libs/cq/replication/components/agent";
-    private static final String CQ_TEMPLATE = "/libs/cq/replication/templates/agent";
+    @Value("${aem.reverseReplication.transportUri.postfix}")
+    private String reverseReplicationTransportUriPostfix;
+    
+    private static final String JCR_PRIMARY_TYPE = "cq:Page";
+    private static final String SLING_RESOURCE_TYPE_REPLICATION_AGENT = "/libs/cq/replication/components/agent";
+    private static final String CQ_TEMPLATE_REPLICATION_AGENT = "/libs/cq/replication/templates/agent";
+    private static final String SLING_RESOURCE_TYPE_REVERSE_REPLICATION_AGENT = "/libs/cq/replication/components/revagent";
+    private static final String CQ_TEMPLATE_REVERSE_REPLICATION_AGENT = "/libs/cq/replication/templates/revagent";
+    private static final String TRANSPORT_URI_POSTFIX = "/bin/receive?sling:authRequestLogin=1";
+    private static final String DEFAULT_LOG_LEVEL = "info";
     
     public PostAgentWithHttpInfoRequest getCreateFlushAgentRequest(AgentRunMode runMode, String agentName, 
         String agentDescription, String aemDispatcherBaseUrl) {
@@ -18,15 +27,15 @@ public class AgentRequestFactory {
         return new PostAgentWithHttpInfoRequest()
             .withRunMode(runMode.getValue())
             .withName(agentName)
-            .withJcrPrimaryType("cq:Page")
+            .withJcrPrimaryType(JCR_PRIMARY_TYPE)
             .withJcrContentCqName(null)
             .withJcrContentJcrTitle(agentName)
             .withJcrContentJcrDescription(agentDescription)
-            .withJcrContentSlingResourceType(SLING_RESOURCE_TYPE)
+            .withJcrContentSlingResourceType(SLING_RESOURCE_TYPE_REPLICATION_AGENT)
             .withJcrContentTransportUri(aemDispatcherBaseUrl + "/dispatcher/invalidate.cache")
             .withJcrContentTransportUser("")
             .withJcrContentTransportPassword("")
-            .withJcrContentLogLevel("info")
+            .withJcrContentLogLevel(DEFAULT_LOG_LEVEL)
             .withJcrContentNoVersioning(true)
             .withJcrContentProtocolHTTPHeaders(Arrays.asList("CQ-Action:{action}"))
             .withJcrContentProtocolHTTPHeadersTypeHint("String[]")
@@ -36,7 +45,7 @@ public class AgentRequestFactory {
             .withJcrContentJcrMixinTypes("cq:ReplicationStatus")
             .withJcrContentTriggerReceive(true)
             .withJcrContentTriggerSpecific(true)
-            .withJcrContentCqTemplate(CQ_TEMPLATE)
+            .withJcrContentCqTemplate(CQ_TEMPLATE_REPLICATION_AGENT)
             .withJcrContentEnabled(true);
 
     }
@@ -47,15 +56,15 @@ public class AgentRequestFactory {
         return new PostAgentWithHttpInfoRequest()
             .withRunMode(runMode.getValue())
             .withName(agentName)
-            .withJcrPrimaryType("cq:Page")
+            .withJcrPrimaryType(JCR_PRIMARY_TYPE)
             .withJcrContentCqName(null)
             .withJcrContentJcrTitle(agentName)
             .withJcrContentJcrDescription(agentDescription)
-            .withJcrContentSlingResourceType(SLING_RESOURCE_TYPE)
-            .withJcrContentTransportUri(aemBaseUrl + "/bin/receive?sling:authRequestLogin=1")
+            .withJcrContentSlingResourceType(SLING_RESOURCE_TYPE_REPLICATION_AGENT)
+            .withJcrContentTransportUri(aemBaseUrl + TRANSPORT_URI_POSTFIX)
             .withJcrContentTransportUser(user)
             .withJcrContentTransportPassword(password)
-            .withJcrContentLogLevel("info")
+            .withJcrContentLogLevel(DEFAULT_LOG_LEVEL)
             .withJcrContentNoVersioning(false)
             .withJcrContentProtocolHTTPHeaders(Collections.emptyList())
             .withJcrContentProtocolHTTPHeadersTypeHint(null)
@@ -65,9 +74,37 @@ public class AgentRequestFactory {
             .withJcrContentJcrMixinTypes(null)
             .withJcrContentTriggerReceive(false)
             .withJcrContentTriggerSpecific(false)
-            .withJcrContentCqTemplate(CQ_TEMPLATE)
+            .withJcrContentCqTemplate(CQ_TEMPLATE_REPLICATION_AGENT)
             .withJcrContentEnabled(true);
+    }
+    
+    public PostAgentWithHttpInfoRequest getCreateReverseReplicationAgentRequest(AgentRunMode runMode, String agentName, 
+        String agentDescription, String aemBaseUrl, String user, String password) {
 
+        return new PostAgentWithHttpInfoRequest()
+            .withRunMode(runMode.getValue())
+            .withName(agentName)
+            .withJcrPrimaryType(JCR_PRIMARY_TYPE)
+            .withJcrContentCqName(null)
+            .withJcrContentJcrTitle(agentName)
+            .withJcrContentJcrDescription(agentDescription)
+            .withJcrContentSlingResourceType(SLING_RESOURCE_TYPE_REVERSE_REPLICATION_AGENT)
+            .withJcrContentTransportUri(aemBaseUrl + reverseReplicationTransportUriPostfix)
+            .withJcrContentTransportUser(user)
+            .withJcrContentTransportPassword(password)
+            .withJcrContentLogLevel(DEFAULT_LOG_LEVEL)
+            .withJcrContentNoVersioning(false)
+            .withJcrContentProtocolHTTPHeaders(Collections.emptyList())
+            .withJcrContentProtocolHTTPHeadersTypeHint(null)
+            .withJcrContentProtocolHTTPMethod(null)
+            .withJcrContentRetryDelay("" + TimeUnit.MINUTES.toMillis(1))
+            .withJcrContentSerializationType("durbo")
+            .withJcrContentJcrMixinTypes(null)
+            .withJcrContentTriggerReceive(false)
+            .withJcrContentTriggerSpecific(false)
+            .withJcrContentCqTemplate(CQ_TEMPLATE_REVERSE_REPLICATION_AGENT)
+            .withJcrContentEnabled(true)
+            .withJcrReverseReplication(true);
     }
     
     public PostAgentWithHttpInfoRequest getPauseReplicationAgentRequest(
@@ -76,11 +113,11 @@ public class AgentRequestFactory {
         return new PostAgentWithHttpInfoRequest()
             .withRunMode(runMode.getValue())
             .withName(agentName)
-            .withJcrPrimaryType("cq:Page")
+            .withJcrPrimaryType(JCR_PRIMARY_TYPE)
             .withJcrContentCqName(null)
             .withJcrContentJcrTitle(agentName)
             .withJcrContentJcrDescription(null)
-            .withJcrContentSlingResourceType(SLING_RESOURCE_TYPE)
+            .withJcrContentSlingResourceType(SLING_RESOURCE_TYPE_REPLICATION_AGENT)
             .withJcrContentTransportUri(null)
             .withJcrContentTransportUser("orchestrator-pause") // Is meant be an invalid user
             .withJcrContentTransportPassword(null)
@@ -94,7 +131,7 @@ public class AgentRequestFactory {
             .withJcrContentJcrMixinTypes(null)
             .withJcrContentTriggerReceive(false)
             .withJcrContentTriggerSpecific(false)
-            .withJcrContentCqTemplate(CQ_TEMPLATE)
+            .withJcrContentCqTemplate(CQ_TEMPLATE_REPLICATION_AGENT)
             .withJcrContentEnabled(false);
 
     }
@@ -105,11 +142,11 @@ public class AgentRequestFactory {
         return new PostAgentWithHttpInfoRequest()
             .withRunMode(runMode.getValue())
             .withName(agentName)
-            .withJcrPrimaryType("cq:Page")
+            .withJcrPrimaryType(JCR_PRIMARY_TYPE)
             .withJcrContentCqName(null)
             .withJcrContentJcrTitle(agentName)
             .withJcrContentJcrDescription(null)
-            .withJcrContentSlingResourceType(SLING_RESOURCE_TYPE)
+            .withJcrContentSlingResourceType(SLING_RESOURCE_TYPE_REPLICATION_AGENT)
             .withJcrContentTransportUri(null)
             .withJcrContentTransportUser(user)
             .withJcrContentTransportPassword(password)
@@ -123,11 +160,9 @@ public class AgentRequestFactory {
             .withJcrContentJcrMixinTypes(null)
             .withJcrContentTriggerReceive(false)
             .withJcrContentTriggerSpecific(false)
-            .withJcrContentCqTemplate(CQ_TEMPLATE)
+            .withJcrContentCqTemplate(CQ_TEMPLATE_REPLICATION_AGENT)
             .withJcrContentEnabled(true);
 
     }
-    
-    
 
 }

@@ -6,6 +6,7 @@ import javax.annotation.Resource;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import com.shinesolutions.aemorchestrator.aem.AgentRunMode;
@@ -18,6 +19,9 @@ import com.shinesolutions.swaggeraem4j.ApiException;
 public class ScaleUpPublishAction implements ScaleAction {
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
+    
+    @Value("${aem.reverseReplication.enable}")
+    private boolean enableReverseReplication;
 
     @Resource
     private AemInstanceHelperService aemHelperService;
@@ -63,6 +67,13 @@ public class ScaleUpPublishAction implements ScaleAction {
 
             // Immediately pause agent
             replicationAgentManager.pauseReplicationAgent(instanceId, authorAemBaseUrl, AgentRunMode.PUBLISH);
+            
+            if(enableReverseReplication) {
+                logger.debug("Reverse replication is enabled");
+                replicationAgentManager.createReverseReplicationAgent(instanceId, publishAemBaseUrl, 
+                    authorAemBaseUrl, AgentRunMode.PUBLISH);
+            }
+            
         } catch (ApiException e) {
             logger.error("Error while attempting to set up new publish replication agent via author AEM URL: "
                 + authorAemBaseUrl, e);

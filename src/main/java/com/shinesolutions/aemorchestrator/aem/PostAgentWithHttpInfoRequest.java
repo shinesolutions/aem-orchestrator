@@ -25,6 +25,7 @@ public class PostAgentWithHttpInfoRequest {
     private boolean jcrContentTriggerSpecific;
     private String jcrContentCqTemplate;
     private boolean jcrContentEnabled;
+    private boolean jcrReverseReplication;
 
     public String getRunMode() {
         return runMode;
@@ -312,4 +313,16 @@ public class PostAgentWithHttpInfoRequest {
         return this;
     }
 
+    public boolean isJcrReverseReplication() {
+        return jcrReverseReplication;
+    }
+
+    public void setJcrReverseReplication(boolean jcrReverseReplication) {
+        this.jcrReverseReplication = jcrReverseReplication;
+    }
+    
+    public PostAgentWithHttpInfoRequest withJcrReverseReplication(boolean jcrReverseReplication) {
+        this.setJcrReverseReplication(jcrReverseReplication);
+        return this;
+    }
 }
