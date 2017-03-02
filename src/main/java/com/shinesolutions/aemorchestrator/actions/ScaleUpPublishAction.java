@@ -61,7 +61,7 @@ public class ScaleUpPublishAction implements ScaleAction {
                 logger.debug("Volume ID for snapshot: " + volumeId);
                 if (volumeId != null) {
                     String snapshotShotId = awsHelperService.createSnapshot(volumeId,
-                        "Snapshot of publish instance id " + activePublishId + " and volume id " + volumeId);
+                        "Orchestration AEM snapshot of publish instance " + activePublishId + " and volume " + volumeId);
                     aemHelperService.tagInstanceWithSnapshotId(instanceId, snapshotShotId);
                     logger.debug("Snapshot ID: " + snapshotShotId);
                 } else {
@@ -78,7 +78,7 @@ public class ScaleUpPublishAction implements ScaleAction {
                 // Need to resume active publish instance replication queue
                 try {
                     if(activePublishId != null) {
-                        replicationAgentManager.resumeReplicationAgent(activePublishId, authorAemBaseUrl, 
+                        replicationAgentManager.resumeReplicationAgent(activePublishId, authorAemBaseUrl,
                             AgentRunMode.PUBLISH);
                     }
                 } catch (ApiException e) {
@@ -103,7 +103,7 @@ public class ScaleUpPublishAction implements ScaleAction {
                 logger.warn("Failed to find unpaired publish dispatcher", nse);
                 success = false;
             } catch (ApiException e) {
-                logger.error("Error while attempting to restart replication agent on publish instance: " + 
+                logger.error("Error while attempting to restart replication agent on publish instance: " +
                     instanceId, e);
             }
         }
