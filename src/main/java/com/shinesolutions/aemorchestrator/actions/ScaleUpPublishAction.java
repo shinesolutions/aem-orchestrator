@@ -89,39 +89,43 @@ public class ScaleUpPublishAction implements ScaleAction {
         boolean success = true;
         
         String activePublishId = aemHelperService.getPublishIdToSnapshotFrom(instanceId);
-        // Pause active publish's replication agent before taking snapshot
-        try {
-            replicationAgentManager.pauseReplicationAgent(activePublishId, authorAemBaseUrl, AgentRunMode.PUBLISH);
-            // Take snapshot
-            String volumeId = awsHelperService.getVolumeId(activePublishId, awsDeviceName);
-            
-            logger.debug("Volume ID for snapshot: " + volumeId);
-            
-            if (volumeId != null) {
-                String snapshotShotId = aemHelperService.createPublishSnapshot(activePublishId, volumeId);
-                logger.debug("Snapshot ID: " + snapshotShotId);
-                
-                aemHelperService.tagInstanceWithSnapshotId(instanceId, snapshotShotId);
-            } else {
-                // Not good
-                logger.error("Unable to find volume id for block device '" + awsDeviceName + "' and instance id "
-                    + activePublishId);
-                success = false;
-            }
-
-        } catch (Exception e) {
-            logger.error("Error while pausing and attempting to snapshot an active publish instance", e);
-            success = false;
-        } finally {
-            // Need to resume active publish instance replication queue
+        
+        if(activePublishId != null) {
+            // Pause active publish's replication agent before taking snapshot
             try {
-                if(activePublishId != null) {
-                    replicationAgentManager.resumeReplicationAgent(activePublishId, authorAemBaseUrl, 
-                        AgentRunMode.PUBLISH);
+                replicationAgentManager.pauseReplicationAgent(activePublishId, authorAemBaseUrl, AgentRunMode.PUBLISH);
+                // Take snapshot
+                String volumeId = awsHelperService.getVolumeId(activePublishId, awsDeviceName);
+                
+                logger.debug("Volume ID for snapshot: " + volumeId);
+                
+                if (volumeId != null) {
+                    String snapshotShotId = aemHelperService.createPublishSnapshot(activePublishId, volumeId);
+                    logger.debug("Snapshot ID: " + snapshotShotId);
+                    
+                    aemHelperService.tagInstanceWithSnapshotId(instanceId, snapshotShotId);
+                } else {
+                    // Not good
+                    logger.error("Unable to find volume id for block device '" + awsDeviceName + "' and instance id "
+                        + activePublishId);
+                    success = false;
                 }
-            } catch (ApiException e) {
-                logger.error("Failed to restart replication queue for active publish instance: " + activePublishId, e);
+    
+            } catch (Exception e) {
+                logger.error("Error while pausing and attempting to snapshot an active publish instance", e);
+                success = false;
+            } finally {
+                // Need to resume active publish instance replication queue
+                try {
+                    replicationAgentManager.resumeReplicationAgent(activePublishId, authorAemBaseUrl, 
+                            AgentRunMode.PUBLISH);
+                } catch (ApiException e) {
+                    logger.error("Failed to restart replication queue for active publish instance: " + activePublishId, e);
+                }
             }
+        } else {
+            logger.warn("Unable to locate an active publish instance to gather a useable snapshot");
+            success = false;
         }
         
         return success;

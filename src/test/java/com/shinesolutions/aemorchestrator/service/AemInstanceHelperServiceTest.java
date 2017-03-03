@@ -149,6 +149,16 @@ public class AemInstanceHelperServiceTest {
     }
     
     @Test
+    public void testGetPublishIdToSnapshotFromWithNoInstances() throws Exception {
+        when(awsHelperService.getInstanceIdsForAutoScalingGroup(
+            envValues.getAutoScaleGroupNameForPublish())).thenReturn(new ArrayList<String>());
+        
+        String resultInstanceId = aemHelperService.getPublishIdToSnapshotFrom("s-2397106");
+        
+        assertThat(resultInstanceId, equalTo(null));
+    }
+    
+    @Test
     public void testFindUnpairedPublishDispatcher() throws Exception {
         String instance1 = "1st-324983";
         String instance2 = "2nd-348894";

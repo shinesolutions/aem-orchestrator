@@ -180,12 +180,12 @@ public class AemInstanceHelperService {
      * Finds an active Publish instance (excluding the given instance ID) suitable for taking a snapshot from
      * @param excludeInstanceId the publish instance ID to exclude 
      * from the search (generally the new Publish instance that needs the snapshot)
-     * @return Active publish instance ID to get snapshot from
+     * @return Active publish instance ID to get snapshot from, null if can't be found
      */
     public String getPublishIdToSnapshotFrom(String excludeInstanceId) {
         List<String> publishIds = awsHelperService.getInstanceIdsForAutoScalingGroup(
             envValues.getAutoScaleGroupNameForPublish());
-        return publishIds.stream().filter(s -> !s.equals(excludeInstanceId)).findFirst().get();
+        return publishIds.stream().filter(s -> !s.equals(excludeInstanceId)).findFirst().orElse(null);
     }
     
     /**
