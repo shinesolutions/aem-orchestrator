@@ -22,7 +22,10 @@ public class ScaleUpPublishAction implements ScaleAction {
     
     @Value("${aem.reverseReplication.enable}")
     private boolean enableReverseReplication;
-
+    
+    @Value("${aws.device.name}")
+    private String awsDeviceName;
+    
     @Resource
     private AemInstanceHelperService aemHelperService;
 
@@ -32,7 +35,6 @@ public class ScaleUpPublishAction implements ScaleAction {
     @Resource
     private ReplicationAgentManager replicationAgentManager;
 
-    private static final String DEVICE_NAME = "/dev/sdb";
 
     public boolean execute(String instanceId) {
         logger.info("ScaleUpPublishAction executing");
@@ -91,7 +93,7 @@ public class ScaleUpPublishAction implements ScaleAction {
         try {
             replicationAgentManager.pauseReplicationAgent(activePublishId, authorAemBaseUrl, AgentRunMode.PUBLISH);
             // Take snapshot
-            String volumeId = awsHelperService.getVolumeId(activePublishId, DEVICE_NAME);
+            String volumeId = awsHelperService.getVolumeId(activePublishId, awsDeviceName);
             
             logger.debug("Volume ID for snapshot: " + volumeId);
             
@@ -102,7 +104,7 @@ public class ScaleUpPublishAction implements ScaleAction {
                 aemHelperService.tagInstanceWithSnapshotId(instanceId, snapshotShotId);
             } else {
                 // Not good
-                logger.error("Unable to find volume id for block device '" + DEVICE_NAME + "' and instance id "
+                logger.error("Unable to find volume id for block device '" + awsDeviceName + "' and instance id "
                     + activePublishId);
                 success = false;
             }
