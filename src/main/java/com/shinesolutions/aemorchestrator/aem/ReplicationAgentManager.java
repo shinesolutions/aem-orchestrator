@@ -87,24 +87,20 @@ public class ReplicationAgentManager {
         throws ApiException {
         logger.info("Deleting replication agent for publish id: " + publishId);
 
-        performDeleteAgentAction(getReplicationAgentName(publishId), authorAemBaseUrl, runMode);
+        PostAgentWithHttpInfoRequest request = agentRequestFactory.getDeleteAgentRequest(runMode, 
+            getReplicationAgentName(publishId));
+        
+        performPostAgentAction(request, authorAemBaseUrl, AgentAction.DELETE);
     }
     
     public void deleteReverseReplicationAgent(String publishId, String authorAemBaseUrl, AgentRunMode runMode)
         throws ApiException {
         logger.info("Deleting reverse replication agent for publish id: " + publishId);
-
-        performDeleteAgentAction(getReverseReplicationAgentName(publishId), authorAemBaseUrl, runMode);
-    }
-    
-    @Retryable(maxAttempts=5, value=ApiException.class, backoff=@Backoff(delay=5000))
-    private void performDeleteAgentAction(String agentName, String authorAemBaseUrl, AgentRunMode runMode)
-        throws ApiException {
-        SlingApi slingApi = aemApiFactory.getSlingApi(authorAemBaseUrl, AgentAction.DELETE);
-
-        ApiResponse<Void> response = slingApi.deleteAgentWithHttpInfo(runMode.getValue(), agentName);
-
-        logger.debug("ApiResponse status code: " + response.getStatusCode());
+        
+        PostAgentWithHttpInfoRequest request = agentRequestFactory.getDeleteAgentRequest(runMode,
+            getReverseReplicationAgentName(publishId));
+        
+        performPostAgentAction(request, authorAemBaseUrl, AgentAction.DELETE);
     }
     
     @Retryable(maxAttempts=5, value=ApiException.class, backoff=@Backoff(delay=5000))
