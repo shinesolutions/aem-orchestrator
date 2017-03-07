@@ -1,4 +1,4 @@
-package com.shinesolutions.aemorchestrator;
+package com.shinesolutions.aemorchestrator.service;
 
 import javax.annotation.Resource;
 
@@ -10,11 +10,10 @@ import org.springframework.retry.policy.SimpleRetryPolicy;
 import org.springframework.retry.support.RetryTemplate;
 import org.springframework.stereotype.Component;
 
-import com.shinesolutions.aemorchestrator.service.AemInstanceHelperService;
-import com.shinesolutions.aemorchestrator.service.MessageReceiver;
+import com.shinesolutions.aemorchestrator.AemOrchestrator;
 
 @Component
-public class StartupManager {
+public class ResourceReadyChecker {
     
     private final static Logger logger = LoggerFactory.getLogger(AemOrchestrator.class);
     
@@ -27,14 +26,11 @@ public class StartupManager {
     @Resource
     private AemInstanceHelperService aemInstanceHelperService;
     
-    @Resource
-    private MessageReceiver messageReceiver;
-    
     /**
      * Ensures external dependencies are available before starting to read messages from the queue
      * @return true if startup successful, false if not
      */
-    public boolean isStartupOk() {
+    public boolean isResourcesReady() {
         boolean isStartupOk = false;
         
         FixedBackOffPolicy backOffPolicy = new FixedBackOffPolicy();
@@ -59,16 +55,6 @@ public class StartupManager {
             });
         } catch (Exception e) {
             logger.error("Failed to receive healthy state from Author ELB", e);
-        }
-
-        if(isStartupOk) {
-            logger.info("Author ELB is in a healthy state, about to start reading messages on queue");
-            try {
-                messageReceiver.start();
-            } catch (Exception e) {
-                logger.error("Failed to start message receiver", e);
-                isStartupOk = false;
-            }
         }
         
         return isStartupOk;

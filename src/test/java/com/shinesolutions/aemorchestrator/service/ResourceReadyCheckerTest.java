@@ -1,11 +1,10 @@
-package com.shinesolutions.aemorchestrator;
+package com.shinesolutions.aemorchestrator.service;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.doThrow;
 import static org.springframework.test.util.ReflectionTestUtils.setField;
 
 import java.io.IOException;
@@ -19,19 +18,16 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import com.shinesolutions.aemorchestrator.service.AemInstanceHelperService;
-import com.shinesolutions.aemorchestrator.service.MessageReceiver;
+import com.shinesolutions.aemorchestrator.service.ResourceReadyChecker;
 
 @RunWith(MockitoJUnitRunner.class)
-public class StartupManagerTest {
+public class ResourceReadyCheckerTest {
     
     @Mock
     private AemInstanceHelperService aemInstanceHelperService;
     
-    @Mock
-    private MessageReceiver messageReceiver;
-    
     @InjectMocks
-    private StartupManager startupManager;
+    private ResourceReadyChecker startupManager;
 
     @Before
     public void setUp() throws Exception {
@@ -42,9 +38,7 @@ public class StartupManagerTest {
     public void testSuccess() throws Exception {
         when(aemInstanceHelperService.isAuthorElbHealthy()).thenReturn(true);
 
-        boolean result = startupManager.isStartupOk();
-        
-        verify(messageReceiver, times(1)).start();
+        boolean result = startupManager.isResourcesReady();
         
         assertThat(result, equalTo(true));
     }
@@ -53,9 +47,7 @@ public class StartupManagerTest {
     public void testElbNotHealthyStateOneRetry() throws Exception {
         when(aemInstanceHelperService.isAuthorElbHealthy()).thenReturn(false);
         
-        boolean result = startupManager.isStartupOk();
-        
-        verify(messageReceiver, times(0)).start();
+        boolean result = startupManager.isResourcesReady();
         
         assertThat(result, equalTo(false));
     }
@@ -66,9 +58,7 @@ public class StartupManagerTest {
         
         setFields(5, 1);
         
-        boolean result = startupManager.isStartupOk();
-        
-        verify(messageReceiver, times(1)).start();
+        boolean result = startupManager.isResourcesReady();
         
         assertThat(result, equalTo(true));
     }
@@ -80,9 +70,8 @@ public class StartupManagerTest {
         
         setFields(numberOfRetries, 1);
         
-        boolean result = startupManager.isStartupOk();
+        boolean result = startupManager.isResourcesReady();
         
-        verify(messageReceiver, times(0)).start();
         verify(aemInstanceHelperService, times(numberOfRetries)).isAuthorElbHealthy();
         
         assertThat(result, equalTo(false));
@@ -93,9 +82,7 @@ public class StartupManagerTest {
         
         when(aemInstanceHelperService.isAuthorElbHealthy()).thenThrow(new IOException());
 
-        boolean result = startupManager.isStartupOk();
-        
-        verify(messageReceiver, times(0)).start();
+        boolean result = startupManager.isResourcesReady();
         
         assertThat(result, equalTo(false));
     }
@@ -108,24 +95,9 @@ public class StartupManagerTest {
         
         setFields(5, 1);
 
-        boolean result = startupManager.isStartupOk();
-        
-        verify(messageReceiver, times(1)).start();
+        boolean result = startupManager.isResourcesReady();
         
         assertThat(result, equalTo(true));
-    }
-    
-    @Test
-    public void testNotOkWhenMessageReceiverThrowsException() throws Exception {
-        
-        when(aemInstanceHelperService.isAuthorElbHealthy()).thenReturn(true);
-        doThrow(new Exception()).when(messageReceiver).start();
-
-        boolean result = startupManager.isStartupOk();
-        
-        verify(messageReceiver, times(1)).start();
-        
-        assertThat(result, equalTo(false));
     }
     
     private void setFields(int waitForAuthorElbMaxAttempts, long waitForAuthorBackOffPeriod) {

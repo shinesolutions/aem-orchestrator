@@ -24,6 +24,9 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.retry.annotation.EnableRetry;
 
+import com.shinesolutions.aemorchestrator.service.MessageReceiver;
+import com.shinesolutions.aemorchestrator.service.ResourceReadyChecker;
+
 @SpringBootApplication
 @ComponentScan
 @EnableRetry
@@ -35,13 +38,26 @@ public class AemOrchestrator {
         ConfigurableApplicationContext context = SpringApplication.run(AemOrchestrator.class, args);
         
         //Need to wait for Author ELB is be in a healthy state before reading messages from the SQS queue
-        StartupManager startupManager = context.getBean(StartupManager.class);
+        ResourceReadyChecker resourceReadyChecker = context.getBean(ResourceReadyChecker.class);
         
-        if(!startupManager.isStartupOk()) {
+        boolean isStartupOk = false;
+        
+        if(resourceReadyChecker.isResourcesReady()) {
+            MessageReceiver messageReceiver = context.getBean(MessageReceiver.class);
+            
+            try {
+                messageReceiver.start();
+                isStartupOk = true;
+            } catch (Exception e) {
+                logger.error("Failed to start message receiver", e);
+            }
+        }
+        
+        if(isStartupOk) {
+            logger.info("AEM Orchestrator started");
+        } else {
             logger.info("Failed to start AEM Orchestrator");
             context.close(); //Exit the application
-        } else {
-            logger.info("AEM Orchestrator started");
         }
     }
 
