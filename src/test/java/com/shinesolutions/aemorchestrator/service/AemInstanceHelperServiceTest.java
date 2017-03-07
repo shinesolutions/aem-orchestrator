@@ -1,10 +1,11 @@
 package com.shinesolutions.aemorchestrator.service;
 
-import static com.shinesolutions.aemorchestrator.service.InstanceTags.AEM_AUTHOR_HOST;
-import static com.shinesolutions.aemorchestrator.service.InstanceTags.AEM_PUBLISH_DISPATCHER_HOST;
-import static com.shinesolutions.aemorchestrator.service.InstanceTags.AEM_PUBLISH_HOST;
-import static com.shinesolutions.aemorchestrator.service.InstanceTags.PAIR_INSTANCE_ID;
-import static com.shinesolutions.aemorchestrator.service.InstanceTags.SNAPSHOT_ID;
+import static com.shinesolutions.aemorchestrator.model.InstanceTags.AEM_AUTHOR_HOST;
+import static com.shinesolutions.aemorchestrator.model.InstanceTags.AEM_PUBLISH_DISPATCHER_HOST;
+import static com.shinesolutions.aemorchestrator.model.InstanceTags.AEM_PUBLISH_HOST;
+import static com.shinesolutions.aemorchestrator.model.InstanceTags.PAIR_INSTANCE_ID;
+import static com.shinesolutions.aemorchestrator.model.InstanceTags.SNAPSHOT_ID;
+import static com.shinesolutions.aemorchestrator.model.InstanceTags.SNAPSHOT_TYPE;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.startsWith;
@@ -435,7 +436,7 @@ public class AemInstanceHelperServiceTest {
         assertThat(capturedTags.size(), equalTo(tagsToApplyToSnapshot.size() + 1));
         assertThat(capturedTags.get(tag1), equalTo(tag1));
         assertThat(capturedTags.get(tag2), equalTo(tag2));
-        assertThat(capturedTags.get("SnapshotType"), equalTo("orchestration"));
+        assertThat(capturedTags.get(SNAPSHOT_TYPE.getTagName()), equalTo("orchestration"));
         
         assertThat(resultId, equalTo(snapshotId));
     }
@@ -466,7 +467,7 @@ public class AemInstanceHelperServiceTest {
         
         //Ensure that it only uses the specified tags on the snapshot
         assertThat(capturedTags.size(), equalTo(1));
-        assertThat(capturedTags.get("SnapshotType"), equalTo("orchestration"));
+        assertThat(capturedTags.get(SNAPSHOT_TYPE.getTagName()), equalTo("orchestration"));
         
         assertThat(resultId, equalTo(snapshotId));
     }

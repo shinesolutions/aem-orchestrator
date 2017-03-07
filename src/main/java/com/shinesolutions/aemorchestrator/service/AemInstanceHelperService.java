@@ -1,10 +1,11 @@
 package com.shinesolutions.aemorchestrator.service;
 
-import static com.shinesolutions.aemorchestrator.service.InstanceTags.AEM_AUTHOR_HOST;
-import static com.shinesolutions.aemorchestrator.service.InstanceTags.AEM_PUBLISH_DISPATCHER_HOST;
-import static com.shinesolutions.aemorchestrator.service.InstanceTags.AEM_PUBLISH_HOST;
-import static com.shinesolutions.aemorchestrator.service.InstanceTags.PAIR_INSTANCE_ID;
-import static com.shinesolutions.aemorchestrator.service.InstanceTags.SNAPSHOT_ID;
+import static com.shinesolutions.aemorchestrator.model.InstanceTags.AEM_AUTHOR_HOST;
+import static com.shinesolutions.aemorchestrator.model.InstanceTags.AEM_PUBLISH_DISPATCHER_HOST;
+import static com.shinesolutions.aemorchestrator.model.InstanceTags.AEM_PUBLISH_HOST;
+import static com.shinesolutions.aemorchestrator.model.InstanceTags.PAIR_INSTANCE_ID;
+import static com.shinesolutions.aemorchestrator.model.InstanceTags.SNAPSHOT_ID;
+import static com.shinesolutions.aemorchestrator.model.InstanceTags.SNAPSHOT_TYPE;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -223,7 +224,7 @@ public class AemInstanceHelperService {
             .filter(map -> tagsToApplyToSnapshot.contains(map.getKey()))
             .collect(Collectors.toMap(p -> p.getKey(), p -> p.getValue()));
         
-        tagsForSnapshot.put("SnapshotType", "orchestration");
+        tagsForSnapshot.put(SNAPSHOT_TYPE.getTagName(), "orchestration");
         
         String snapshotId = awsHelperService.createSnapshot(volumeId,
             "Orchestration AEM snapshot of publish instance " + instanceId + " and volume " + volumeId);

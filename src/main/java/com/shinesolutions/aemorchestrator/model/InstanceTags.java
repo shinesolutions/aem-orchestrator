@@ -1,4 +1,4 @@
-package com.shinesolutions.aemorchestrator.service;
+package com.shinesolutions.aemorchestrator.model;
 
 public enum InstanceTags {
 
@@ -6,7 +6,8 @@ public enum InstanceTags {
     AEM_PUBLISH_HOST("PublishHost"), 
     AEM_PUBLISH_DISPATCHER_HOST("PublishDispatcherHost"), 
     AEM_AUTHOR_HOST("AuthorHost"),
-    SNAPSHOT_ID("SnapshotId");
+    SNAPSHOT_ID("SnapshotId"),
+    SNAPSHOT_TYPE("SnapshotType");
 
     private final String tagName;
 

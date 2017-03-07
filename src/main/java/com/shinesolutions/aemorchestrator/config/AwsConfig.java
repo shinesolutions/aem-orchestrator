@@ -66,8 +66,7 @@ public class AwsConfig {
     public AWSCredentialsProvider awsCredentialsProvider() {
         /*
          * For info on how this works, see:
-         * http://docs.aws.amazon.com/sdk-for-java/v1/developer-guide/
-         * credentials.html
+         * http://docs.aws.amazon.com/sdk-for-java/v1/developer-guide/credentials.html
          */
         return new DefaultAWSCredentialsProviderChain();
     }
