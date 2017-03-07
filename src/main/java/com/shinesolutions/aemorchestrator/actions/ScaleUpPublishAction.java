@@ -39,13 +39,11 @@ public class ScaleUpPublishAction implements ScaleAction {
     public boolean execute(String instanceId) {
         logger.info("ScaleUpPublishAction executing");
 
-        boolean success = true;
-
         // First create replication agent on publish instance
         String authorAemBaseUrl = aemHelperService.getAemUrlForAuthorElb();
         String publishAemBaseUrl = aemHelperService.getAemUrlForPublish(instanceId);
 
-        success = prepareReplicationAgent(instanceId, authorAemBaseUrl, publishAemBaseUrl);
+        boolean success = prepareReplicationAgent(instanceId, authorAemBaseUrl, publishAemBaseUrl);
 
         // Create a new publish from a snapshot of an active publish instance
         if (success) {
@@ -105,7 +103,6 @@ public class ScaleUpPublishAction implements ScaleAction {
                     
                     aemHelperService.tagInstanceWithSnapshotId(instanceId, snapshotShotId);
                 } else {
-                    // Not good
                     logger.error("Unable to find volume id for block device '" + awsDeviceName + "' and instance id "
                         + activePublishId);
                     success = false;
@@ -115,7 +112,7 @@ public class ScaleUpPublishAction implements ScaleAction {
                 logger.error("Error while pausing and attempting to snapshot an active publish instance", e);
                 success = false;
             } finally {
-                // Need to resume active publish instance replication queue
+                // Always need to resume active publish instance replication queue
                 try {
                     replicationAgentManager.resumeReplicationAgent(activePublishId, authorAemBaseUrl, 
                             AgentRunMode.PUBLISH);
@@ -149,9 +146,13 @@ public class ScaleUpPublishAction implements ScaleAction {
         } catch (NoSuchElementException nse) {
             logger.warn("Failed to find unpaired publish dispatcher", nse);
             success = false;
-        } catch (ApiException e) {
+        } catch (ApiException ae) {
             logger.error("Error while attempting to restart replication agent on publish instance: " + 
-                instanceId, e);
+                instanceId, ae);
+        } catch (Exception e) {
+            logger.error("Error while attempting to pair publish instance (" + 
+                instanceId + ") with dispatcher", e);
+            success = false;
         }
         
         return success;
