@@ -20,6 +20,7 @@ public class AgentRequestFactory {
     private static final String CQ_TEMPLATE_REVERSE_REPLICATION_AGENT = "/libs/cq/replication/templates/revagent";
     private static final String TRANSPORT_URI_POSTFIX = "/bin/receive?sling:authRequestLogin=1";
     private static final String DEFAULT_LOG_LEVEL = "info";
+    private static final String OPERATION_DELETE = "delete";
     
     public PostAgentWithHttpInfoRequest getCreateFlushAgentRequest(AgentRunMode runMode, String agentName, 
         String agentDescription, String aemDispatcherBaseUrl) {
@@ -164,5 +165,11 @@ public class AgentRequestFactory {
             .withJcrContentEnabled(true);
 
     }
-
+    
+    public PostAgentWithHttpInfoRequest getDeleteAgentRequest(AgentRunMode runMode, String agentName) {
+        return new PostAgentWithHttpInfoRequest()
+            .withRunMode(runMode.getValue())
+            .withName(agentName)
+            .withOperation(OPERATION_DELETE);
+    }
 }

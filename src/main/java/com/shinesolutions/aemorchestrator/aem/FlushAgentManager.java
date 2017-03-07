@@ -34,11 +34,14 @@ public class FlushAgentManager {
         throws ApiException {
         logger.info(
             "Deleting flush agent for dispatcher id: " + dispatcherInstanceId + ", and run mode: " + runMode.getValue());
-
+        
+        PostAgentWithHttpInfoRequest request = agentRequestFactory.getDeleteAgentRequest(runMode,
+            getFlushAgentName(dispatcherInstanceId));
+        
         SlingApi slingApi = aemApiFactory.getSlingApi(aemBaseUrl, AgentAction.DELETE);
         
-        ApiResponse<Void> response = slingApi.deleteAgentWithHttpInfo(runMode.name().toLowerCase(),
-            getFlushAgentName(dispatcherInstanceId));
+        ApiResponse<Void> response = aemApiHelper.postAgentWithHttpInfo(slingApi, request);
+        
         logger.debug("ApiResponse status code: " + response.getStatusCode());
     }
 

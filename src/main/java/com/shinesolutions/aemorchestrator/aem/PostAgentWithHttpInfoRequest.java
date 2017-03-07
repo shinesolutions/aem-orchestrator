@@ -26,6 +26,7 @@ public class PostAgentWithHttpInfoRequest {
     private String jcrContentCqTemplate;
     private boolean jcrContentEnabled;
     private boolean jcrReverseReplication;
+    private String operation;
 
     public String getRunMode() {
         return runMode;
@@ -323,6 +324,19 @@ public class PostAgentWithHttpInfoRequest {
     
     public PostAgentWithHttpInfoRequest withJcrReverseReplication(boolean jcrReverseReplication) {
         this.setJcrReverseReplication(jcrReverseReplication);
+        return this;
+    }
+
+    public String getOperation() {
+        return operation;
+    }
+
+    public void setOperation(String operation) {
+        this.operation = operation;
+    }
+    
+    public PostAgentWithHttpInfoRequest withOperation(String operation) {
+        this.setOperation(operation);
         return this;
     }
 }

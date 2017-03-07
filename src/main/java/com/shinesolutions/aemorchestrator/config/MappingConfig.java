@@ -16,6 +16,7 @@ import com.shinesolutions.aemorchestrator.actions.ScaleUpPublishDispatcherAction
 import com.shinesolutions.aemorchestrator.handler.AutoScalingLaunchEventHandler;
 import com.shinesolutions.aemorchestrator.handler.AutoScalingTerminateEventHandler;
 import com.shinesolutions.aemorchestrator.handler.EventHandler;
+import com.shinesolutions.aemorchestrator.handler.TestNotificationEventHandler;
 import com.shinesolutions.aemorchestrator.model.EnvironmentValues;
 import com.shinesolutions.aemorchestrator.model.EventType;
 
@@ -25,12 +26,14 @@ public class MappingConfig {
     @Bean
     public Map<String, EventHandler> eventTypeHandlerMappings(
         final AutoScalingTerminateEventHandler scaleDownEventHandler,
-        final AutoScalingLaunchEventHandler scaleUpEventHandler) {
+        final AutoScalingLaunchEventHandler scaleUpEventHandler,
+        final TestNotificationEventHandler testNotificationEventHandler) {
 
         Map<String, EventHandler> mappings = new HashMap<String, EventHandler>();
         mappings.put(EventType.AUTOSCALING_EC2_INSTANCE_TERMINATE.getValue(), scaleDownEventHandler);
         mappings.put(EventType.AUTOSCALING_EC2_INSTANCE_LAUNCH.getValue(), scaleUpEventHandler);
-
+        mappings.put(EventType.AUTOSCALING_TEST_NOTIFICATION.getValue(), testNotificationEventHandler);
+        
         return mappings;
     }
 
