@@ -1,3 +1,6 @@
+### 0.9.3
+* By default, now logs to root application directory (orchestrator.log)
+
 ### 0.9.2
 * Added configurable snapshot tags #2
 * Added support for reverse replication queues
