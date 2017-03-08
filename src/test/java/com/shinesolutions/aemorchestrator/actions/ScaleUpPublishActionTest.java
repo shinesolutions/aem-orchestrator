@@ -73,13 +73,11 @@ public class ScaleUpPublishActionTest {
         boolean result = action.execute(instanceId);
         
         // Check replication agents
+        verify(aemHelperService, times(1)).pairPublishWithDispatcher(instanceId, unpairedDispatcherId);
+        
         verify(replicationAgentManager, times(1)).createReplicationAgent(instanceId, publishAemBaseUrl, 
             authorAemBaseUrl, AgentRunMode.PUBLISH);
         
-        verify(replicationAgentManager, times(1)).pauseReplicationAgent(instanceId, authorAemBaseUrl, 
-            AgentRunMode.PUBLISH);
-        
-        //Ensure that by default reverse replication agents are not created
         verify(replicationAgentManager, times(0)).createReverseReplicationAgent(instanceId, publishAemBaseUrl, 
             authorAemBaseUrl, AgentRunMode.PUBLISH);
         
@@ -91,11 +89,6 @@ public class ScaleUpPublishActionTest {
         verify(replicationAgentManager, times(1)).resumeReplicationAgent(activePublishId, authorAemBaseUrl, 
             AgentRunMode.PUBLISH);
         
-        verify(aemHelperService, times(1)).pairPublishWithDispatcher(instanceId, unpairedDispatcherId);
-        
-        verify(replicationAgentManager, times(1)).resumeReplicationAgent(instanceId, authorAemBaseUrl, 
-            AgentRunMode.PUBLISH);
-        
         assertThat(result, equalTo(true));
     }
     
@@ -105,11 +98,10 @@ public class ScaleUpPublishActionTest {
         
         boolean result = action.execute(instanceId);
         
+        verify(aemHelperService, times(1)).pairPublishWithDispatcher(instanceId, unpairedDispatcherId);
+        
         verify(replicationAgentManager, times(1)).createReplicationAgent(instanceId, publishAemBaseUrl, 
             authorAemBaseUrl, AgentRunMode.PUBLISH);
-        
-        verify(replicationAgentManager, times(1)).pauseReplicationAgent(instanceId, authorAemBaseUrl, 
-            AgentRunMode.PUBLISH);
         
         verify(replicationAgentManager, times(1)).createReverseReplicationAgent(instanceId, publishAemBaseUrl, 
             authorAemBaseUrl, AgentRunMode.PUBLISH);
@@ -122,8 +114,6 @@ public class ScaleUpPublishActionTest {
         verify(replicationAgentManager, times(1)).resumeReplicationAgent(activePublishId, authorAemBaseUrl, 
             AgentRunMode.PUBLISH);
         
-        verify(aemHelperService, times(1)).pairPublishWithDispatcher(instanceId, unpairedDispatcherId);
-        
         assertThat(result, equalTo(true));
     }
     
@@ -134,52 +124,17 @@ public class ScaleUpPublishActionTest {
         
         boolean result = action.execute(instanceId);
         
-        verify(replicationAgentManager, times(0)).pauseReplicationAgent(instanceId, authorAemBaseUrl, 
-            AgentRunMode.PUBLISH);
-        
-        verify(replicationAgentManager, times(0)).createReverseReplicationAgent(instanceId, publishAemBaseUrl, 
-            authorAemBaseUrl, AgentRunMode.PUBLISH);
-        
-        verify(replicationAgentManager, times(0)).pauseReplicationAgent(activePublishId, authorAemBaseUrl, 
-            AgentRunMode.PUBLISH);
-        
-        verify(aemHelperService, times(0)).tagInstanceWithSnapshotId(instanceId, snapshotId);
-        
-        verify(replicationAgentManager, times(0)).resumeReplicationAgent(activePublishId, authorAemBaseUrl, 
-            AgentRunMode.PUBLISH);
-        
-        verify(aemHelperService, times(0)).pairPublishWithDispatcher(instanceId, unpairedDispatcherId);
-        
-        verify(replicationAgentManager, times(0)).resumeReplicationAgent(instanceId, authorAemBaseUrl, 
-            AgentRunMode.PUBLISH);
-        
-        assertThat(result, equalTo(false));
-    }
-    
-    @Test
-    public void testExceptionWhenPausingReplicationAgent() throws Exception {
-        doThrow(new ApiException("Test")).when(replicationAgentManager).pauseReplicationAgent(instanceId, 
-             authorAemBaseUrl, AgentRunMode.PUBLISH);
-        
-        boolean result = action.execute(instanceId);
+        verify(aemHelperService, times(1)).pairPublishWithDispatcher(instanceId, unpairedDispatcherId);
         
         verify(replicationAgentManager, times(1)).createReplicationAgent(instanceId, publishAemBaseUrl, 
             authorAemBaseUrl, AgentRunMode.PUBLISH);
         
-        verify(replicationAgentManager, times(0)).createReverseReplicationAgent(instanceId, publishAemBaseUrl, 
-            authorAemBaseUrl, AgentRunMode.PUBLISH);
-        
         verify(replicationAgentManager, times(0)).pauseReplicationAgent(activePublishId, authorAemBaseUrl, 
             AgentRunMode.PUBLISH);
         
         verify(aemHelperService, times(0)).tagInstanceWithSnapshotId(instanceId, snapshotId);
         
         verify(replicationAgentManager, times(0)).resumeReplicationAgent(activePublishId, authorAemBaseUrl, 
-            AgentRunMode.PUBLISH);
-        
-        verify(aemHelperService, times(0)).pairPublishWithDispatcher(instanceId, unpairedDispatcherId);
-        
-        verify(replicationAgentManager, times(0)).resumeReplicationAgent(instanceId, authorAemBaseUrl, 
             AgentRunMode.PUBLISH);
         
         assertThat(result, equalTo(false));
@@ -194,12 +149,10 @@ public class ScaleUpPublishActionTest {
         
         boolean result = action.execute(instanceId);
         
-        // Check replication agents
+        verify(aemHelperService, times(1)).pairPublishWithDispatcher(instanceId, unpairedDispatcherId);
+        
         verify(replicationAgentManager, times(1)).createReplicationAgent(instanceId, publishAemBaseUrl, 
             authorAemBaseUrl, AgentRunMode.PUBLISH);
-        
-        verify(replicationAgentManager, times(1)).pauseReplicationAgent(instanceId, authorAemBaseUrl, 
-            AgentRunMode.PUBLISH);
         
         verify(replicationAgentManager, times(0)).pauseReplicationAgent(activePublishId, authorAemBaseUrl, 
             AgentRunMode.PUBLISH);
@@ -207,11 +160,6 @@ public class ScaleUpPublishActionTest {
         verify(aemHelperService, times(0)).tagInstanceWithSnapshotId(instanceId, snapshotId);
         
         verify(replicationAgentManager, times(0)).resumeReplicationAgent(activePublishId, authorAemBaseUrl, 
-            AgentRunMode.PUBLISH);
-        
-        verify(aemHelperService, times(0)).pairPublishWithDispatcher(instanceId, unpairedDispatcherId);
-        
-        verify(replicationAgentManager, times(0)).resumeReplicationAgent(instanceId, authorAemBaseUrl, 
             AgentRunMode.PUBLISH);
         
         assertThat(result, equalTo(false));
@@ -223,24 +171,17 @@ public class ScaleUpPublishActionTest {
         
         boolean result = action.execute(instanceId);
         
+        verify(aemHelperService, times(1)).pairPublishWithDispatcher(instanceId, unpairedDispatcherId);
+        
         verify(replicationAgentManager, times(1)).createReplicationAgent(instanceId, publishAemBaseUrl, 
             authorAemBaseUrl, AgentRunMode.PUBLISH);
-        
-        verify(replicationAgentManager, times(1)).pauseReplicationAgent(instanceId, authorAemBaseUrl, 
-            AgentRunMode.PUBLISH);
         
         verify(replicationAgentManager, times(0)).pauseReplicationAgent(activePublishId, authorAemBaseUrl, 
             AgentRunMode.PUBLISH);
         
         verify(aemHelperService, times(0)).tagInstanceWithSnapshotId(instanceId, snapshotId);
         
-        //Resume should still be called
         verify(replicationAgentManager, times(0)).resumeReplicationAgent(activePublishId, authorAemBaseUrl, 
-            AgentRunMode.PUBLISH);
-        
-        verify(aemHelperService, times(0)).pairPublishWithDispatcher(instanceId, unpairedDispatcherId);
-        
-        verify(replicationAgentManager, times(0)).resumeReplicationAgent(instanceId, authorAemBaseUrl, 
             AgentRunMode.PUBLISH);
         
         assertThat(result, equalTo(false));
@@ -253,21 +194,14 @@ public class ScaleUpPublishActionTest {
         
         boolean result = action.execute(instanceId);
         
+        verify(aemHelperService, times(1)).pairPublishWithDispatcher(instanceId, unpairedDispatcherId);
+        
         verify(replicationAgentManager, times(1)).createReplicationAgent(instanceId, publishAemBaseUrl, 
             authorAemBaseUrl, AgentRunMode.PUBLISH);
         
-        verify(replicationAgentManager, times(1)).pauseReplicationAgent(instanceId, authorAemBaseUrl, 
-            AgentRunMode.PUBLISH);
-        
         verify(aemHelperService, times(0)).tagInstanceWithSnapshotId(instanceId, snapshotId);
         
-        //Resume should still be called
         verify(replicationAgentManager, times(1)).resumeReplicationAgent(activePublishId, authorAemBaseUrl, 
-            AgentRunMode.PUBLISH);
-        
-        verify(aemHelperService, times(0)).pairPublishWithDispatcher(instanceId, unpairedDispatcherId);
-        
-        verify(replicationAgentManager, times(0)).resumeReplicationAgent(instanceId, authorAemBaseUrl, 
             AgentRunMode.PUBLISH);
         
         assertThat(result, equalTo(false));
@@ -279,24 +213,17 @@ public class ScaleUpPublishActionTest {
         
         boolean result = action.execute(instanceId);
         
+        verify(aemHelperService, times(1)).pairPublishWithDispatcher(instanceId, unpairedDispatcherId);
+        
         verify(replicationAgentManager, times(1)).createReplicationAgent(instanceId, publishAemBaseUrl, 
             authorAemBaseUrl, AgentRunMode.PUBLISH);
-        
-        verify(replicationAgentManager, times(1)).pauseReplicationAgent(instanceId, authorAemBaseUrl, 
-            AgentRunMode.PUBLISH);
         
         verify(replicationAgentManager, times(1)).pauseReplicationAgent(activePublishId, authorAemBaseUrl, 
             AgentRunMode.PUBLISH);
         
         verify(aemHelperService, times(0)).tagInstanceWithSnapshotId(instanceId, snapshotId);
         
-        //Resume should still be called
         verify(replicationAgentManager, times(1)).resumeReplicationAgent(activePublishId, authorAemBaseUrl, 
-            AgentRunMode.PUBLISH);
-        
-        verify(aemHelperService, times(0)).pairPublishWithDispatcher(instanceId, unpairedDispatcherId);
-        
-        verify(replicationAgentManager, times(0)).resumeReplicationAgent(instanceId, authorAemBaseUrl, 
             AgentRunMode.PUBLISH);
         
         assertThat(result, equalTo(false));
@@ -309,22 +236,19 @@ public class ScaleUpPublishActionTest {
         
         boolean result = action.execute(instanceId);
         
+        verify(aemHelperService, times(1)).pairPublishWithDispatcher(instanceId, unpairedDispatcherId);
+        
         verify(replicationAgentManager, times(1)).createReplicationAgent(instanceId, publishAemBaseUrl, 
             authorAemBaseUrl, AgentRunMode.PUBLISH);
-        
-        verify(replicationAgentManager, times(1)).pauseReplicationAgent(instanceId, authorAemBaseUrl, 
-            AgentRunMode.PUBLISH);
         
         verify(replicationAgentManager, times(1)).pauseReplicationAgent(activePublishId, authorAemBaseUrl, 
             AgentRunMode.PUBLISH);
         
         verify(aemHelperService, times(1)).tagInstanceWithSnapshotId(instanceId, snapshotId);
         
-        verify(aemHelperService, times(1)).pairPublishWithDispatcher(instanceId, unpairedDispatcherId);
-        
-        verify(replicationAgentManager, times(1)).resumeReplicationAgent(instanceId, authorAemBaseUrl, 
+        verify(replicationAgentManager, times(1)).resumeReplicationAgent(activePublishId, authorAemBaseUrl, 
             AgentRunMode.PUBLISH);
-        
+
         assertThat(result, equalTo(true));
     }
     
@@ -334,24 +258,17 @@ public class ScaleUpPublishActionTest {
         
         boolean result = action.execute(instanceId);
         
-        verify(replicationAgentManager, times(1)).createReplicationAgent(instanceId, publishAemBaseUrl, 
-            authorAemBaseUrl, AgentRunMode.PUBLISH);
-        
-        verify(replicationAgentManager, times(1)).pauseReplicationAgent(instanceId, authorAemBaseUrl, 
-            AgentRunMode.PUBLISH);
-        
-        verify(replicationAgentManager, times(1)).pauseReplicationAgent(activePublishId, authorAemBaseUrl, 
-            AgentRunMode.PUBLISH);
-        
-        verify(aemHelperService, times(1)).tagInstanceWithSnapshotId(instanceId, snapshotId);
-        
-        //Resume should still be called
-        verify(replicationAgentManager, times(1)).resumeReplicationAgent(activePublishId, authorAemBaseUrl, 
-            AgentRunMode.PUBLISH);
-        
         verify(aemHelperService, times(0)).pairPublishWithDispatcher(instanceId, unpairedDispatcherId);
         
-        verify(replicationAgentManager, times(0)).resumeReplicationAgent(instanceId, authorAemBaseUrl, 
+        verify(replicationAgentManager, times(0)).createReplicationAgent(instanceId, publishAemBaseUrl, 
+            authorAemBaseUrl, AgentRunMode.PUBLISH);
+        
+        verify(replicationAgentManager, times(0)).pauseReplicationAgent(activePublishId, authorAemBaseUrl, 
+            AgentRunMode.PUBLISH);
+        
+        verify(aemHelperService, times(0)).tagInstanceWithSnapshotId(instanceId, snapshotId);
+        
+        verify(replicationAgentManager, times(0)).resumeReplicationAgent(activePublishId, authorAemBaseUrl, 
             AgentRunMode.PUBLISH);
         
         assertThat(result, equalTo(false));
@@ -364,53 +281,20 @@ public class ScaleUpPublishActionTest {
         
         boolean result = action.execute(instanceId);
         
-        verify(replicationAgentManager, times(1)).createReplicationAgent(instanceId, publishAemBaseUrl, 
+        verify(replicationAgentManager, times(0)).createReplicationAgent(instanceId, publishAemBaseUrl, 
             authorAemBaseUrl, AgentRunMode.PUBLISH);
         
-        verify(replicationAgentManager, times(1)).pauseReplicationAgent(instanceId, authorAemBaseUrl, 
+        verify(replicationAgentManager, times(0)).pauseReplicationAgent(activePublishId, authorAemBaseUrl, 
             AgentRunMode.PUBLISH);
         
-        verify(replicationAgentManager, times(1)).pauseReplicationAgent(activePublishId, authorAemBaseUrl, 
-            AgentRunMode.PUBLISH);
+        verify(aemHelperService, times(0)).tagInstanceWithSnapshotId(instanceId, snapshotId);
         
-        verify(aemHelperService, times(1)).tagInstanceWithSnapshotId(instanceId, snapshotId);
-        
-        //Resume should still be called
-        verify(replicationAgentManager, times(1)).resumeReplicationAgent(activePublishId, authorAemBaseUrl, 
-            AgentRunMode.PUBLISH);
-        
-        verify(replicationAgentManager, times(0)).resumeReplicationAgent(instanceId, authorAemBaseUrl, 
+        verify(replicationAgentManager, times(0)).resumeReplicationAgent(activePublishId, authorAemBaseUrl, 
             AgentRunMode.PUBLISH);
         
         assertThat(result, equalTo(false));
     }
-    
-    @Test
-    public void testUnableToResumeReplicationAgent() throws Exception {
-        doThrow(new ApiException("Test")).when(replicationAgentManager).resumeReplicationAgent(instanceId, 
-            authorAemBaseUrl, AgentRunMode.PUBLISH);
-        
-        boolean result = action.execute(instanceId);
-        
-        verify(replicationAgentManager, times(1)).createReplicationAgent(instanceId, publishAemBaseUrl, 
-            authorAemBaseUrl, AgentRunMode.PUBLISH);
-        
-        verify(replicationAgentManager, times(1)).pauseReplicationAgent(instanceId, authorAemBaseUrl, 
-            AgentRunMode.PUBLISH);
-        
-        verify(replicationAgentManager, times(1)).pauseReplicationAgent(activePublishId, authorAemBaseUrl, 
-            AgentRunMode.PUBLISH);
-        
-        verify(aemHelperService, times(1)).tagInstanceWithSnapshotId(instanceId, snapshotId);
-        
-        verify(replicationAgentManager, times(1)).resumeReplicationAgent(activePublishId, authorAemBaseUrl, 
-            AgentRunMode.PUBLISH);
-        
-        verify(aemHelperService, times(1)).pairPublishWithDispatcher(instanceId, unpairedDispatcherId);
-        
-        assertThat(result, equalTo(true)); //Should not prevent success
-    }
-    
+
     
     private void enableReverseReplication() {
         setField(action, "enableReverseReplication", true);

@@ -43,16 +43,16 @@ public class ScaleUpPublishAction implements ScaleAction {
         String authorAemBaseUrl = aemHelperService.getAemUrlForAuthorElb();
         String publishAemBaseUrl = aemHelperService.getAemUrlForPublish(instanceId);
 
-        boolean success = prepareReplicationAgent(instanceId, authorAemBaseUrl, publishAemBaseUrl);
+        // Find unpaired publish dispatcher and pair it with tags
+        boolean success = pairAndTagWithDispatcher(instanceId, authorAemBaseUrl);
 
+        if (success) {
+            success = prepareReplicationAgent(instanceId, authorAemBaseUrl, publishAemBaseUrl);
+        }
+        
         // Create a new publish from a snapshot of an active publish instance
         if (success) {
             success = loadSnapshotFromActivePublisher(instanceId, authorAemBaseUrl);
-        }
-
-        // Find unpaired publish dispatcher and pair it with tags
-        if (success) {
-            success = pairAndTagWithDispatcher(instanceId, authorAemBaseUrl);
         }
 
         return success;
@@ -64,10 +64,7 @@ public class ScaleUpPublishAction implements ScaleAction {
         try {
             replicationAgentManager.createReplicationAgent(instanceId, publishAemBaseUrl, authorAemBaseUrl,
                 AgentRunMode.PUBLISH);
-
-            // Immediately pause agent
-            replicationAgentManager.pauseReplicationAgent(instanceId, authorAemBaseUrl, AgentRunMode.PUBLISH);
-            
+ 
             if(enableReverseReplication) {
                 logger.debug("Reverse replication is enabled");
                 replicationAgentManager.createReverseReplicationAgent(instanceId, publishAemBaseUrl, 
@@ -75,8 +72,8 @@ public class ScaleUpPublishAction implements ScaleAction {
             }
             
         } catch (ApiException e) {
-            logger.error("Error while attempting to set up new publish replication agent via author AEM URL: "
-                + authorAemBaseUrl, e);
+            logger.error("Error while attempting to create a new publish replication agent on publish instance "
+                + instanceId, e);
             success = false;
         }
         return success;
@@ -141,14 +138,9 @@ public class ScaleUpPublishAction implements ScaleAction {
                 + unpairedDispatcherId + ") via tags");
             aemHelperService.pairPublishWithDispatcher(instanceId, unpairedDispatcherId);
 
-            // Resume paused replication agents
-            replicationAgentManager.resumeReplicationAgent(instanceId, authorAemBaseUrl, AgentRunMode.PUBLISH);
         } catch (NoSuchElementException nse) {
             logger.warn("Failed to find unpaired publish dispatcher", nse);
             success = false;
-        } catch (ApiException ae) {
-            logger.error("Error while attempting to restart replication agent on publish instance: " + 
-                instanceId, ae);
         } catch (Exception e) {
             logger.error("Error while attempting to pair publish instance (" + 
                 instanceId + ") with dispatcher", e);
