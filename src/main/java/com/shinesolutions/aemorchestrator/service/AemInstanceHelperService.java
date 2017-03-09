@@ -119,7 +119,7 @@ public class AemInstanceHelperService {
      * @throws ClientProtocolException if there's an error in the HTTP protocol
      */
     public boolean isAuthorElbHealthy() throws ClientProtocolException, IOException {
-        String url = getAemUrlForAuthorElb() + "/system/health?tags=devops";
+        String url = getAemUrlForAuthorElb() + "/system/health?tags=shallow";
 
         return httpUtil.getHttpResponseCode(url) == HttpStatus.SC_OK;
     }
