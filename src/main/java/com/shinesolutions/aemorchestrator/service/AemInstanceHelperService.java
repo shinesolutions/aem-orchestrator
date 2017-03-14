@@ -68,6 +68,7 @@ public class AemInstanceHelperService {
     private HttpUtil httpUtil;
 
     private static final String URL_FORMAT = "%s://%s:%s";
+    private static final String AEM_HEALTH_CHECK_URL_POSTFIX = "/system/health?tags=shallow";
 
     /**
      * Gets the Publish Dispatcher base AEM URL for a given EC2 instance ID
@@ -118,7 +119,7 @@ public class AemInstanceHelperService {
      * @throws ClientProtocolException if there's an error in the HTTP protocol
      */
     public boolean isAuthorElbHealthy() throws ClientProtocolException, IOException {
-        String url = getAemUrlForAuthorElb() + "/system/health?tags=shallow";
+        String url = getAemUrlForAuthorElb() + AEM_HEALTH_CHECK_URL_POSTFIX;
 
         return httpUtil.isHttpGetResponseOk(url);
     }
@@ -131,7 +132,7 @@ public class AemInstanceHelperService {
      * @throws IOException (normally if can't connect)
      */
     public boolean isPubishHealthy(String instanceId) throws ClientProtocolException, IOException {
-        String url = getAemUrlForPublish(instanceId) + "/system/health?tags=shallow";
+        String url = getAemUrlForPublish(instanceId) + AEM_HEALTH_CHECK_URL_POSTFIX;
 
         return httpUtil.isHttpGetResponseOk(url);
     }
