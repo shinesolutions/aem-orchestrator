@@ -16,13 +16,13 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.util.ReflectionTestUtils.setField;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.http.HttpStatus;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -144,9 +144,60 @@ public class AemInstanceHelperServiceTest {
         
         when(awsHelperService.getInstanceIdsForAutoScalingGroup(
             envValues.getAutoScaleGroupNameForPublish())).thenReturn(instanceIds);
+        
+        when(httpUtil.isHttpGetResponseOk(anyString())).thenReturn(true);
+        
         String resultInstanceId = aemHelperService.getPublishIdToSnapshotFrom(excludeInstanceId);
         
         assertThat(resultInstanceId, equalTo(instanceId));
+    }
+    
+    @Test
+    public void testGetPublishIdToSnapshotFromWithOneUnhealthyInstance() throws Exception {
+        List<String> instanceIds = new ArrayList<String>();
+        instanceIds.add("extra-12345");
+        instanceIds.add(instanceId);
+        
+        when(awsHelperService.getInstanceIdsForAutoScalingGroup(
+            envValues.getAutoScaleGroupNameForPublish())).thenReturn(instanceIds);
+        
+        when(httpUtil.isHttpGetResponseOk(anyString())).thenReturn(false, true); //One healthy
+        
+        String resultInstanceId = aemHelperService.getPublishIdToSnapshotFrom("anything");
+        
+        assertThat(resultInstanceId, equalTo(instanceId));
+    }
+    
+    @Test
+    public void testGetPublishIdToSnapshotFromWithException() throws Exception {
+        List<String> instanceIds = new ArrayList<String>();
+        instanceIds.add("extra-12345");
+        instanceIds.add(instanceId);
+        
+        when(awsHelperService.getInstanceIdsForAutoScalingGroup(
+            envValues.getAutoScaleGroupNameForPublish())).thenReturn(instanceIds);
+        
+        when(httpUtil.isHttpGetResponseOk(anyString())).thenThrow(new IOException()).thenReturn(true); //One healthy
+        
+        String resultInstanceId = aemHelperService.getPublishIdToSnapshotFrom("anything");
+        
+        assertThat(resultInstanceId, equalTo(instanceId));
+    }
+    
+    @Test
+    public void testGetPublishIdToSnapshotFromWithAllUnhealthyInstances() throws Exception {
+        List<String> instanceIds = new ArrayList<String>();
+        instanceIds.add("test-32987");
+        instanceIds.add("test-43134");
+        
+        when(awsHelperService.getInstanceIdsForAutoScalingGroup(
+            envValues.getAutoScaleGroupNameForPublish())).thenReturn(instanceIds);
+        
+        when(httpUtil.isHttpGetResponseOk(anyString())).thenReturn(false); //Not healthy
+        
+        String resultInstanceId = aemHelperService.getPublishIdToSnapshotFrom("anything");
+        
+        assertThat(resultInstanceId, equalTo(null));
     }
     
     @Test
@@ -384,7 +435,7 @@ public class AemInstanceHelperServiceTest {
     @Test
     public void testIsAuthorElbHealthyOk() throws Exception {
         ArgumentCaptor<String> urlCaptor = ArgumentCaptor.forClass(String.class);
-        when(httpUtil.getHttpResponseCode(urlCaptor.capture())).thenReturn(HttpStatus.SC_OK);
+        when(httpUtil.isHttpGetResponseOk(urlCaptor.capture())).thenReturn(true);
         
         boolean result = aemHelperService.isAuthorElbHealthy();
         
@@ -397,7 +448,7 @@ public class AemInstanceHelperServiceTest {
     
     @Test
     public void testIsAuthorElbHealthyNotOk() throws Exception {
-        when(httpUtil.getHttpResponseCode(anyString())).thenReturn(HttpStatus.SC_BAD_REQUEST);
+        when(httpUtil.isHttpGetResponseOk(anyString())).thenReturn(false);
         
         boolean result = aemHelperService.isAuthorElbHealthy();
         

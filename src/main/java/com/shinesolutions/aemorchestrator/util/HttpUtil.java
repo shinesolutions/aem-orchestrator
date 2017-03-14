@@ -3,6 +3,7 @@ package com.shinesolutions.aemorchestrator.util;
 import java.io.IOException;
 
 import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
@@ -23,12 +24,12 @@ public class HttpUtil {
      * @throws IOException (normally if can't connect)
      * @throws ClientProtocolException if there's an error in the HTTP protocol
      */
-    public int getHttpResponseCode(String url) throws ClientProtocolException, IOException {
+    public boolean isHttpGetResponseOk(String url) throws ClientProtocolException, IOException {
         HttpClient client = HttpClientBuilder.create().build();
         HttpGet request = new HttpGet(url);
         
         HttpResponse response = client.execute(request);
 
-        return response.getStatusLine().getStatusCode();
+        return response.getStatusLine().getStatusCode() == HttpStatus.SC_OK;
     }
 }

@@ -95,10 +95,10 @@ public class ScaleUpPublishAction implements ScaleAction {
                 logger.debug("Volume ID for snapshot: " + volumeId);
                 
                 if (volumeId != null) {
-                    String snapshotShotId = aemHelperService.createPublishSnapshot(activePublishId, volumeId);
-                    logger.debug("Snapshot ID: " + snapshotShotId);
+                    String snapshotId = aemHelperService.createPublishSnapshot(activePublishId, volumeId);
+                    logger.debug("Snapshot ID: " + snapshotId);
                     
-                    aemHelperService.tagInstanceWithSnapshotId(instanceId, snapshotShotId);
+                    aemHelperService.tagInstanceWithSnapshotId(instanceId, snapshotId);
                 } else {
                     logger.error("Unable to find volume id for block device '" + awsDeviceName + "' and instance id "
                         + activePublishId);
@@ -119,7 +119,7 @@ public class ScaleUpPublishAction implements ScaleAction {
             }
         } else {
             logger.warn("Unable to locate an active publish instance to gather a useable snapshot");
-            success = false;
+            aemHelperService.tagInstanceWithSnapshotId(instanceId, ""); //Tag with empty Snapshot ID
         }
         
         return success;

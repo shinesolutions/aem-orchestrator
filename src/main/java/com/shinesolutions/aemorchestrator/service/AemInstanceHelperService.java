@@ -16,7 +16,6 @@ import java.util.stream.Collectors;
 
 import javax.annotation.Resource;
 
-import org.apache.http.HttpStatus;
 import org.apache.http.client.ClientProtocolException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.retry.annotation.Backoff;
@@ -113,7 +112,7 @@ public class AemInstanceHelperService {
     }
 
     /**
-     * Helper method for determining of the Author ELB is in a healthy state
+     * Helper method for determining if the Author ELB is in a healthy state
      * @return true if the Author ELB is in a healthy state, false if not
      * @throws IOException (normally if can't connect)
      * @throws ClientProtocolException if there's an error in the HTTP protocol
@@ -121,7 +120,20 @@ public class AemInstanceHelperService {
     public boolean isAuthorElbHealthy() throws ClientProtocolException, IOException {
         String url = getAemUrlForAuthorElb() + "/system/health?tags=devops";
 
-        return httpUtil.getHttpResponseCode(url) == HttpStatus.SC_OK;
+        return httpUtil.isHttpGetResponseOk(url);
+    }
+    
+    /**
+     * Helper method for determining if the given Publish instance is in a healthy state
+     * @param instanceId the publish AWS instance id
+     * @return true if the Publish instance is in a healthy state
+     * @throws ClientProtocolException if there's an error in the HTTP protocol
+     * @throws IOException (normally if can't connect)
+     */
+    public boolean isPubishHealthy(String instanceId) throws ClientProtocolException, IOException {
+        String url = getAemUrlForPublish(instanceId) + "/system/health?tags=shallow";
+
+        return httpUtil.isHttpGetResponseOk(url);
     }
 
     /**
@@ -178,15 +190,28 @@ public class AemInstanceHelperService {
     }
 
     /**
-     * Finds an active Publish instance (excluding the given instance ID) suitable for taking a snapshot from
+     * Finds an active Publish instance (excluding the given instance ID) suitable for taking a snapshot from.
+     * The instance must be in a healthy state (pass a health check), or else null is returned
      * @param excludeInstanceId the publish instance ID to exclude
      * from the search (generally the new Publish instance that needs the snapshot)
-     * @return Active publish instance ID to get snapshot from, null if can't be found
+     * @return Active publish instance ID to get snapshot from, null if can't be found or not in a healthy state
      */
     public String getPublishIdToSnapshotFrom(String excludeInstanceId) {
         List<String> publishIds = awsHelperService.getInstanceIdsForAutoScalingGroup(
             envValues.getAutoScaleGroupNameForPublish());
-        return publishIds.stream().filter(s -> !s.equals(excludeInstanceId)).findFirst().orElse(null);
+        
+        String activePublishId = null;
+        for(String publishId: publishIds) {
+            if(!publishId.equals(excludeInstanceId)) {
+                try {
+                    if(isPubishHealthy(publishId)) {
+                        activePublishId = publishId;
+                        break;
+                    }
+                } catch (Exception e) {} //Do nothing (Exception would mean unhealthy)
+            }
+        }
+        return activePublishId;
     }
 
     /**

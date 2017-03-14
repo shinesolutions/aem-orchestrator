@@ -179,12 +179,12 @@ public class ScaleUpPublishActionTest {
         verify(replicationAgentManager, times(0)).pauseReplicationAgent(activePublishId, authorAemBaseUrl, 
             AgentRunMode.PUBLISH);
         
-        verify(aemHelperService, times(0)).tagInstanceWithSnapshotId(instanceId, snapshotId);
+        verify(aemHelperService, times(1)).tagInstanceWithSnapshotId(instanceId, ""); //Ensure is empty SnapshotId tag
         
         verify(replicationAgentManager, times(0)).resumeReplicationAgent(activePublishId, authorAemBaseUrl, 
             AgentRunMode.PUBLISH);
         
-        assertThat(result, equalTo(false));
+        assertThat(result, equalTo(true));
     }
     
     @Test
