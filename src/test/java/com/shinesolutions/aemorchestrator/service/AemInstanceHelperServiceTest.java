@@ -32,7 +32,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
+import com.shinesolutions.aemorchestrator.exception.InstanceNotInHealthyState;
 import com.shinesolutions.aemorchestrator.model.EnvironmentValues;
+import com.shinesolutions.aemorchestrator.model.InstanceTags;
 import com.shinesolutions.aemorchestrator.util.HttpUtil;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -153,54 +155,6 @@ public class AemInstanceHelperServiceTest {
     }
     
     @Test
-    public void testGetPublishIdToSnapshotFromWithOneUnhealthyInstance() throws Exception {
-        List<String> instanceIds = new ArrayList<String>();
-        instanceIds.add("extra-12345");
-        instanceIds.add(instanceId);
-        
-        when(awsHelperService.getInstanceIdsForAutoScalingGroup(
-            envValues.getAutoScaleGroupNameForPublish())).thenReturn(instanceIds);
-        
-        when(httpUtil.isHttpGetResponseOk(anyString())).thenReturn(false, true); //One healthy
-        
-        String resultInstanceId = aemHelperService.getPublishIdToSnapshotFrom("anything");
-        
-        assertThat(resultInstanceId, equalTo(instanceId));
-    }
-    
-    @Test
-    public void testGetPublishIdToSnapshotFromWithException() throws Exception {
-        List<String> instanceIds = new ArrayList<String>();
-        instanceIds.add("extra-12345");
-        instanceIds.add(instanceId);
-        
-        when(awsHelperService.getInstanceIdsForAutoScalingGroup(
-            envValues.getAutoScaleGroupNameForPublish())).thenReturn(instanceIds);
-        
-        when(httpUtil.isHttpGetResponseOk(anyString())).thenThrow(new IOException()).thenReturn(true); //One healthy
-        
-        String resultInstanceId = aemHelperService.getPublishIdToSnapshotFrom("anything");
-        
-        assertThat(resultInstanceId, equalTo(instanceId));
-    }
-    
-    @Test
-    public void testGetPublishIdToSnapshotFromWithAllUnhealthyInstances() throws Exception {
-        List<String> instanceIds = new ArrayList<String>();
-        instanceIds.add("test-32987");
-        instanceIds.add("test-43134");
-        
-        when(awsHelperService.getInstanceIdsForAutoScalingGroup(
-            envValues.getAutoScaleGroupNameForPublish())).thenReturn(instanceIds);
-        
-        when(httpUtil.isHttpGetResponseOk(anyString())).thenReturn(false); //Not healthy
-        
-        String resultInstanceId = aemHelperService.getPublishIdToSnapshotFrom("anything");
-        
-        assertThat(resultInstanceId, equalTo(null));
-    }
-    
-    @Test
     public void testGetPublishIdToSnapshotFromWithNoInstances() throws Exception {
         when(awsHelperService.getInstanceIdsForAutoScalingGroup(
             envValues.getAutoScaleGroupNameForPublish())).thenReturn(new ArrayList<String>());
@@ -208,6 +162,57 @@ public class AemInstanceHelperServiceTest {
         String resultInstanceId = aemHelperService.getPublishIdToSnapshotFrom("s-2397106");
         
         assertThat(resultInstanceId, equalTo(null));
+    }
+    
+    @Test
+    public void testIsFirstPublishInstanceNoSnapshotTags() throws Exception {
+        Map<String, String> instanceTags = new HashMap<String, String>();
+        
+        List<String> instanceIds = new ArrayList<String>();
+        instanceIds.add("i-1");
+        instanceIds.add("i-2");
+        
+        when(awsHelperService.getInstanceIdsForAutoScalingGroup(
+            envValues.getAutoScaleGroupNameForPublish())).thenReturn(instanceIds);
+        
+        when(awsHelperService.getTags(anyString())).thenReturn(instanceTags);
+        
+        boolean result = aemHelperService.isFirstPublishInstance();
+        
+        assertThat(result, equalTo(true));
+    }
+    
+    @Test
+    @SuppressWarnings("unchecked")
+    public void testIsFirstPublishInstanceOneSnapshotTag() throws Exception {
+        Map<String, String> instanceTags1 = new HashMap<String, String>();
+        Map<String, String> instanceTags2 = new HashMap<String, String>();
+        instanceTags2.put(InstanceTags.SNAPSHOT_ID.getTagName(), "");
+        
+        List<String> instanceIds = new ArrayList<String>();
+        instanceIds.add("i-1");
+        instanceIds.add("i-2");
+        
+        when(awsHelperService.getInstanceIdsForAutoScalingGroup(
+            envValues.getAutoScaleGroupNameForPublish())).thenReturn(instanceIds);
+        
+        when(awsHelperService.getTags(anyString())).thenReturn(instanceTags1, instanceTags2);
+        
+        boolean result = aemHelperService.isFirstPublishInstance();
+        
+        assertThat(result, equalTo(false));
+    }
+    
+    @Test
+    public void testIsFirstPublishInstanceWithNoInstances() throws Exception {
+        List<String> instanceIds = new ArrayList<String>();
+        
+        when(awsHelperService.getInstanceIdsForAutoScalingGroup(
+            envValues.getAutoScaleGroupNameForPublish())).thenReturn(instanceIds);
+        
+        boolean result = aemHelperService.isFirstPublishInstance();
+        
+        assertThat(result, equalTo(true));
     }
     
     @Test
@@ -453,6 +458,54 @@ public class AemInstanceHelperServiceTest {
         boolean result = aemHelperService.isAuthorElbHealthy();
         
         assertThat(result, equalTo(false));
+    }
+    
+    @Test
+    public void testIsPubishHealthyOk() throws Exception {
+        ArgumentCaptor<String> urlCaptor = ArgumentCaptor.forClass(String.class);
+        String publishIp = "testPublishIP";
+        
+        when(httpUtil.isHttpGetResponseOk(urlCaptor.capture())).thenReturn(true);
+        
+        when(awsHelperService.getPrivateIp(instanceId)).thenReturn(publishIp);
+        
+        boolean result = aemHelperService.isPubishHealthy(instanceId);
+        
+        String url = urlCaptor.getValue();
+        
+        assertThat(url, startsWith(aemPublishProtocol + "://" + publishIp + ":" + aemPublishPort));
+        assertThat(result, equalTo(true));
+    }
+    
+    @Test
+    public void testIsPubishHealthyNotOk() throws Exception {
+        when(httpUtil.isHttpGetResponseOk(anyString())).thenReturn(false);
+        
+        boolean result = aemHelperService.isPubishHealthy(instanceId);
+        
+        assertThat(result, equalTo(false));
+    }
+    
+    @Test
+    public void testWaitForPublishToBeHealthyOk() throws Exception {
+        when(httpUtil.isHttpGetResponseOk(anyString())).thenReturn(true);
+        
+        //Will throw an exception if not ok
+        aemHelperService.waitForPublishToBeHealthy(instanceId);
+    }
+    
+    @Test(expected=InstanceNotInHealthyState.class)
+    public void testWaitForPublishToBeHealthyNotOk() throws Exception {
+        when(httpUtil.isHttpGetResponseOk(anyString())).thenReturn(false);
+        
+        aemHelperService.waitForPublishToBeHealthy(instanceId);
+    }
+    
+    @Test(expected=InstanceNotInHealthyState.class)
+    public void testWaitForPublishToBeHealthyWithIOException() throws Exception {
+        when(httpUtil.isHttpGetResponseOk(anyString())).thenThrow(new IOException());
+        
+        aemHelperService.waitForPublishToBeHealthy(instanceId);
     }
     
     @Test

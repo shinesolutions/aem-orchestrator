@@ -19,6 +19,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 import com.shinesolutions.aemorchestrator.aem.AgentRunMode;
 import com.shinesolutions.aemorchestrator.aem.ReplicationAgentManager;
+import com.shinesolutions.aemorchestrator.exception.InstanceNotInHealthyState;
 import com.shinesolutions.aemorchestrator.service.AemInstanceHelperService;
 import com.shinesolutions.aemorchestrator.service.AwsHelperService;
 import com.shinesolutions.swaggeraem4j.ApiException;
@@ -66,6 +67,7 @@ public class ScaleUpPublishActionTest {
         when(awsHelperService.getVolumeId(activePublishId, awsDeviceName)).thenReturn(volumeId);
         when(aemHelperService.createPublishSnapshot(activePublishId, volumeId)).thenReturn(snapshotId);
         when(aemHelperService.findUnpairedPublishDispatcher()).thenReturn(unpairedDispatcherId);
+        when(aemHelperService.isFirstPublishInstance()).thenReturn(false);
     }
 
     @Test
@@ -166,8 +168,8 @@ public class ScaleUpPublishActionTest {
     }
     
     @Test
-    public void testCantFindActivePublisher() throws Exception {
-        when(aemHelperService.getPublishIdToSnapshotFrom(instanceId)).thenReturn(null);
+    public void testWhenIsFirstPublish() throws Exception {
+        when(aemHelperService.isFirstPublishInstance()).thenReturn(true);
         
         boolean result = action.execute(instanceId);
         
@@ -185,6 +187,28 @@ public class ScaleUpPublishActionTest {
             AgentRunMode.PUBLISH);
         
         assertThat(result, equalTo(true));
+    }
+    
+    @Test
+    public void testCantFindHealthyActivePublisher() throws Exception {
+        doThrow(new InstanceNotInHealthyState("")).when(aemHelperService).waitForPublishToBeHealthy(activePublishId);
+        
+        boolean result = action.execute(instanceId);
+        
+        verify(aemHelperService, times(1)).pairPublishWithDispatcher(instanceId, unpairedDispatcherId);
+        
+        verify(replicationAgentManager, times(1)).createReplicationAgent(instanceId, publishAemBaseUrl, 
+            authorAemBaseUrl, AgentRunMode.PUBLISH);
+        
+        verify(replicationAgentManager, times(0)).pauseReplicationAgent(activePublishId, authorAemBaseUrl, 
+            AgentRunMode.PUBLISH);
+        
+        verify(aemHelperService, times(0)).tagInstanceWithSnapshotId(instanceId, snapshotId);
+        
+        verify(replicationAgentManager, times(0)).resumeReplicationAgent(activePublishId, authorAemBaseUrl, 
+            AgentRunMode.PUBLISH);
+        
+        assertThat(result, equalTo(false));
     }
     
     @Test

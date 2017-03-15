@@ -22,7 +22,9 @@ import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Component;
 
+import com.shinesolutions.aemorchestrator.exception.InstanceNotInHealthyState;
 import com.shinesolutions.aemorchestrator.model.EnvironmentValues;
+import com.shinesolutions.aemorchestrator.model.InstanceTags;
 import com.shinesolutions.aemorchestrator.util.HttpUtil;
 
 /*
@@ -136,6 +138,24 @@ public class AemInstanceHelperService {
 
         return httpUtil.isHttpGetResponseOk(url);
     }
+    
+    /**
+     * Blocking method that continually checks to see if a given Publish instance is in a healthy state.
+     * Will stop blocking once the Publish instance is deemed to be in a healthy state, or will
+     * throw an exception if not
+     * @param instanceId of the Publish instance
+     * @throws InstanceNotInHealthyState thrown if reaches waiting period time out
+     */
+    @Retryable(maxAttempts=10, value=InstanceNotInHealthyState.class, backoff=@Backoff(delay=5000))
+    public void waitForPublishToBeHealthy(String instanceId) throws InstanceNotInHealthyState {
+        try {
+            if(!isPubishHealthy(instanceId)) {
+                throw new InstanceNotInHealthyState(instanceId);
+            }
+        } catch (IOException e) {
+            throw new InstanceNotInHealthyState(instanceId, e);
+        }
+    }
 
     /**
      * Gets the Publish EC2 instance ID that is paired to the given Publish Dispatcher.
@@ -191,28 +211,30 @@ public class AemInstanceHelperService {
     }
 
     /**
-     * Finds an active Publish instance (excluding the given instance ID) suitable for taking a snapshot from.
-     * The instance must be in a healthy state (pass a health check), or else null is returned
+     * Finds an active Publish instance (excluding the given instance ID) suitable for taking a snapshot from
      * @param excludeInstanceId the publish instance ID to exclude
      * from the search (generally the new Publish instance that needs the snapshot)
-     * @return Active publish instance ID to get snapshot from, null if can't be found or not in a healthy state
+     * @return Active publish instance ID to get snapshot from, null if can't be found
      */
     public String getPublishIdToSnapshotFrom(String excludeInstanceId) {
         List<String> publishIds = awsHelperService.getInstanceIdsForAutoScalingGroup(
             envValues.getAutoScaleGroupNameForPublish());
+        return publishIds.stream().filter(s -> !s.equals(excludeInstanceId)).findFirst().orElse(null);
+    }
+    
+    /**
+     * If no Publish instances have been set up via snapshot, then the first one will not require a snapshot 
+     * (nothing to snapshot from). The method helps determine if it is the first publish instance to be set up 
+     * after startup.
+     * @return true if no instance son the Publish group have the SnapshotId tag, false otherwise
+     */
+    public boolean isFirstPublishInstance() {
+        List<String> publishIds = awsHelperService.getInstanceIdsForAutoScalingGroup(
+            envValues.getAutoScaleGroupNameForPublish());
         
-        String activePublishId = null;
-        for(String publishId: publishIds) {
-            if(!publishId.equals(excludeInstanceId)) {
-                try {
-                    if(isPubishHealthy(publishId)) {
-                        activePublishId = publishId;
-                        break;
-                    }
-                } catch (Exception e) {} //Do nothing (Exception would mean unhealthy)
-            }
-        }
-        return activePublishId;
+        //Check if any of the instances on the group have the SnapshotId tag, if not then it's the first
+        return publishIds.stream().filter(i -> awsHelperService.getTags(i).get(
+            InstanceTags.SNAPSHOT_ID.getTagName()) != null).findFirst().orElse(null) == null;
     }
 
     /**
