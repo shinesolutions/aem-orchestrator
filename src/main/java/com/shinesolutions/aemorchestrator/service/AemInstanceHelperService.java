@@ -306,11 +306,16 @@ public class AemInstanceHelperService {
      * @throws NoSuchElementException if can't find unpaired Publish Dispatcher
      */
     @Retryable(maxAttempts=6, value=NoSuchElementException.class, backoff=@Backoff(delay=10000))
-    public String findUnpairedPublishDispatcher() throws NoSuchElementException {
+    public String findUnpairedPublishDispatcher(String instanceId) throws NoSuchElementException {
         List<String> dispatcherIds = awsHelperService.getInstanceIdsForAutoScalingGroup(
             envValues.getAutoScaleGroupNameForPublishDispatcher());
-        return dispatcherIds.stream().filter(d -> !awsHelperService.getTags(d).containsKey(
-            PAIR_INSTANCE_ID.getTagName())).findFirst().get();
+        return dispatcherIds.stream().filter(d -> isViablePair(instanceId, d)).findFirst().get();
+    }
+    
+    private boolean isViablePair(String instanceId, String dispatcherInstanceId) {
+        Map<String, String> tags = awsHelperService.getTags(dispatcherInstanceId);
+        return !tags.containsKey(PAIR_INSTANCE_ID.getTagName()) || //Either it's missing a pairing tag
+            tags.get(PAIR_INSTANCE_ID.getTagName()).equals(instanceId); //Or it's already paired to the instance
     }
 
 }

@@ -66,7 +66,7 @@ public class ScaleUpPublishActionTest {
         when(aemHelperService.getPublishIdToSnapshotFrom(instanceId)).thenReturn(activePublishId);
         when(awsHelperService.getVolumeId(activePublishId, awsDeviceName)).thenReturn(volumeId);
         when(aemHelperService.createPublishSnapshot(activePublishId, volumeId)).thenReturn(snapshotId);
-        when(aemHelperService.findUnpairedPublishDispatcher()).thenReturn(unpairedDispatcherId);
+        when(aemHelperService.findUnpairedPublishDispatcher(instanceId)).thenReturn(unpairedDispatcherId);
         when(aemHelperService.isFirstPublishInstance()).thenReturn(false);
     }
 
@@ -278,7 +278,7 @@ public class ScaleUpPublishActionTest {
     
     @Test
     public void testUnableToFindUnpairedDispatcher() throws Exception {
-        when(aemHelperService.findUnpairedPublishDispatcher()).thenThrow(new NoSuchElementException());
+        when(aemHelperService.findUnpairedPublishDispatcher(instanceId)).thenThrow(new NoSuchElementException());
         
         boolean result = action.execute(instanceId);
         

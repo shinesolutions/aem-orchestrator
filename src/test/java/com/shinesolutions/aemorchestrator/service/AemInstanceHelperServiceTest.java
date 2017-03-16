@@ -231,13 +231,36 @@ public class AemInstanceHelperServiceTest {
         instanceIds.add(instance2);
         instanceIds.add(instance3);
         
-        
         when(awsHelperService.getInstanceIdsForAutoScalingGroup(envValues.getAutoScaleGroupNameForPublishDispatcher())).thenReturn(instanceIds);
         when(awsHelperService.getTags(instance1)).thenReturn(tagsWithPairName);
         when(awsHelperService.getTags(instance2)).thenReturn(tagsWithoutPairName); //Instance 2 is the winner
         when(awsHelperService.getTags(instance3)).thenReturn(tagsWithPairName);
         
-        String resultInstanceId = aemHelperService.findUnpairedPublishDispatcher();
+        String resultInstanceId = aemHelperService.findUnpairedPublishDispatcher(instanceId);
+        
+        assertThat(resultInstanceId, equalTo(instance2));
+    }
+    
+    @Test
+    public void testFindUnpairedPublishDispatcherAlreadyPaired() throws Exception {
+        String instance1 = "1st-324983";
+        String instance2 = "2nd-348894";
+        
+        Map<String, String> tagsWithPairName = new HashMap<String, String>();
+        tagsWithPairName.put(PAIR_INSTANCE_ID.getTagName(), "testPair");
+        
+        Map<String, String> tagsWithAlreadyPairedId = new HashMap<String, String>();
+        tagsWithAlreadyPairedId.put(PAIR_INSTANCE_ID.getTagName(), instanceId);
+        
+        List<String> instanceIds = new ArrayList<String>();
+        instanceIds.add(instance1);
+        instanceIds.add(instance2);
+        
+        when(awsHelperService.getInstanceIdsForAutoScalingGroup(envValues.getAutoScaleGroupNameForPublishDispatcher())).thenReturn(instanceIds);
+        when(awsHelperService.getTags(instance1)).thenReturn(tagsWithPairName);
+        when(awsHelperService.getTags(instance2)).thenReturn(tagsWithAlreadyPairedId); //Instance 2 is the winner
+        
+        String resultInstanceId = aemHelperService.findUnpairedPublishDispatcher(instanceId);
         
         assertThat(resultInstanceId, equalTo(instance2));
     }
