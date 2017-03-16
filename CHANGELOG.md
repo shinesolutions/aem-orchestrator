@@ -1,6 +1,7 @@
 ### 0.9.3
 * By default, now logs to root application directory (orchestrator.log)
 * Performs a health check on the Publish instance before doing a Snapshot #15
+* Fix cross-snapshotting publish instances #13
 
 ### 0.9.2
 * Added configurable snapshot tags #2
