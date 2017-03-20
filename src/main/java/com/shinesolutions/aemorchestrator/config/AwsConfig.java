@@ -17,6 +17,7 @@ import com.amazonaws.ClientConfiguration;
 import com.amazonaws.Protocol;
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
+import com.amazonaws.auth.InstanceProfileCredentialsProvider;
 import com.amazonaws.regions.AwsRegionProvider;
 import com.amazonaws.regions.DefaultAwsRegionProviderChain;
 import com.amazonaws.regions.Region;
@@ -68,11 +69,8 @@ public class AwsConfig {
     
     @Bean
     public AWSCredentialsProvider awsCredentialsProvider() {
-        /*
-         * For info on how this works, see:
-         * http://docs.aws.amazon.com/sdk-for-java/v1/developer-guide/credentials.html
-         */
-        return new DefaultAWSCredentialsProviderChain();
+
+        return new InstanceProfileCredentialsProvider(false);
     }
     
     @Bean

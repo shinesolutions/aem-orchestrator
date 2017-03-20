@@ -4,6 +4,7 @@
 * Fixed bug causing continual snapshotting when unable to find a publish pair candidate #12
 * Creates a content health check alarm on the publish instance #19
 * Fix cross-snapshotting publish instances #13
+* Changed loading of AWS credentials to use 'Instance Profile' only #17
 
 ### 0.9.2
 * Added configurable snapshot tags #2
