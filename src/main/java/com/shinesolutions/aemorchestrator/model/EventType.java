@@ -1,9 +1,11 @@
 package com.shinesolutions.aemorchestrator.model;
 
+
 public enum EventType {
-    AUTOSCALING_EC2_INSTANCE_TERMINATE("autoscaling:EC2_INSTANCE_TERMINATE"),
-    AUTOSCALING_EC2_INSTANCE_LAUNCH("autoscaling:EC2_INSTANCE_LAUNCH"),
-    AUTOSCALING_TEST_NOTIFICATION("autoscaling:TEST_NOTIFICATION");
+    AUTOSCALING_EC2_INSTANCE_TERMINATE("Auto Scaling: termination"),
+    AUTOSCALING_EC2_INSTANCE_LAUNCH("Auto Scaling: launch"),
+    AUTOSCALING_TEST_NOTIFICATION("Auto Scaling: test"),
+    ALARM("ALARM");
     
     private final String value;
 

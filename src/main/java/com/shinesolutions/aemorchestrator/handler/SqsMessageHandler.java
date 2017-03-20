@@ -10,54 +10,75 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
-import com.shinesolutions.aemorchestrator.model.EventMessage;
-import com.shinesolutions.aemorchestrator.util.MessageExtractor;
+import com.shinesolutions.aemorchestrator.exception.MessageHandlerNotFound;
+import com.shinesolutions.aemorchestrator.model.SnsMessage;
+import com.shinesolutions.aemorchestrator.util.SnsMessageExtractor;
 
 /*
- * Invokes the correct action based on the message type
+ * Invokes the correct action based on the message type (taken from subject)
  */
 @Component
-public class SqsMessageHandler implements MessageHandler {
+public class SqsMessageHandler {
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     @Resource
-    private Map<String, EventHandler> eventTypeHandlerMappings;
+    private Map<String, MessageHandler> eventTypeHandlerMappings;
+    
+    @Resource
+    private SnsMessageExtractor snsMessageExtractor;
 
     public boolean handleMessage(Message message) {
         
         boolean deleteMessage = false;
-        EventMessage eventMessage = null;
+        SnsMessage snsMessage = null;
         
         try {
             String messageBody = ((TextMessage)message).getText();
-            logger.debug("Raw message body: " + messageBody);
-            eventMessage = MessageExtractor.extractEventMessage(messageBody);
+            logger.debug("Raw message body: " + messageBody); 
+                
+            snsMessage = snsMessageExtractor.extractMessage(messageBody);
+            
         } catch (Exception e) {
-            logger.error("Error when reading message body, event will not be handled", e);
+            logger.error("Error when attempting to read message", e);
+            deleteMessage = true;
         }
 
-        if (eventMessage != null) {
-            String eventType = eventMessage.getEvent();
-
+        if(snsMessage != null && snsMessage.getSubject() != null) {
             // Get class mapping for message type:
-            EventHandler eventHandler = eventTypeHandlerMappings.get(eventType);
-
-            if (eventHandler == null) {
-                logger.error("No event handler found for message type: " + eventType);
-                deleteMessage = true; //Delete unknown message type from the queue
-            } else {
+            MessageHandler eventHandler = null;
+            try {
+                eventHandler = getHandler(snsMessage.getSubject());
+            } catch (MessageHandlerNotFound e) {
+                logger.error("Failed to find message handler", e);
+            }
+    
+            if (eventHandler != null) {
                 try {
-                    logger.debug("Handling event: " + eventType);
-                    deleteMessage = eventHandler.handleEvent(eventMessage);
+                    logger.debug("Handling event for subject: " + snsMessage.getSubject());
+                    deleteMessage = eventHandler.handleEvent(prepareMessageBody(snsMessage.getMessage()));
                     
                 } catch (Exception e) {
-                    logger.error("Failed to handle event for message type: " + eventType, e);
+                    logger.error("Failed to handle event for message with subject: " + snsMessage.getSubject(), e);
                 }
+            } else {
+                deleteMessage = true;
             }
         }
 
         return deleteMessage;
+    }
+    
+    private MessageHandler getHandler(String msgSubject) throws MessageHandlerNotFound {
+        String key = eventTypeHandlerMappings.keySet().stream().filter(
+            m -> msgSubject.startsWith(m)).findFirst().orElseThrow(() -> new MessageHandlerNotFound(msgSubject));
+        logger.debug("Using Message Handler for key: " + key);
+        return eventTypeHandlerMappings.get(key);
+    }
+    
+    private String prepareMessageBody(String messageBody) {
+        // Body contains \" instead of just ". Need to replace before attempting to map to object
+        return messageBody.replace("\\\"", "\"");
     }
 
 }

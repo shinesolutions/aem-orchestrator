@@ -1,0 +1,37 @@
+{
+  "AlarmName": "contentHealthCheck",
+  "AlarmDescription": "Content Health Check for Publish",
+  "AWSAccountId": "918474058204",
+  "NewStateValue": "ALARM",
+  "NewStateReason": "Threshold Crossed: 1 datapoint (0.0) was less than the threshold (1.0).",
+  "StateChangeTime": "2017-01-11T00:00:00.000Z",
+  "Region": "Asia Pacific - Sydney",
+  "OldStateValue": "INSUFFICIENT_DATA",
+  "Trigger": {
+    "MetricName": "contentHealthCheck",
+    "Namespace": "aem-publish-dispatcher-stack",
+    "StatisticType": "Statistic",
+    "Statistic": "MAXIMUM",
+    "Unit": "unit",
+    "Dimensions": [
+      {
+        "name": "Endpoint",
+        "value": "\/content\/helloworld"
+      },
+      {
+        "name": "PairInstanceId",
+        "value": "i-0bddcd1e4afd0d046"
+      },
+      {
+        "name": "InstanceId",
+        "value": "i-0745bec88e7f1e4a9"
+      }
+    ],
+    "Period": 60,
+    "EvaluationPeriods": 1,
+    "ComparisonOperator": "LessThanThreshold",
+    "Threshold": 1,
+    "TreatMissingData": "",
+    "EvaluateLowSampleCountPercentile": ""
+  }
+}

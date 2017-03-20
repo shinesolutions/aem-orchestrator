@@ -1,0 +1,12 @@
+{
+  "Type" : "Notification",
+  "MessageId" : "2c1aeb6a-e2e9-5432-a196-ba504b7244b9",
+  "TopicArn" : "<Topic Arn>",
+  "Subject" : "ALARM: \"contentHealthCheck\" in Asia Pacific - Sydney",
+  "Message" : "{\"AlarmName\":\"contentHealthCheck\",\"AlarmDescription\":\"Content Health Check for Publish\",\"AWSAccountId\":\"918474058204\",\"NewStateValue\":\"ALARM\",\"NewStateReason\":\"Threshold Crossed: 1 datapoint (0.0) was less than the threshold (1.0).\",\"StateChangeTime\":\"2017-01-11T00:00:00.000Z\",\"Region\":\"Asia Pacific - Sydney\",\"OldStateValue\":\"INSUFFICIENT_DATA\",\"Trigger\":{\"MetricName\":\"contentHealthCheck\",\"Namespace\":\"aem-publish-dispatcher-stack\",\"StatisticType\":\"Statistic\",\"Statistic\":\"MAXIMUM\",\"Unit\":\"unit\",\"Dimensions\":[{\"name\":\"Endpoint\",\"value\":\"/content/helloworld\"},{\"name\":\"PairInstanceId\",\"value\":\"i-0bddcd1e4afd0d046\"},{\"name\":\"InstanceId\",\"value\":\"i-0745bec88e7f1e4a9\"}],\"Period\":60,\"EvaluationPeriods\":1,\"ComparisonOperator\":\"LessThanThreshold\",\"Threshold\":1.0,\"TreatMissingData\":\"\",\"EvaluateLowSampleCountPercentile\":\"\"}}",
+  "Timestamp" : "2017-01-11T00:00:00.000Z",
+  "SignatureVersion" : "1",
+  "Signature" : "DAFaXmSktOaVBwhWXmgQWQF0vHPrKy5L/NA+2pbJfdUXsQ6==",
+  "SigningCertURL" : "https://sns.ap-southeast-2.amazonaws.com/SimpleNotificationService.pem",
+  "UnsubscribeURL" : "https://sns.ap-southeast-2.amazonaws.com/?Action=Unsubscribe"
+}

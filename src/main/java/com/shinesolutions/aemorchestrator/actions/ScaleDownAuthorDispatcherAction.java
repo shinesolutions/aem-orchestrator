@@ -12,7 +12,7 @@ import com.shinesolutions.aemorchestrator.service.AemInstanceHelperService;
 import com.shinesolutions.swaggeraem4j.ApiException;
 
 @Component
-public class ScaleDownAuthorDispatcherAction implements ScaleAction {
+public class ScaleDownAuthorDispatcherAction implements Action {
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
     

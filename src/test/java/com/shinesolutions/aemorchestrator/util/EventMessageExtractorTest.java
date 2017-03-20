@@ -6,6 +6,7 @@ import static org.hamcrest.Matchers.equalTo;
 import java.io.File;
 import java.util.Scanner;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import com.fasterxml.jackson.core.JsonParseException;
@@ -13,20 +14,26 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.shinesolutions.aemorchestrator.model.EventMessage;
 
-public class MessageExtractorTest {
+public class EventMessageExtractorTest {
+    
+    private EventMessageExtractor eventMessageExtractor;
+    
+    @Before
+    public void setUp() throws Exception {
+        eventMessageExtractor = new EventMessageExtractor();
+    }
 
     @Test
     @SuppressWarnings("resource")
     public void testExtractEventMessageSuccess() throws Exception {
 
-        File sampleFileMessageOnly = new File(getClass().getResource("/sample-sqs-message-body-1.json").getFile());
-        File sampleFileFull = new File(getClass().getResource("/sample-sqs-message-body-2.json").getFile());
-        String sampleFileContent = new Scanner(sampleFileFull).useDelimiter("\\Z").next();
+        File sampleFileMessageOnly = new File(getClass().getResource("/sample-sqs-event-message-1.json").getFile());
+        String sampleFileContent = new Scanner(sampleFileMessageOnly).useDelimiter("\\Z").next();
 
         ObjectMapper mapper = new ObjectMapper();
         JsonNode root = mapper.readTree(sampleFileMessageOnly);
 
-        EventMessage eventMsg = MessageExtractor.extractEventMessage(sampleFileContent);
+        EventMessage eventMsg = eventMessageExtractor.extractMessage(sampleFileContent);
 
         assertThat(eventMsg.getProgress(), equalTo(root.path("Progress").asInt()));
         assertThat(eventMsg.getAccountId(), equalTo(root.path("AccountId").asText()));
@@ -55,6 +62,6 @@ public class MessageExtractorTest {
     
     @Test(expected=JsonParseException.class)
     public void testExtractEventMessageParseFail() throws Exception {
-        MessageExtractor.extractEventMessage("Invalid string");
+        eventMessageExtractor.extractMessage("Invalid string");
     }
 }

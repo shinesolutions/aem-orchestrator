@@ -4,15 +4,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
-import com.shinesolutions.aemorchestrator.model.EventMessage;
-
 @Component
-public class TestNotificationEventHandler implements EventHandler {
+public class TestNotificationEventHandler implements MessageHandler {
     
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     @Override
-    public boolean handleEvent(EventMessage message) {
+    public boolean handleEvent(String message) {
         logger.info("Test notification received, ignoring");
         return true;
     }

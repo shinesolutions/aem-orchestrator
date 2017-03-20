@@ -6,16 +6,17 @@ import java.util.Map;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import com.shinesolutions.aemorchestrator.actions.ScaleAction;
+import com.shinesolutions.aemorchestrator.actions.Action;
 import com.shinesolutions.aemorchestrator.actions.ScaleDownAuthorDispatcherAction;
 import com.shinesolutions.aemorchestrator.actions.ScaleDownPublishAction;
 import com.shinesolutions.aemorchestrator.actions.ScaleDownPublishDispatcherAction;
 import com.shinesolutions.aemorchestrator.actions.ScaleUpAuthorDispatcherAction;
 import com.shinesolutions.aemorchestrator.actions.ScaleUpPublishAction;
 import com.shinesolutions.aemorchestrator.actions.ScaleUpPublishDispatcherAction;
+import com.shinesolutions.aemorchestrator.handler.AlarmMessageHandler;
 import com.shinesolutions.aemorchestrator.handler.AutoScalingLaunchEventHandler;
 import com.shinesolutions.aemorchestrator.handler.AutoScalingTerminateEventHandler;
-import com.shinesolutions.aemorchestrator.handler.EventHandler;
+import com.shinesolutions.aemorchestrator.handler.MessageHandler;
 import com.shinesolutions.aemorchestrator.handler.TestNotificationEventHandler;
 import com.shinesolutions.aemorchestrator.model.EnvironmentValues;
 import com.shinesolutions.aemorchestrator.model.EventType;
@@ -24,27 +25,29 @@ import com.shinesolutions.aemorchestrator.model.EventType;
 public class MappingConfig {
 
     @Bean
-    public Map<String, EventHandler> eventTypeHandlerMappings(
+    public Map<String, MessageHandler> eventTypeHandlerMappings(
         final AutoScalingTerminateEventHandler scaleDownEventHandler,
         final AutoScalingLaunchEventHandler scaleUpEventHandler,
-        final TestNotificationEventHandler testNotificationEventHandler) {
+        final TestNotificationEventHandler testNotificationEventHandler,
+        final AlarmMessageHandler alarmMessageHandler) {
 
-        Map<String, EventHandler> mappings = new HashMap<String, EventHandler>();
+        Map<String, MessageHandler> mappings = new HashMap<String, MessageHandler>();
         mappings.put(EventType.AUTOSCALING_EC2_INSTANCE_TERMINATE.getValue(), scaleDownEventHandler);
         mappings.put(EventType.AUTOSCALING_EC2_INSTANCE_LAUNCH.getValue(), scaleUpEventHandler);
         mappings.put(EventType.AUTOSCALING_TEST_NOTIFICATION.getValue(), testNotificationEventHandler);
+        mappings.put(EventType.ALARM.getValue(), alarmMessageHandler);
         
         return mappings;
     }
 
     @Bean(name="scaleDownAutoScaleGroupMappings")
-    public Map<String, ScaleAction> scaleDownAutoScaleGroupMappings(
+    public Map<String, Action> scaleDownAutoScaleGroupMappings(
         final ScaleDownPublishDispatcherAction scaleDownPublishDispatcherAction,
         final ScaleDownPublishAction scaleDownPublishAction,
         final ScaleDownAuthorDispatcherAction scaleDownAuthorDispatcherAction,
         final EnvironmentValues envValues) {
 
-        Map<String, ScaleAction> mappings = new HashMap<String, ScaleAction>();
+        Map<String, Action> mappings = new HashMap<String, Action>();
         
         mappings.put(envValues.getAutoScaleGroupNameForPublishDispatcher(), scaleDownPublishDispatcherAction);
         mappings.put(envValues.getAutoScaleGroupNameForPublish(), scaleDownPublishAction);
@@ -54,13 +57,13 @@ public class MappingConfig {
     }
     
     @Bean(name="scaleUpAutoScaleGroupMappings")
-    public Map<String, ScaleAction> scaleUpAutoScaleGroupMappings(
+    public Map<String, Action> scaleUpAutoScaleGroupMappings(
         final ScaleUpPublishDispatcherAction scaleUpPublishDispatcherAction,
         final ScaleUpPublishAction scaleUpPublishAction,
         final ScaleUpAuthorDispatcherAction scaleUpAuthorDispatcherAction,
         final EnvironmentValues envValues) {
 
-        Map<String, ScaleAction> mappings = new HashMap<String, ScaleAction>();
+        Map<String, Action> mappings = new HashMap<String, Action>();
    
         mappings.put(envValues.getAutoScaleGroupNameForPublishDispatcher(), scaleUpPublishDispatcherAction);
         mappings.put(envValues.getAutoScaleGroupNameForPublish(), scaleUpPublishAction);

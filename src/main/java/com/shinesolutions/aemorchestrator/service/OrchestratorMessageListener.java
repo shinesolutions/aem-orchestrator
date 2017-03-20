@@ -11,7 +11,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import com.amazon.sqs.javamessaging.SQSConnection;
-import com.shinesolutions.aemorchestrator.handler.MessageHandler;
+import com.shinesolutions.aemorchestrator.handler.SqsMessageHandler;
 
 /**
  * Listener for the SQS queue. Will add itself as a message listener upon startup
@@ -20,7 +20,7 @@ import com.shinesolutions.aemorchestrator.handler.MessageHandler;
  * When a message is received, it will pass it to the @see MessageHandler
  */
 @Component
-public class MessageReceiver implements  MessageListener {
+public class OrchestratorMessageListener implements MessageListener {
 
 	private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
@@ -31,7 +31,7 @@ public class MessageReceiver implements  MessageListener {
 	private MessageConsumer consumer;
 
 	@Resource
-	private MessageHandler messageHandler;
+	private SqsMessageHandler messageHandler;
 
 	@Override
 	public void onMessage(Message message) {

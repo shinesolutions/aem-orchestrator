@@ -10,7 +10,7 @@ import com.shinesolutions.aemorchestrator.service.AemInstanceHelperService;
 import com.shinesolutions.aemorchestrator.service.AwsHelperService;
 
 @Component
-public class ScaleDownPublishDispatcherAction implements ScaleAction {
+public class ScaleDownPublishDispatcherAction implements Action {
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 

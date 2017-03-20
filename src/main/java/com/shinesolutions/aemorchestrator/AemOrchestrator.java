@@ -24,7 +24,7 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.retry.annotation.EnableRetry;
 
-import com.shinesolutions.aemorchestrator.service.MessageReceiver;
+import com.shinesolutions.aemorchestrator.service.OrchestratorMessageListener;
 import com.shinesolutions.aemorchestrator.service.ResourceReadyChecker;
 
 @SpringBootApplication
@@ -43,7 +43,7 @@ public class AemOrchestrator {
         boolean isStartupOk = false;
         
         if(resourceReadyChecker.isResourcesReady()) {
-            MessageReceiver messageReceiver = context.getBean(MessageReceiver.class);
+            OrchestratorMessageListener messageReceiver = context.getBean(OrchestratorMessageListener.class);
             
             try {
                 messageReceiver.start();

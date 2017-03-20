@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 import com.shinesolutions.aemorchestrator.service.AemInstanceHelperService;
 
 @Component
-public class ScaleUpPublishDispatcherAction implements ScaleAction {
+public class ScaleUpPublishDispatcherAction implements Action {
     
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
     
