@@ -22,6 +22,12 @@ import com.amazonaws.services.autoscaling.model.SetDesiredCapacityRequest;
 import com.amazonaws.services.cloudformation.AmazonCloudFormation;
 import com.amazonaws.services.cloudformation.model.DescribeStackResourcesRequest;
 import com.amazonaws.services.cloudformation.model.DescribeStackResourcesResult;
+import com.amazonaws.services.cloudwatch.AmazonCloudWatch;
+import com.amazonaws.services.cloudwatch.model.ComparisonOperator;
+import com.amazonaws.services.cloudwatch.model.DeleteAlarmsRequest;
+import com.amazonaws.services.cloudwatch.model.Dimension;
+import com.amazonaws.services.cloudwatch.model.PutMetricAlarmRequest;
+import com.amazonaws.services.cloudwatch.model.Statistic;
 import com.amazonaws.services.ec2.AmazonEC2;
 import com.amazonaws.services.ec2.model.CreateSnapshotRequest;
 import com.amazonaws.services.ec2.model.CreateSnapshotResult;
@@ -47,7 +53,10 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3URI;
 import com.amazonaws.services.s3.model.GetObjectRequest;
 import com.amazonaws.services.s3.model.S3Object;
+import com.amazonaws.services.sns.AmazonSNS;
+import com.amazonaws.services.sns.model.ListTopicsResult;
 import com.amazonaws.util.IOUtils;
+import com.shinesolutions.aemorchestrator.model.InstanceTags;
 
 
 /**
@@ -70,6 +79,12 @@ public class AwsHelperService {
     
     @Resource
     public AmazonS3 amazonS3Client;
+    
+    @Resource
+    public AmazonCloudWatch amazonCloudWatchClient;
+    
+    @Resource
+    public AmazonSNS amazonSNSClient;
     
     /**
      * Return the DNS name for a given AWS ELB group name
@@ -238,6 +253,53 @@ public class AwsHelperService {
         S3Object s3object = amazonS3Client.getObject(new GetObjectRequest(s3FileUri.getBucket(), s3FileUri.getKey()));
         
         return IOUtils.toString(s3object.getObjectContent());
+    }
+    
+    /**
+     * Creates a CloudWatch content health check alarm
+     * The metric for the alarm is always 'contentHealthCheck'
+     * @param alarmName recommend including the instance id
+     * @param alarmDescription a brief description of the alarm
+     * @param publishInstanceId ID of the publish instance
+     * @param namespace this will be the stack name (i.e. xxxx-aem-publish-dispatcher-stack)
+     * @param topicArn the ARN of the SNS topic that is used when the alarm triggers
+     */
+    public void createContentHealthCheckAlarm(String alarmName, String alarmDescription,  
+        String publishInstanceId, String namespace, String topicArn) {
+        amazonCloudWatchClient.putMetricAlarm(new PutMetricAlarmRequest()
+            .withAlarmName(alarmName)
+            .withAlarmDescription(alarmDescription)
+            .withDimensions(new Dimension()
+                .withName(InstanceTags.PAIR_INSTANCE_ID.getTagName())
+                .withValue(publishInstanceId))
+            .withMetricName("contentHealthCheck")
+            .withNamespace(namespace)
+            .withPeriod(60)
+            .withThreshold(1D)
+            .withEvaluationPeriods(5)
+            .withStatistic(Statistic.Maximum)
+            .withComparisonOperator(ComparisonOperator.LessThanThreshold)
+            .withAlarmActions(topicArn)
+            .withActionsEnabled(true));
+    }
+    
+    /**
+     * Delete a CloudWatch alarm for a given alarm name
+     * @param alarmName the name of the alarm
+     */
+    public void deleteAlarm(String alarmName) {
+        amazonCloudWatchClient.deleteAlarms(new DeleteAlarmsRequest().withAlarmNames(alarmName));
+    }
+    
+    /**
+     * Gets a topic ARN for a given topic name
+     * @param topicName The human readable name of the topic
+     * @return the topic ARN
+     */
+    public String getSnsTopicArn(String topicName) {
+        ListTopicsResult result = amazonSNSClient.listTopics();
+        return result.getTopics().stream().filter(
+            t -> t.getTopicArn().endsWith(topicName)).findFirst().get().getTopicArn();
     }
     
     

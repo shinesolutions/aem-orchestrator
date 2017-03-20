@@ -18,10 +18,10 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import com.amazon.sqs.javamessaging.SQSConnection;
-import com.shinesolutions.aemorchestrator.handler.MessageHandler;
+import com.shinesolutions.aemorchestrator.handler.SqsMessageHandler;
 
 @RunWith(MockitoJUnitRunner.class)
-public class MessageReceiverTest {
+public class OrchestratorMessageListenerTest {
     
     @Mock
     private SQSConnection connection;
@@ -30,10 +30,10 @@ public class MessageReceiverTest {
     private MessageConsumer consumer;
 
     @Mock
-    private MessageHandler messageHandler;
+    private SqsMessageHandler messageHandler;
     
     @InjectMocks
-    private MessageReceiver messageReceiver;
+    private OrchestratorMessageListener messageReceiver;
     
     private Message message;
     

@@ -25,12 +25,16 @@ import com.amazonaws.services.autoscaling.AmazonAutoScaling;
 import com.amazonaws.services.autoscaling.AmazonAutoScalingClientBuilder;
 import com.amazonaws.services.cloudformation.AmazonCloudFormation;
 import com.amazonaws.services.cloudformation.AmazonCloudFormationClientBuilder;
+import com.amazonaws.services.cloudwatch.AmazonCloudWatch;
+import com.amazonaws.services.cloudwatch.AmazonCloudWatchClientBuilder;
 import com.amazonaws.services.ec2.AmazonEC2;
 import com.amazonaws.services.ec2.AmazonEC2ClientBuilder;
 import com.amazonaws.services.elasticloadbalancing.AmazonElasticLoadBalancing;
 import com.amazonaws.services.elasticloadbalancing.AmazonElasticLoadBalancingClientBuilder;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
+import com.amazonaws.services.sns.AmazonSNS;
+import com.amazonaws.services.sns.AmazonSNSClientBuilder;
 import com.shinesolutions.aemorchestrator.model.ProxyDetails;
 
 @Configuration
@@ -177,6 +181,26 @@ public class AwsConfig {
     public AmazonS3 amazonS3Client(final AWSCredentialsProvider awsCredentialsProvider, 
         final ClientConfiguration awsClientConfig, final Region awsRegion) {
         return AmazonS3ClientBuilder.standard()
+            .withCredentials(awsCredentialsProvider)
+            .withClientConfiguration(awsClientConfig)
+            .withRegion(awsRegion.getName())
+            .build();
+    }
+    
+    @Bean
+    public AmazonCloudWatch amazonCloudWatchClient(final AWSCredentialsProvider awsCredentialsProvider, 
+        final ClientConfiguration awsClientConfig, final Region awsRegion) {
+        return AmazonCloudWatchClientBuilder.standard()
+            .withCredentials(awsCredentialsProvider)
+            .withClientConfiguration(awsClientConfig)
+            .withRegion(awsRegion.getName())
+            .build();
+    }
+    
+    @Bean
+    public AmazonSNS amazonSNSClient(final AWSCredentialsProvider awsCredentialsProvider, 
+        final ClientConfiguration awsClientConfig, final Region awsRegion) {
+        return AmazonSNSClientBuilder.standard()
             .withCredentials(awsCredentialsProvider)
             .withClientConfiguration(awsClientConfig)
             .withRegion(awsRegion.getName())

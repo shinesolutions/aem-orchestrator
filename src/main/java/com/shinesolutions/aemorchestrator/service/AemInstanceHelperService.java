@@ -59,6 +59,9 @@ public class AemInstanceHelperService {
 
     @Value("${aws.snapshot.tags}")
     private List<String> tagsToApplyToSnapshot;
+    
+    @Value("${aws.cloudformation.stackName.publishDispatcher}")
+    private String awsPublishDispatcherStackName;
 
     @Resource
     private EnvironmentValues envValues;
@@ -302,6 +305,7 @@ public class AemInstanceHelperService {
     /**
      * Looks at all Publish Dispatcher instances on the auto scaling group and retrieves the
      * first one missing a pair ID tag (unpaired).
+     * @param instanceId the Publish instance ID
      * @return Publish Dispatcher instance ID tag
      * @throws NoSuchElementException if can't find unpaired Publish Dispatcher
      */
@@ -316,6 +320,32 @@ public class AemInstanceHelperService {
         Map<String, String> tags = awsHelperService.getTags(dispatcherInstanceId);
         return !tags.containsKey(PAIR_INSTANCE_ID.getTagName()) || //Either it's missing a pairing tag
             tags.get(PAIR_INSTANCE_ID.getTagName()).equals(instanceId); //Or it's already paired to the instance
+    }
+    
+    /**
+     * Creates a CloudWatch content health alarm for a given publish instance
+     * @param instanceId of the publish instance
+     */
+    public void createContentHealthAlarmForPublisher(String instanceId) {
+        awsHelperService.createContentHealthCheckAlarm(
+            getContentHealthCheckAlarmName(instanceId), 
+            "Content Health Alarm for Publish Instance " + instanceId,
+            instanceId,
+            awsPublishDispatcherStackName,
+            envValues.getTopicArn());
+    }
+    
+    /**
+     * Deletes a CloudWatch content health alarm for a given publish instance ID
+     * @param instanceId of the publish instance
+     */
+    public void deleteContentHealthAlarmForPublisher(String instanceId) {
+        awsHelperService.deleteAlarm(getContentHealthCheckAlarmName(instanceId));
+    }
+    
+    
+    private String getContentHealthCheckAlarmName(String instanceId) {
+        return "contentHealthCheck-" + instanceId;
     }
 
 }

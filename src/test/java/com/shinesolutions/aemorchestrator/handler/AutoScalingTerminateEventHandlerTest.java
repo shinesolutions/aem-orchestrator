@@ -17,40 +17,44 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import com.shinesolutions.aemorchestrator.actions.ScaleAction;
+import com.shinesolutions.aemorchestrator.actions.Action;
 import com.shinesolutions.aemorchestrator.model.EventMessage;
-import com.shinesolutions.aemorchestrator.service.AwsHelperService;
+import com.shinesolutions.aemorchestrator.util.EventMessageExtractor;
 
 @RunWith(MockitoJUnitRunner.class)
 public class AutoScalingTerminateEventHandlerTest {
     
     @Mock
-    private Map<String, ScaleAction> scaleDownAutoScaleGroupMappings;
+    private Map<String, Action> scaleDownAutoScaleGroupMappings;
     
     @Mock
-    private AwsHelperService awsHelperService;
+    private EventMessageExtractor eventMessageExtractor;
     
     @InjectMocks
     private AutoScalingTerminateEventHandler handler;
     
-    private ScaleAction action;
+    private Action action;
+    private String messageContent;
     private EventMessage message;
     
 
     @Before
     public void setUp() throws Exception {
-        action = mock(ScaleAction.class);
+        action = mock(Action.class);
+        messageContent = "testMessage";
         
         message = new EventMessage();
         message.setAutoScalingGroupName("testGroup");
         message.setEC2InstanceId("test-instance");
+        
+        when(eventMessageExtractor.extractMessage(messageContent)).thenReturn(message);
     }
 
     @Test
     public void testNoActionFound() throws Exception {
         when(scaleDownAutoScaleGroupMappings.get(anyString())).thenReturn(null);
         
-        boolean result = handler.handleEvent(message);
+        boolean result = handler.handleEvent(messageContent);
         
         assertThat(result, equalTo(false));
     }
@@ -59,7 +63,7 @@ public class AutoScalingTerminateEventHandlerTest {
     public void testInstanceHandlesExceptionsGracefully() throws Exception {
         when(scaleDownAutoScaleGroupMappings.get(anyString())).thenThrow(new RuntimeException());
         
-        boolean result = handler.handleEvent(message);
+        boolean result = handler.handleEvent(messageContent);
         
         assertThat(result, equalTo(false));
     }
@@ -67,10 +71,9 @@ public class AutoScalingTerminateEventHandlerTest {
     @Test
     public void testSuccessAndActionDeleteMessage() throws Exception {
         when(scaleDownAutoScaleGroupMappings.get(anyString())).thenReturn(action);
-        when(awsHelperService.isInstanceRunning(message.getEC2InstanceId())).thenReturn(true);
         when(action.execute(message.getEC2InstanceId())).thenReturn(true);
         
-        boolean result = handler.handleEvent(message);
+        boolean result = handler.handleEvent(messageContent);
         
         assertThat(result, equalTo(true));
         verify(action, times(1)).execute(message.getEC2InstanceId());
@@ -79,10 +82,9 @@ public class AutoScalingTerminateEventHandlerTest {
     @Test
     public void testSuccessAndActionKeepMessage() throws Exception {
         when(scaleDownAutoScaleGroupMappings.get(anyString())).thenReturn(action);
-        when(awsHelperService.isInstanceRunning(message.getEC2InstanceId())).thenReturn(true);
         when(action.execute(message.getEC2InstanceId())).thenReturn(false);
         
-        boolean result = handler.handleEvent(message);
+        boolean result = handler.handleEvent(messageContent);
         
         assertThat(result, equalTo(false));
         verify(action, times(1)).execute(message.getEC2InstanceId());

@@ -61,6 +61,9 @@ public class AemConfig {
     @Value("${aws.cloudformation.loadBalancer.logicalId.author}")
     private String awsAuthorLoadBalancerLogicalId;
     
+    @Value("${aws.sns.topicName}")
+    private String awsSnsTopicName;
+    
     @Bean
     public AemCredentials aemCredentials(final AwsHelperService awsHelper) throws Exception {
         AemCredentials aemCredentials;
@@ -124,6 +127,10 @@ public class AemConfig {
         
         logger.debug("Resolved elastic load balancer DNS for author to: " + 
             envValues.getElasticLoadBalancerAuthorDns());
+        
+        envValues.setTopicArn(awsHelper.getSnsTopicArn(awsSnsTopicName));
+        
+        logger.debug("Resolved SNS topic ARN to: " + envValues.getTopicArn());
 
         return envValues;
     }

@@ -17,7 +17,7 @@ import com.shinesolutions.aemorchestrator.service.AwsHelperService;
 import com.shinesolutions.swaggeraem4j.ApiException;
 
 @Component
-public class ScaleUpPublishAction implements ScaleAction {
+public class ScaleUpPublishAction implements Action {
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
     
@@ -54,6 +54,10 @@ public class ScaleUpPublishAction implements ScaleAction {
         // Create a new publish from a snapshot of an active publish instance
         if (success) {
             success = loadSnapshotFromActivePublisher(instanceId, authorAemBaseUrl);
+        }
+        
+        if (success) {
+            attachContentHealthCheckAlarm(instanceId);
         }
 
         return success;
@@ -169,6 +173,15 @@ public class ScaleUpPublishAction implements ScaleAction {
         }
         
         return success;
+    }
+    
+    
+    private void attachContentHealthCheckAlarm(String instanceId) {
+        try {
+            aemHelperService.createContentHealthAlarmForPublisher(instanceId);
+        } catch (Exception e) {
+            logger.warn("Failed to create content health check alarm for publish instance " + instanceId, e);
+        }
     }
 
 }

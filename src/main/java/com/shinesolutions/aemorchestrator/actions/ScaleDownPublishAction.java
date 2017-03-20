@@ -14,7 +14,7 @@ import com.shinesolutions.aemorchestrator.service.AwsHelperService;
 import com.shinesolutions.swaggeraem4j.ApiException;
 
 @Component
-public class ScaleDownPublishAction implements ScaleAction {
+public class ScaleDownPublishAction implements Action {
     
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
     
@@ -58,6 +58,7 @@ public class ScaleDownPublishAction implements ScaleAction {
                 " and auth URL: " + authorAemBaseUrl, e);
         }
 
+        // Remove and reverse replication agents if they exist
         if (reverseReplicationEnabled) {
             logger.debug("Reverse replication is enabled");
             try {
@@ -68,6 +69,13 @@ public class ScaleDownPublishAction implements ScaleAction {
                 logger.warn("Failed to delete reverse replication agent on author for publish id " + instanceId
                     + " and auth URL: " + authorAemBaseUrl, e);
             }
+        }
+        
+        // Delete the attached content health check alarm
+        try {
+            aemHelperService.deleteContentHealthAlarmForPublisher(instanceId);
+        } catch (Exception e) {
+            logger.warn("Failed to remove content health check alarm for publish instance " + instanceId, e);
         }
         
         return success;

@@ -3,9 +3,6 @@ package com.shinesolutions.aemorchestrator.model;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-/*
- * Represents the message but for a standard AEM Orchestrator message 
- */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class EventMessage {
 
