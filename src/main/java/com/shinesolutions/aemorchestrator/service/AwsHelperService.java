@@ -294,9 +294,12 @@ public class AwsHelperService {
     /**
      * Gets a topic ARN for a given topic name
      * @param topicName The human readable name of the topic
-     * @return the topic ARN
+     * @return the topic ARN, or null if topicName is null or empty
      */
     public String getSnsTopicArn(String topicName) {
+        if(topicName == null || topicName.isEmpty()) {
+            return null; //Prevents accidently selecting the wrong topic ARN
+        }
         ListTopicsResult result = amazonSNSClient.listTopics();
         return result.getTopics().stream().filter(
             t -> t.getTopicArn().endsWith(topicName)).findFirst().get().getTopicArn();
