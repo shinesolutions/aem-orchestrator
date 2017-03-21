@@ -6,6 +6,7 @@ import static com.shinesolutions.aemorchestrator.model.InstanceTags.AEM_PUBLISH_
 import static com.shinesolutions.aemorchestrator.model.InstanceTags.PAIR_INSTANCE_ID;
 import static com.shinesolutions.aemorchestrator.model.InstanceTags.SNAPSHOT_ID;
 import static com.shinesolutions.aemorchestrator.model.InstanceTags.SNAPSHOT_TYPE;
+import static com.shinesolutions.aemorchestrator.model.InstanceTags.NAME;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -276,6 +277,7 @@ public class AemInstanceHelperService {
             .collect(Collectors.toMap(p -> p.getKey(), p -> p.getValue()));
         
         tagsForSnapshot.put(SNAPSHOT_TYPE.getTagName(), "orchestration");
+        tagsForSnapshot.put(NAME.getTagName(), "AEM publish Snapshot " + instanceId);
         
         String snapshotId = awsHelperService.createSnapshot(volumeId,
             "Orchestration AEM snapshot of publish instance " + instanceId + " and volume " + volumeId);

@@ -8,7 +8,8 @@ public enum InstanceTags {
     AEM_PUBLISH_DISPATCHER_HOST("PublishDispatcherHost"), 
     AEM_AUTHOR_HOST("AuthorHost"),
     SNAPSHOT_ID("SnapshotId"),
-    SNAPSHOT_TYPE("SnapshotType");
+    SNAPSHOT_TYPE("SnapshotType"),
+    NAME("Name");
 
     private final String tagName;
 
