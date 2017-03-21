@@ -6,6 +6,7 @@ import static com.shinesolutions.aemorchestrator.model.InstanceTags.AEM_PUBLISH_
 import static com.shinesolutions.aemorchestrator.model.InstanceTags.PAIR_INSTANCE_ID;
 import static com.shinesolutions.aemorchestrator.model.InstanceTags.SNAPSHOT_ID;
 import static com.shinesolutions.aemorchestrator.model.InstanceTags.SNAPSHOT_TYPE;
+import static com.shinesolutions.aemorchestrator.model.InstanceTags.NAME;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.startsWith;
@@ -560,10 +561,11 @@ public class AemInstanceHelperServiceTest {
         Map<String, String> capturedTags = mapCaptor.getValue();
         
         //Ensure that it only uses the specified tags on the snapshot
-        assertThat(capturedTags.size(), equalTo(tagsToApplyToSnapshot.size() + 1));
+        assertThat(capturedTags.size(), equalTo(tagsToApplyToSnapshot.size() + 2));
         assertThat(capturedTags.get(tag1), equalTo(tag1));
         assertThat(capturedTags.get(tag2), equalTo(tag2));
         assertThat(capturedTags.get(SNAPSHOT_TYPE.getTagName()), equalTo("orchestration"));
+        assertThat(capturedTags.containsKey(NAME.getTagName()), equalTo(true));
         
         assertThat(resultId, equalTo(snapshotId));
     }
@@ -593,8 +595,9 @@ public class AemInstanceHelperServiceTest {
         Map<String, String> capturedTags = mapCaptor.getValue();
         
         //Ensure that it only uses the specified tags on the snapshot
-        assertThat(capturedTags.size(), equalTo(1));
+        assertThat(capturedTags.size(), equalTo(2));
         assertThat(capturedTags.get(SNAPSHOT_TYPE.getTagName()), equalTo("orchestration"));
+        assertThat(capturedTags.containsKey(NAME.getTagName()), equalTo(true));
         
         assertThat(resultId, equalTo(snapshotId));
     }
