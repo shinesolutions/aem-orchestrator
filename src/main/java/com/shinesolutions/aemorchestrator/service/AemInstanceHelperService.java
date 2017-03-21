@@ -309,7 +309,7 @@ public class AemInstanceHelperService {
      * @return Publish Dispatcher instance ID tag
      * @throws NoSuchElementException if can't find unpaired Publish Dispatcher
      */
-    @Retryable(maxAttempts=6, value=NoSuchElementException.class, backoff=@Backoff(delay=10000))
+    @Retryable(maxAttempts=10, value=NoSuchElementException.class, backoff=@Backoff(delay=5000))
     public String findUnpairedPublishDispatcher(String instanceId) throws NoSuchElementException {
         List<String> dispatcherIds = awsHelperService.getInstanceIdsForAutoScalingGroup(
             envValues.getAutoScaleGroupNameForPublishDispatcher());
