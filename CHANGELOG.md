@@ -5,6 +5,7 @@
 * Creates a content health check alarm on the publish instance #19
 * Fix cross-snapshotting publish instances #13
 * Changed loading of AWS credentials to use 'Instance Profile' only #17
+* Added a standardized name tag to the publish snapshot #16
 
 ### 0.9.2
 * Added configurable snapshot tags #2
