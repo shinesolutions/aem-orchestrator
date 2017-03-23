@@ -97,7 +97,7 @@ public class AgentRequestFactory {
             .withJcrContentNoVersioning(false)
             .withJcrContentProtocolHTTPHeaders(Collections.emptyList())
             .withJcrContentProtocolHTTPHeadersTypeHint(null)
-            .withJcrContentProtocolHTTPMethod(null)
+            .withJcrContentProtocolHTTPMethod("GET")
             .withJcrContentRetryDelay("" + TimeUnit.MINUTES.toMillis(1))
             .withJcrContentSerializationType("durbo")
             .withJcrContentJcrMixinTypes(null)
