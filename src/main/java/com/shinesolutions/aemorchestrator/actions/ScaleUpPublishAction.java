@@ -89,6 +89,7 @@ public class ScaleUpPublishAction implements Action {
         boolean success = true;
         
         if(aemHelperService.isFirstPublishInstance()) {
+            logger.info("First publish instance, no snapshot needed");
             aemHelperService.tagInstanceWithSnapshotId(instanceId, ""); //Tag with empty Snapshot ID
         } else {
             String activePublishId = aemHelperService.getPublishIdToSnapshotFrom(instanceId);
@@ -125,7 +126,7 @@ public class ScaleUpPublishAction implements Action {
             
             if (volumeId != null) {
                 String snapshotId = aemHelperService.createPublishSnapshot(activePublishId, volumeId);
-                logger.debug("Snapshot ID: " + snapshotId);
+                logger.info("Created snapshot with ID: " + snapshotId);
                 
                 aemHelperService.tagInstanceWithSnapshotId(instanceId, snapshotId);
             } else {
@@ -178,6 +179,7 @@ public class ScaleUpPublishAction implements Action {
     
     private void attachContentHealthCheckAlarm(String instanceId) {
         try {
+            logger.info("Creating content health check alarm");
             aemHelperService.createContentHealthAlarmForPublisher(instanceId);
         } catch (Exception e) {
             logger.warn("Failed to create content health check alarm for publish instance " + instanceId, e);
