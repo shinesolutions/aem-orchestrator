@@ -6,6 +6,7 @@
 * Fix cross-snapshotting publish instances #13
 * Changed loading of AWS credentials to use 'Instance Profile' only #17
 * Added a standardized name tag to the publish snapshot #16
+* Changed the HTTP Method from POST to GET for reverse replication #22
 
 ### 0.9.2
 * Added configurable snapshot tags #2
