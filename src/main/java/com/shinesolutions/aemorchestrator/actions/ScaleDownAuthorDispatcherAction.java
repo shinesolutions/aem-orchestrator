@@ -32,6 +32,7 @@ public class ScaleDownAuthorDispatcherAction implements Action {
         try {
             logger.debug("Attempting to delete flush agent at base AEM path: " + aemBasePath);
             flushAgentManager.deleteFlushAgent(instanceId, aemBasePath, AgentRunMode.AUTHOR);
+            logger.info("Flush Agent removed successfully");
             success = true;
         } catch (ApiException e) {
             logger.error("Failed to delete flush agent for dispatcher id: " + instanceId + ", and run mode: "

@@ -26,6 +26,7 @@ public class AlarmContentHealthCheckAction implements Action {
         try {
             // Publish instance is in an unhealthy sate, so terminate it
             awsHelperService.terminateInstance(instanceId);
+            logger.info("Terminated publish instance " + instanceId);
         } catch (Exception e) {
             logger.error("Unable to terminate publish instance: " + awsHelperService + ". It may not be running?");
         }
