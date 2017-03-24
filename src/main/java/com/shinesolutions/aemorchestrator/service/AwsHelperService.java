@@ -53,8 +53,6 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3URI;
 import com.amazonaws.services.s3.model.GetObjectRequest;
 import com.amazonaws.services.s3.model.S3Object;
-import com.amazonaws.services.sns.AmazonSNS;
-import com.amazonaws.services.sns.model.ListTopicsResult;
 import com.amazonaws.util.IOUtils;
 import com.shinesolutions.aemorchestrator.model.InstanceTags;
 
@@ -82,9 +80,7 @@ public class AwsHelperService {
     
     @Resource
     public AmazonCloudWatch amazonCloudWatchClient;
-    
-    @Resource
-    public AmazonSNS amazonSNSClient;
+
     
     /**
      * Return the DNS name for a given AWS ELB group name
@@ -289,20 +285,6 @@ public class AwsHelperService {
      */
     public void deleteAlarm(String alarmName) {
         amazonCloudWatchClient.deleteAlarms(new DeleteAlarmsRequest().withAlarmNames(alarmName));
-    }
-    
-    /**
-     * Gets a topic ARN for a given topic name
-     * @param topicName The human readable name of the topic
-     * @return the topic ARN, or null if topicName is null or empty
-     */
-    public String getSnsTopicArn(String topicName) {
-        if(topicName == null || topicName.isEmpty()) {
-            return null; //Prevents accidently selecting the wrong topic ARN
-        }
-        ListTopicsResult result = amazonSNSClient.listTopics();
-        return result.getTopics().stream().filter(
-            t -> t.getTopicArn().endsWith(topicName)).findFirst().get().getTopicArn();
     }
     
     

@@ -2,7 +2,6 @@ package com.shinesolutions.aemorchestrator.config;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.InvalidPropertyException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -47,6 +46,9 @@ public class AemConfig {
     @Value("${aws.cloudformation.stackName.authorDispatcher}")
     private String awsAuthorDispatcherStackName;
     
+    @Value("${aws.cloudformation.stackName.messaging}")
+    private String awsMessagingStackName;
+    
     @Value("${aws.cloudformation.stackName.author}")
     private String awsAuthorStackName;
 
@@ -62,8 +64,8 @@ public class AemConfig {
     @Value("${aws.cloudformation.loadBalancer.logicalId.author}")
     private String awsAuthorLoadBalancerLogicalId;
     
-    @Value("${aws.sns.topicName:@null}")
-    private String awsSnsTopicName;
+    @Value("${aws.cloudformation.loadBalancer.logicalId.author}")
+    private String awsSnsTopicLogicalId;
     
     @Bean
     public AemCredentials aemCredentials(final AwsHelperService awsHelper) throws Exception {
@@ -129,12 +131,7 @@ public class AemConfig {
         logger.debug("Resolved elastic load balancer DNS for author to: " + 
             envValues.getElasticLoadBalancerAuthorDns());
         
-        if(awsSnsTopicName == null || awsSnsTopicName.isEmpty()) {
-            throw new InvalidPropertyException(EnvironmentValues.class, "aws.sns.topicName", 
-                "Topic name cannot be empty or null");
-        }
-        
-        envValues.setTopicArn(awsHelper.getSnsTopicArn(awsSnsTopicName));
+        envValues.setTopicArn(awsHelper.getStackPhysicalResourceId(awsMessagingStackName, awsSnsTopicLogicalId));
         
         logger.debug("Resolved SNS topic ARN to: " + envValues.getTopicArn());
 

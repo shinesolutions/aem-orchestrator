@@ -33,8 +33,6 @@ import com.amazonaws.services.elasticloadbalancing.AmazonElasticLoadBalancing;
 import com.amazonaws.services.elasticloadbalancing.AmazonElasticLoadBalancingClientBuilder;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
-import com.amazonaws.services.sns.AmazonSNS;
-import com.amazonaws.services.sns.AmazonSNSClientBuilder;
 import com.shinesolutions.aemorchestrator.model.ProxyDetails;
 
 @Configuration
@@ -188,16 +186,6 @@ public class AwsConfig {
     public AmazonCloudWatch amazonCloudWatchClient(final AWSCredentialsProvider awsCredentialsProvider, 
         final ClientConfiguration awsClientConfig, final Region awsRegion) {
         return AmazonCloudWatchClientBuilder.standard()
-            .withCredentials(awsCredentialsProvider)
-            .withClientConfiguration(awsClientConfig)
-            .withRegion(awsRegion.getName())
-            .build();
-    }
-    
-    @Bean
-    public AmazonSNS amazonSNSClient(final AWSCredentialsProvider awsCredentialsProvider, 
-        final ClientConfiguration awsClientConfig, final Region awsRegion) {
-        return AmazonSNSClientBuilder.standard()
             .withCredentials(awsCredentialsProvider)
             .withClientConfiguration(awsClientConfig)
             .withRegion(awsRegion.getName())
