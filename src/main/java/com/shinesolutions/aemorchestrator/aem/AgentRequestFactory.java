@@ -14,9 +14,9 @@ public class AgentRequestFactory {
     private String reverseReplicationTransportUriPostfix;
     
     private static final String JCR_PRIMARY_TYPE = "cq:Page";
-    private static final String SLING_RESOURCE_TYPE_REPLICATION_AGENT = "/libs/cq/replication/components/agent";
+    private static final String SLING_RESOURCE_TYPE_REPLICATION_AGENT = "cq/replication/components/agent";
     private static final String CQ_TEMPLATE_REPLICATION_AGENT = "/libs/cq/replication/templates/agent";
-    private static final String SLING_RESOURCE_TYPE_REVERSE_REPLICATION_AGENT = "/libs/cq/replication/components/revagent";
+    private static final String SLING_RESOURCE_TYPE_REVERSE_REPLICATION_AGENT = "cq/replication/components/revagent";
     private static final String CQ_TEMPLATE_REVERSE_REPLICATION_AGENT = "/libs/cq/replication/templates/revagent";
     private static final String TRANSPORT_URI_POSTFIX = "/bin/receive?sling:authRequestLogin=1";
     private static final String DEFAULT_LOG_LEVEL = "info";
