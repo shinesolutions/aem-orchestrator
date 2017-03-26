@@ -64,7 +64,7 @@ public class AemConfig {
     @Value("${aws.cloudformation.loadBalancer.logicalId.author}")
     private String awsAuthorLoadBalancerLogicalId;
     
-    @Value("${aws.cloudformation.loadBalancer.logicalId.author}")
+    @Value("${aws.cloudformation.sns.logicalId.eventTopic}")
     private String awsSnsTopicLogicalId;
     
     @Bean
