@@ -10,7 +10,7 @@ aws.cloudformation.stackName.author = example-aem-author-stack
 aws.cloudformation.stackName.authorDispatcher = example-aem-author-dispatcher-stack
 aws.cloudformation.stackName.publish = example-aem-publish-stack
 aws.cloudformation.stackName.publishDispatcher = example-aem-publish-dispatcher-stack
-aws.sns.topicName = example-aem-asg-event-topic
+aws.cloudformation.stackName.messaging = example-aem-messaging-stack
 aws.sqs.queueName = example-aem-asg-event-queue
 ```
 The [aem-aws-stack-builder](https://github.com/shinesolutions/aem-aws-stack-builder) will generate these names for you, they just need to be added to this Orchestrator application.properties file.
@@ -30,7 +30,7 @@ Here is a complete list of all configurable properties:
 |---------------------------------------------------------------|---------------------------------------|--------------------------------------|
 | aws.region                                                    |                                       | ap-southeast-2                       |
 | aws.sqs.queueName                                             |                                       | example-aem-asg-event-queue          |
-| aws.sns.topicName                                             |                                       | example-aem-asg-event-topic          |
+| aws.cloudformation.stackName.messaging                        |                                       | example-aem-messaging-stack          |
 | aws.cloudformation.stackName.publishDispatcher                |                                       | example-aem-publish-dispatcher-stack |
 | aws.cloudformation.stackName.publish                          |                                       | example-aem-publish-stack            |
 | aws.cloudformation.stackName.authorDispatcher                 |                                       | example-aem-author-dispatcher-stack  |
@@ -39,6 +39,7 @@ Here is a complete list of all configurable properties:
 | aws.cloudformation.autoScaleGroup.logicalId.publish           | PublishAutoScalingGroup               |                                      |
 | aws.cloudformation.autoScaleGroup.logicalId.authorDispatcher  | AuthorDispatcherAutoScalingGroup      |                                      |
 | aws.cloudformation.loadBalancer.logicalId.author              | AuthorLoadBalancer                    |                                      |
+| aws.cloudformation.sns.logicalId.eventTopic                   | AEMASGEventTopic                      |                                      |
 | aws.client.connection.timeout                                 | 30000                                 |                                      |
 | aws.client.max.errorRetry                                     | 10                                    |                                      |
 | aws.client.useProxy                                           | false                                 | true                                 |

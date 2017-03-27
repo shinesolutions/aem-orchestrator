@@ -29,7 +29,7 @@ aws.cloudformation.stackName.author = example-aem-author-stack
 aws.cloudformation.stackName.authorDispatcher = example-aem-author-dispatcher-stack
 aws.cloudformation.stackName.publish = example-aem-publish-stack
 aws.cloudformation.stackName.publishDispatcher = example-aem-publish-dispatcher-stack
-aws.sns.topicName = example-aem-asg-event-topic
+aws.cloudformation.stackName.messaging = example-aem-messaging-stack
 aws.sqs.queueName = example-aem-asg-event-queue
 ```
 
@@ -95,7 +95,7 @@ If all goes well at start up you should see something like this in your log file
 DEBUG c.s.a.s.OrchestratorMessageListener - Initialising message receiver, starting SQS connection
 INFO  c.s.aemorchestrator.AemOrchestrator - AEM Orchestrator started
 ```
-Other wise you will need to view the *orchestrator.log* and try and decipher what is going wrong. Most likely causes are:
+Otherwise you will need to view the *orchestrator.log* and try and decipher what is going wrong. Most likely causes are:
 
 * Stack not properly initialised
 * Invalid or missing IAM role permissions
@@ -113,4 +113,4 @@ INFO  c.s.a.a.ScaleUpPublishDispatcherAction - Desired capacity already matching
 INFO  c.s.a.s.OrchestratorMessageListener - Acknowledged message (removing from queue): ID:3dfea271-254c-4cef-a793-ff67a2218239
 ```
 
-If the Orchestrator log isn't moving but there are definately messages in the SQS queue, then something may be wrong (refer to likely causes above). 
+If the Orchestrator log isn't moving but there are definitely messages in the SQS queue, then something may be wrong (refer to likely causes above). 
