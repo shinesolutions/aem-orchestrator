@@ -27,19 +27,16 @@ public class ScaleDownAuthorDispatcherAction implements Action {
         
         String aemBasePath = aemHelperService.getAemUrlForAuthorElb();
         
-        boolean success = false;
-        
         try {
             logger.debug("Attempting to delete flush agent at base AEM path: " + aemBasePath);
             flushAgentManager.deleteFlushAgent(instanceId, aemBasePath, AgentRunMode.AUTHOR);
             logger.info("Flush Agent removed successfully");
-            success = true;
         } catch (ApiException e) {
-            logger.error("Failed to delete flush agent for dispatcher id: " + instanceId + ", and run mode: "
-                + AgentRunMode.AUTHOR.getValue(), e);
+            logger.warn("Failed to delete flush agent for dispatcher id: " + instanceId + 
+                ". It may already have been deleted", e);
         }
         
-        return success;
+        return true;
     }
 
 }

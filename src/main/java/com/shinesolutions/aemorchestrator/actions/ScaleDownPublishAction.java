@@ -33,8 +33,6 @@ public class ScaleDownPublishAction implements Action {
     public boolean execute(String instanceId) {
         logger.info("ScaleDownPublishAction executing");
         
-        boolean success = false;
-        
         // Delete paired dispatcher
         String pairedDispatcherId = aemHelperService.getDispatcherIdForPairedPublish(instanceId);
         logger.debug("Paired publish dispatcher instance ID=" + pairedDispatcherId);
@@ -52,10 +50,9 @@ public class ScaleDownPublishAction implements Action {
         
         try {
             replicationAgentManager.deleteReplicationAgent(instanceId, authorAemBaseUrl, AgentRunMode.AUTHOR);
-            success = true;
         } catch (ApiException e) {
-            logger.error("Failed to delete replication agent on author for publish id " + instanceId + 
-                " and auth URL: " + authorAemBaseUrl, e);
+            logger.warn("Failed to delete replication agent on author for publish id: " + instanceId + 
+                ". It may already be deleted.", e);
         }
 
         // Remove and reverse replication agents if they exist
@@ -67,7 +64,7 @@ public class ScaleDownPublishAction implements Action {
 
             } catch (ApiException e) {
                 logger.warn("Failed to delete reverse replication agent on author for publish id " + instanceId
-                    + " and auth URL: " + authorAemBaseUrl, e);
+                    + ". It may already be deleted.", e);
             }
         }
         
@@ -78,7 +75,7 @@ public class ScaleDownPublishAction implements Action {
             logger.warn("Failed to remove content health check alarm for publish instance " + instanceId, e);
         }
         
-        return success;
+        return true;
     }
 
 }

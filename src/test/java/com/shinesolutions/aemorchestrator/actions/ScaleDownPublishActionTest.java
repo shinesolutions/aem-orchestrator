@@ -92,7 +92,7 @@ public class ScaleDownPublishActionTest {
         
         verify(awsHelperService, times(1)).terminateInstance(pairedDispatcherId);
         
-        assertThat(success, equalTo(false));
+        assertThat(success, equalTo(true));
     }
     
     @Test

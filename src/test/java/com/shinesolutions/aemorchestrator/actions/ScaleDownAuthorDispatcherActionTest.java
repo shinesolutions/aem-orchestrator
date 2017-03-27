@@ -57,7 +57,8 @@ public class ScaleDownAuthorDispatcherActionTest {
         
         boolean success = action.execute(instanceId);
         
-        assertThat(success, equalTo(false));
+        //Needs to pass, even when with exception
+        assertThat(success, equalTo(true));
     }
     
     
