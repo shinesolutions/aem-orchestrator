@@ -9,6 +9,7 @@
 * Changed the HTTP Method from POST to GET for reverse replication #22
 * Changed '/libs/cq' to just 'cq' for sling:resourceType when creating a replication agent #23
 * Now reads the SNS topic ARN from Cloud Formation based on the logical id #21
+* Scale down handlers now cater for inexisting replication/flush agent #18
 
 ### 0.9.2
 * Added configurable snapshot tags #2
