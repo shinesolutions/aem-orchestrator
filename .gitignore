@@ -6,3 +6,5 @@ target
 orchestrator.log
 pom.xml.releaseBackup
 release.properties
+.idea/
+aem-orchestrator.iml
