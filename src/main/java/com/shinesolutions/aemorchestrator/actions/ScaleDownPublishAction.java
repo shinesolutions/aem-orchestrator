@@ -52,7 +52,7 @@ public class ScaleDownPublishAction implements Action {
             replicationAgentManager.deleteReplicationAgent(instanceId, authorAemBaseUrl, AgentRunMode.AUTHOR);
         } catch (ApiException e) {
             logger.warn("Failed to delete replication agent on author for publish id: " + instanceId + 
-                ". It may already be deleted.", e);
+                ". It may already be deleted.");
         }
 
         // Remove and reverse replication agents if they exist
@@ -64,7 +64,7 @@ public class ScaleDownPublishAction implements Action {
 
             } catch (ApiException e) {
                 logger.warn("Failed to delete reverse replication agent on author for publish id " + instanceId
-                    + ". It may already be deleted.", e);
+                    + ". It may already be deleted.");
             }
         }
         

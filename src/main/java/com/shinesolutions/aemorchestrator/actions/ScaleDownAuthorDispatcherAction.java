@@ -33,7 +33,7 @@ public class ScaleDownAuthorDispatcherAction implements Action {
             logger.info("Flush Agent removed successfully");
         } catch (ApiException e) {
             logger.warn("Failed to delete flush agent for dispatcher id: " + instanceId + 
-                ". It may already have been deleted", e);
+                ". It may already have been deleted");
         }
         
         return true;
