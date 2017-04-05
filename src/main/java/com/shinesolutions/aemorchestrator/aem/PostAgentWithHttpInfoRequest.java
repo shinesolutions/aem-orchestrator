@@ -14,19 +14,23 @@ public class PostAgentWithHttpInfoRequest {
     private String jcrContentTransportUser;
     private String jcrContentTransportPassword;
     private String jcrContentLogLevel;
-    private boolean jcrContentNoVersioning;
+    private Boolean jcrContentNoVersioning;
     private List<String> jcrContentProtocolHTTPHeaders;
     private String jcrContentProtocolHTTPHeadersTypeHint;
     private String jcrContentProtocolHTTPMethod;
     private String jcrContentRetryDelay;
     private String jcrContentSerializationType;
     private String jcrContentJcrMixinTypes;
-    private boolean jcrContentTriggerReceive;
-    private boolean jcrContentTriggerSpecific;
+    private Boolean jcrContentTriggerReceive;
+    private Boolean jcrContentTriggerSpecific;
     private String jcrContentCqTemplate;
-    private boolean jcrContentEnabled;
-    private boolean jcrReverseReplication;
+    private Boolean jcrContentEnabled;
+    private Boolean jcrReverseReplication;
     private String operation;
+    private String userId;
+    private Boolean jcrContentTriggerDistribute;
+    private Boolean jcrContentTriggerModified;
+    private Boolean jcrContentProtocolHTTPSRelaxed;
 
     public String getRunMode() {
         return runMode;
@@ -171,15 +175,15 @@ public class PostAgentWithHttpInfoRequest {
         return this;
     }
 
-    public boolean isJcrContentNoVersioning() {
+    public Boolean isJcrContentNoVersioning() {
         return jcrContentNoVersioning;
     }
 
-    public void setJcrContentNoVersioning(boolean jcrContentNoVersioning) {
+    public void setJcrContentNoVersioning(Boolean jcrContentNoVersioning) {
         this.jcrContentNoVersioning = jcrContentNoVersioning;
     }
     
-    public PostAgentWithHttpInfoRequest withJcrContentNoVersioning(boolean jcrContentNoVersioning) {
+    public PostAgentWithHttpInfoRequest withJcrContentNoVersioning(Boolean jcrContentNoVersioning) {
         this.setJcrContentNoVersioning(jcrContentNoVersioning);
         return this;
     }
@@ -262,28 +266,28 @@ public class PostAgentWithHttpInfoRequest {
         return this;
     }
 
-    public boolean isJcrContentTriggerReceive() {
+    public Boolean isJcrContentTriggerReceive() {
         return jcrContentTriggerReceive;
     }
 
-    public void setJcrContentTriggerReceive(boolean jcrContentTriggerReceive) {
+    public void setJcrContentTriggerReceive(Boolean jcrContentTriggerReceive) {
         this.jcrContentTriggerReceive = jcrContentTriggerReceive;
     }
     
-    public PostAgentWithHttpInfoRequest withJcrContentTriggerReceive(boolean jcrContentTriggerReceive) {
+    public PostAgentWithHttpInfoRequest withJcrContentTriggerReceive(Boolean jcrContentTriggerReceive) {
         this.setJcrContentTriggerReceive(jcrContentTriggerReceive);
         return this;
     }
 
-    public boolean isJcrContentTriggerSpecific() {
+    public Boolean isJcrContentTriggerSpecific() {
         return jcrContentTriggerSpecific;
     }
 
-    public void setJcrContentTriggerSpecific(boolean jcrContentTriggerSpecific) {
+    public void setJcrContentTriggerSpecific(Boolean jcrContentTriggerSpecific) {
         this.jcrContentTriggerSpecific = jcrContentTriggerSpecific;
     }
     
-    public PostAgentWithHttpInfoRequest withJcrContentTriggerSpecific(boolean jcrContentTriggerSpecific) {
+    public PostAgentWithHttpInfoRequest withJcrContentTriggerSpecific(Boolean jcrContentTriggerSpecific) {
         this.setJcrContentTriggerSpecific(jcrContentTriggerSpecific);
         return this;
     }
@@ -301,28 +305,28 @@ public class PostAgentWithHttpInfoRequest {
         return this;
     }
 
-    public boolean isJcrContentEnabled() {
+    public Boolean isJcrContentEnabled() {
         return jcrContentEnabled;
     }
 
-    public void setJcrContentEnabled(boolean jcrContentEnabled) {
+    public void setJcrContentEnabled(Boolean jcrContentEnabled) {
         this.jcrContentEnabled = jcrContentEnabled;
     }
     
-    public PostAgentWithHttpInfoRequest withJcrContentEnabled(boolean jcrContentEnabled) {
+    public PostAgentWithHttpInfoRequest withJcrContentEnabled(Boolean jcrContentEnabled) {
         this.setJcrContentEnabled(jcrContentEnabled);
         return this;
     }
 
-    public boolean isJcrReverseReplication() {
+    public Boolean isJcrReverseReplication() {
         return jcrReverseReplication;
     }
 
-    public void setJcrReverseReplication(boolean jcrReverseReplication) {
+    public void setJcrReverseReplication(Boolean jcrReverseReplication) {
         this.jcrReverseReplication = jcrReverseReplication;
     }
     
-    public PostAgentWithHttpInfoRequest withJcrReverseReplication(boolean jcrReverseReplication) {
+    public PostAgentWithHttpInfoRequest withJcrReverseReplication(Boolean jcrReverseReplication) {
         this.setJcrReverseReplication(jcrReverseReplication);
         return this;
     }
@@ -339,4 +343,57 @@ public class PostAgentWithHttpInfoRequest {
         this.setOperation(operation);
         return this;
     }
+
+    public String getUserId() {
+        return userId;
+    }
+
+    public void setUserId(String userId) {
+        this.userId = userId;
+    }
+    
+    public PostAgentWithHttpInfoRequest withUserId(String userId) {
+        this.setUserId(userId);
+        return this;
+    }
+
+    public Boolean isJcrContentTriggerDistribute() {
+        return jcrContentTriggerDistribute;
+    }
+
+    public void setJcrContentTriggerDistribute(Boolean jcrContentTriggerDistribute) {
+        this.jcrContentTriggerDistribute = jcrContentTriggerDistribute;
+    }
+    
+    public PostAgentWithHttpInfoRequest withJcrContentTriggerDistribute(Boolean jcrContentTriggerDistribute) {
+        this.setJcrContentTriggerDistribute(jcrContentTriggerDistribute);
+        return this;
+    }
+
+    public Boolean isJcrContentTriggerModified() {
+        return jcrContentTriggerModified;
+    }
+
+    public void setJcrContentTriggerModified(Boolean jcrContentTriggerModified) {
+        this.jcrContentTriggerModified = jcrContentTriggerModified;
+    }
+    
+    public PostAgentWithHttpInfoRequest withJcrContentTriggerModified(Boolean jcrContentTriggerModified) {
+        this.setJcrContentTriggerModified(jcrContentTriggerModified);
+        return this;
+    }
+
+    public Boolean isJcrContentProtocolHTTPSRelaxed() {
+        return jcrContentProtocolHTTPSRelaxed;
+    }
+
+    public void setJcrContentProtocolHTTPSRelaxed(Boolean jcrContentProtocolHTTPSRelaxed) {
+        this.jcrContentProtocolHTTPSRelaxed = jcrContentProtocolHTTPSRelaxed;
+    }
+    
+    public PostAgentWithHttpInfoRequest withJcrContentProtocolHTTPSRelaxed(Boolean jcrContentProtocolHTTPSRelaxed) {
+        this.setJcrContentProtocolHTTPSRelaxed(jcrContentProtocolHTTPSRelaxed);
+        return this;
+    }
+
 }

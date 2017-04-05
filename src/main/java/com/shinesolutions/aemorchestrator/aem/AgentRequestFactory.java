@@ -64,6 +64,7 @@ public class AgentRequestFactory {
             .withJcrContentSlingResourceType(SLING_RESOURCE_TYPE_REPLICATION_AGENT)
             .withJcrContentTransportUri(aemBaseUrl + TRANSPORT_URI_POSTFIX)
             .withJcrContentTransportUser(user)
+            .withUserId(user)
             .withJcrContentTransportPassword(password)
             .withJcrContentLogLevel(DEFAULT_LOG_LEVEL)
             .withJcrContentNoVersioning(false)
@@ -77,6 +78,7 @@ public class AgentRequestFactory {
             .withJcrContentTriggerSpecific(false)
             .withJcrContentCqTemplate(CQ_TEMPLATE_REPLICATION_AGENT)
             .withJcrContentEnabled(true);
+            
     }
     
     public PostAgentWithHttpInfoRequest getCreateReverseReplicationAgentRequest(AgentRunMode runMode, String agentName, 
