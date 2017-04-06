@@ -54,6 +54,7 @@ import com.amazonaws.services.s3.AmazonS3URI;
 import com.amazonaws.services.s3.model.GetObjectRequest;
 import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.util.IOUtils;
+import com.shinesolutions.aemorchestrator.model.EC2Instance;
 import com.shinesolutions.aemorchestrator.model.InstanceTags;
 
 
@@ -113,6 +114,18 @@ public class AwsHelperService {
     }
     
     /**
+     * Gets the availability zone of a given instance
+     * @param instanceId the AWS instance ID
+     * @return The Availability Zone of the instance.
+     */
+    public String getAvailabilityZone(String instanceId) {
+        DescribeInstancesResult result = amazonEC2Client.describeInstances(
+            new DescribeInstancesRequest().withInstanceIds(instanceId));
+        
+        return result.getReservations().get(0).getInstances().get(0).getPlacement().getAvailabilityZone();
+    }
+    
+    /**
      * Checks if a instance is in a 'running' state. Will return false if the instance 
      * is in any other of the possible states: pending, shutting-down, terminated, stopping, stopped or non-existent.
      * @param instanceId EC2 instance id
@@ -162,15 +175,27 @@ public class AwsHelperService {
         amazonEC2Client.createTags(new CreateTagsRequest().withResources(instanceId).withTags(ec2Tags));
     }
     
-    
     /**
      * Gets a list of EC2 instance IDs for a given auto scaling group name
      * @param groupName auto scaling group name
-     * @return List of string containing instance IDs
+     * @return List of strings containing instance IDs
      */
     public List<String> getInstanceIdsForAutoScalingGroup(String groupName) {
         List<Instance> instanceList = getAutoScalingGroup(groupName).getInstances();
         return instanceList.stream().map(i -> i.getInstanceId()).collect(Collectors.toList());
+    }
+    
+    
+    /**
+     * Gets a list of EC2 Instance objects for a given auto scaling group name
+     * @param groupName auto scaling group name
+     * @return List of Instances containing instance IDs and availability zones
+     */
+    public List<EC2Instance> getInstancesForAutoScalingGroup(String groupName) {
+        List<Instance> instanceList = getAutoScalingGroup(groupName).getInstances();
+        
+        return instanceList.stream().map(i -> new EC2Instance().withInstanceId(i.getInstanceId())
+            .withAvailabilityZone(i.getAvailabilityZone()) ).collect(Collectors.toList());
     }
     
     /**
