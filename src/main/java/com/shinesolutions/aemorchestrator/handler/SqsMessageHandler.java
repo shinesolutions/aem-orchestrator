@@ -10,7 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
-import com.shinesolutions.aemorchestrator.exception.MessageHandlerNotFound;
+import com.shinesolutions.aemorchestrator.exception.MessageHandlerNotFoundException;
 import com.shinesolutions.aemorchestrator.model.SnsMessage;
 import com.shinesolutions.aemorchestrator.util.SnsMessageExtractor;
 
@@ -49,7 +49,7 @@ public class SqsMessageHandler {
             MessageHandler eventHandler = null;
             try {
                 eventHandler = getHandler(snsMessage.getSubject());
-            } catch (MessageHandlerNotFound e) {
+            } catch (MessageHandlerNotFoundException e) {
                 logger.error("Failed to find message handler", e);
             }
     
@@ -69,9 +69,9 @@ public class SqsMessageHandler {
         return deleteMessage;
     }
     
-    private MessageHandler getHandler(String msgSubject) throws MessageHandlerNotFound {
+    private MessageHandler getHandler(String msgSubject) throws MessageHandlerNotFoundException {
         String key = eventTypeHandlerMappings.keySet().stream().filter(
-            m -> msgSubject.startsWith(m)).findFirst().orElseThrow(() -> new MessageHandlerNotFound(msgSubject));
+            m -> msgSubject.startsWith(m)).findFirst().orElseThrow(() -> new MessageHandlerNotFoundException(msgSubject));
         logger.debug("Using Message Handler for key: " + key);
         return eventTypeHandlerMappings.get(key);
     }

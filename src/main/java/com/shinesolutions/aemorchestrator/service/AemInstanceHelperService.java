@@ -23,7 +23,7 @@ import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Component;
 
-import com.shinesolutions.aemorchestrator.exception.InstanceNotInHealthyState;
+import com.shinesolutions.aemorchestrator.exception.InstanceNotInHealthyStateException;
 import com.shinesolutions.aemorchestrator.exception.NoPairFoundException;
 import com.shinesolutions.aemorchestrator.model.EC2Instance;
 import com.shinesolutions.aemorchestrator.model.EnvironmentValues;
@@ -150,16 +150,16 @@ public class AemInstanceHelperService {
      * Will stop blocking once the Publish instance is deemed to be in a healthy state, or will
      * throw an exception if not
      * @param instanceId of the Publish instance
-     * @throws InstanceNotInHealthyState thrown if reaches waiting period time out
+     * @throws InstanceNotInHealthyStateException thrown if reaches waiting period time out
      */
-    @Retryable(maxAttempts=10, value=InstanceNotInHealthyState.class, backoff=@Backoff(delay=5000))
-    public void waitForPublishToBeHealthy(String instanceId) throws InstanceNotInHealthyState {
+    @Retryable(maxAttempts=10, value=InstanceNotInHealthyStateException.class, backoff=@Backoff(delay=5000))
+    public void waitForPublishToBeHealthy(String instanceId) throws InstanceNotInHealthyStateException {
         try {
             if(!isPubishHealthy(instanceId)) {
-                throw new InstanceNotInHealthyState(instanceId);
+                throw new InstanceNotInHealthyStateException(instanceId);
             }
         } catch (IOException e) {
-            throw new InstanceNotInHealthyState(instanceId, e);
+            throw new InstanceNotInHealthyStateException(instanceId, e);
         }
     }
 

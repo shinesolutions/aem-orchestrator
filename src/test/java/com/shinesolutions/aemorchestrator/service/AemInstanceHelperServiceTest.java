@@ -33,7 +33,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import com.shinesolutions.aemorchestrator.exception.InstanceNotInHealthyState;
+import com.shinesolutions.aemorchestrator.exception.InstanceNotInHealthyStateException;
 import com.shinesolutions.aemorchestrator.exception.NoPairFoundException;
 import com.shinesolutions.aemorchestrator.model.EC2Instance;
 import com.shinesolutions.aemorchestrator.model.EnvironmentValues;
@@ -627,14 +627,14 @@ public class AemInstanceHelperServiceTest {
         aemHelperService.waitForPublishToBeHealthy(instanceId);
     }
     
-    @Test(expected=InstanceNotInHealthyState.class)
+    @Test(expected=InstanceNotInHealthyStateException.class)
     public void testWaitForPublishToBeHealthyNotOk() throws Exception {
         when(httpUtil.isHttpGetResponseOk(anyString())).thenReturn(false);
         
         aemHelperService.waitForPublishToBeHealthy(instanceId);
     }
     
-    @Test(expected=InstanceNotInHealthyState.class)
+    @Test(expected=InstanceNotInHealthyStateException.class)
     public void testWaitForPublishToBeHealthyWithIOException() throws Exception {
         when(httpUtil.isHttpGetResponseOk(anyString())).thenThrow(new IOException());
         

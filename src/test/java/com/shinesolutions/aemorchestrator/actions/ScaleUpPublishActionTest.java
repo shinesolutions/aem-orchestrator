@@ -19,7 +19,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 import com.shinesolutions.aemorchestrator.aem.AgentRunMode;
 import com.shinesolutions.aemorchestrator.aem.ReplicationAgentManager;
-import com.shinesolutions.aemorchestrator.exception.InstanceNotInHealthyState;
+import com.shinesolutions.aemorchestrator.exception.InstanceNotInHealthyStateException;
 import com.shinesolutions.aemorchestrator.service.AemInstanceHelperService;
 import com.shinesolutions.aemorchestrator.service.AwsHelperService;
 import com.shinesolutions.swaggeraem4j.ApiException;
@@ -191,7 +191,7 @@ public class ScaleUpPublishActionTest {
     
     @Test
     public void testCantFindHealthyActivePublisher() throws Exception {
-        doThrow(new InstanceNotInHealthyState("")).when(aemHelperService).waitForPublishToBeHealthy(activePublishId);
+        doThrow(new InstanceNotInHealthyStateException("")).when(aemHelperService).waitForPublishToBeHealthy(activePublishId);
         
         boolean result = action.execute(instanceId);
         

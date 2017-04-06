@@ -1,14 +1,14 @@
 package com.shinesolutions.aemorchestrator.exception;
 
-public class InstanceNotInHealthyState extends Exception {
+public class InstanceNotInHealthyStateException extends Exception {
     
     private static final long serialVersionUID = 1L;
     
-    public InstanceNotInHealthyState(String instanceId) {
+    public InstanceNotInHealthyStateException(String instanceId) {
         super(getMessage(instanceId));
     }
     
-    public InstanceNotInHealthyState(String instanceId, Throwable cause) {
+    public InstanceNotInHealthyStateException(String instanceId, Throwable cause) {
         super(getMessage(instanceId), cause);
     }
     
