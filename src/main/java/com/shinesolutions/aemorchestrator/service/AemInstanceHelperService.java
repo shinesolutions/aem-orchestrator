@@ -9,6 +9,7 @@ import static com.shinesolutions.aemorchestrator.model.InstanceTags.SNAPSHOT_TYP
 import static com.shinesolutions.aemorchestrator.model.InstanceTags.NAME;
 
 import java.io.IOException;
+import java.security.GeneralSecurityException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -125,8 +126,9 @@ public class AemInstanceHelperService {
      * @return true if the Author ELB is in a healthy state, false if not
      * @throws IOException (normally if can't connect)
      * @throws ClientProtocolException if there's an error in the HTTP protocol
+     * @throws GeneralSecurityException for any SSL related issue
      */
-    public boolean isAuthorElbHealthy() throws ClientProtocolException, IOException {
+    public boolean isAuthorElbHealthy() throws ClientProtocolException, IOException, GeneralSecurityException {
         String url = getAemUrlForAuthorElb() + AEM_HEALTH_CHECK_URL_POSTFIX;
 
         return httpUtil.isHttpGetResponseOk(url);
@@ -138,8 +140,10 @@ public class AemInstanceHelperService {
      * @return true if the Publish instance is in a healthy state
      * @throws ClientProtocolException if there's an error in the HTTP protocol
      * @throws IOException (normally if can't connect)
+     * @throws GeneralSecurityException for any SSL related issue
      */
-    public boolean isPubishHealthy(String instanceId) throws ClientProtocolException, IOException {
+    public boolean isPubishHealthy(String instanceId) throws ClientProtocolException, IOException, 
+        GeneralSecurityException {
         String url = getAemUrlForPublish(instanceId) + AEM_HEALTH_CHECK_URL_POSTFIX;
 
         return httpUtil.isHttpGetResponseOk(url);
@@ -158,7 +162,7 @@ public class AemInstanceHelperService {
             if(!isPubishHealthy(instanceId)) {
                 throw new InstanceNotInHealthyStateException(instanceId);
             }
-        } catch (IOException e) {
+        } catch (Exception e) {
             throw new InstanceNotInHealthyStateException(instanceId, e);
         }
     }

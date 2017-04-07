@@ -12,6 +12,7 @@
 * Scale down handlers now cater for inexisting replication/flush agent #18
 * Creation of reverse replication agents now includes 'userId' attribute
 * Prioritises Publish and Publish-Dispatcher instances from same AZ #3
+* Added relaxed SSL support to AEM replication agent creation #19
 
 ### 0.9.2
 * Added configurable snapshot tags #2
