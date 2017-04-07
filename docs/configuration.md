@@ -66,8 +66,9 @@ Here is a complete list of all configurable properties:
 | aem.client.api.connection.timeout                             | 30000                                 |                                      |
 | aem.reverseReplication.enable                                 | false                                 |                                      |
 | aem.reverseReplication.transportUri.postfix                   | /bin/receive?sling:authRequestLogin=1 |                                      |
-| endpoints.health.enabled                                      | true                                  | true                                 |
-| endpoints.info.enabled                                        | true                                  | true                                 |
+| aem.relaxed.ssl.enable                                        | true                                  | false                                |
+| endpoints.health.enabled                                      | true                                  | false                                |
+| endpoints.info.enabled                                        | true                                  | false                                |
 | startup.waitForAuthorElb.maxAttempts                          | 100                                   |                                      |
 | startup.waitForAuthorElb.backOffPeriod                        | 5000                                  |                                      |
 You can also view the base [application.properties](src/main/resources/application.properties) file.
@@ -183,6 +184,10 @@ Here is an example of a Publish URL:
 ```
 http://localhost:4503
 ```
+
+#### aem.relaxed.ssl.enable
+Enable if you want self-certified SSL certificates to be accepted by AEM when setting up replication agents. Will also turn off host name verification when the Orchestrator performs health checks to AEM instances.
+
 
 ### Orchestrator Properties
 

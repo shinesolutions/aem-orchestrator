@@ -13,6 +13,9 @@ public class AgentRequestFactory {
     @Value("${aem.reverseReplication.transportUri.postfix}")
     private String reverseReplicationTransportUriPostfix;
     
+    @Value("${aem.relaxed.ssl.enable}")
+    private Boolean enableRelaxedSSL;
+    
     private static final String JCR_PRIMARY_TYPE = "cq:Page";
     private static final String SLING_RESOURCE_TYPE_REPLICATION_AGENT = "cq/replication/components/agent";
     private static final String CQ_TEMPLATE_REPLICATION_AGENT = "/libs/cq/replication/templates/agent";
@@ -47,7 +50,8 @@ public class AgentRequestFactory {
             .withJcrContentTriggerReceive(true)
             .withJcrContentTriggerSpecific(true)
             .withJcrContentCqTemplate(CQ_TEMPLATE_REPLICATION_AGENT)
-            .withJcrContentEnabled(true);
+            .withJcrContentEnabled(true)
+            .withJcrContentProtocolHTTPSRelaxed(enableRelaxedSSL);
 
     }
     
@@ -76,7 +80,8 @@ public class AgentRequestFactory {
             .withJcrContentTriggerReceive(false)
             .withJcrContentTriggerSpecific(false)
             .withJcrContentCqTemplate(CQ_TEMPLATE_REPLICATION_AGENT)
-            .withJcrContentEnabled(true);
+            .withJcrContentEnabled(true)
+            .withJcrContentProtocolHTTPSRelaxed(enableRelaxedSSL);
             
     }
     
@@ -107,7 +112,8 @@ public class AgentRequestFactory {
             .withJcrContentTriggerSpecific(false)
             .withJcrContentCqTemplate(CQ_TEMPLATE_REVERSE_REPLICATION_AGENT)
             .withJcrContentEnabled(true)
-            .withJcrReverseReplication(true);
+            .withJcrReverseReplication(true)
+            .withJcrContentProtocolHTTPSRelaxed(enableRelaxedSSL);
     }
     
     public PostAgentWithHttpInfoRequest getPauseReplicationAgentRequest(
