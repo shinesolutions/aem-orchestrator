@@ -3,17 +3,16 @@ package com.shinesolutions.aemorchestrator.service;
 import static com.shinesolutions.aemorchestrator.model.InstanceTags.AEM_AUTHOR_HOST;
 import static com.shinesolutions.aemorchestrator.model.InstanceTags.AEM_PUBLISH_DISPATCHER_HOST;
 import static com.shinesolutions.aemorchestrator.model.InstanceTags.AEM_PUBLISH_HOST;
+import static com.shinesolutions.aemorchestrator.model.InstanceTags.NAME;
 import static com.shinesolutions.aemorchestrator.model.InstanceTags.PAIR_INSTANCE_ID;
 import static com.shinesolutions.aemorchestrator.model.InstanceTags.SNAPSHOT_ID;
 import static com.shinesolutions.aemorchestrator.model.InstanceTags.SNAPSHOT_TYPE;
-import static com.shinesolutions.aemorchestrator.model.InstanceTags.NAME;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
 import javax.annotation.Resource;
@@ -315,7 +314,7 @@ public class AemInstanceHelperService {
      * first one missing a pair ID tag (unpaired).
      * @param instanceId the Publish instance ID
      * @return Publish Dispatcher instance ID tag
-     * @throws NoSuchElementException if can't find unpaired Publish Dispatcher
+     * @throws NoPairFoundException if can't find unpaired Publish Dispatcher
      */
     @Retryable(maxAttempts=10, value=NoPairFoundException.class, backoff=@Backoff(delay=5000))
     public String findUnpairedPublishDispatcher(String instanceId) throws NoPairFoundException {
