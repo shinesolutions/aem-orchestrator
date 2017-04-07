@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 
 import com.shinesolutions.aemorchestrator.aem.AgentRunMode;
 import com.shinesolutions.aemorchestrator.aem.ReplicationAgentManager;
-import com.shinesolutions.aemorchestrator.exception.InstanceNotInHealthyState;
+import com.shinesolutions.aemorchestrator.exception.InstanceNotInHealthyStateException;
 import com.shinesolutions.aemorchestrator.service.AemInstanceHelperService;
 import com.shinesolutions.aemorchestrator.service.AwsHelperService;
 import com.shinesolutions.swaggeraem4j.ApiException;
@@ -99,7 +99,7 @@ public class ScaleUpPublishAction implements Action {
             try {
                 aemHelperService.waitForPublishToBeHealthy(activePublishId);
                 logger.info("Active publish instance " + activePublishId + " is in a healthy state");
-            } catch (InstanceNotInHealthyState e) {
+            } catch (InstanceNotInHealthyStateException e) {
                 logger.warn("Active publish instance " + activePublishId + " is NOT in a healthy state. "
                     + "Unable to take snapshot");
                 success = false;

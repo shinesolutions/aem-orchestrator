@@ -24,7 +24,8 @@ public class AemApiHelper {
             request.getJcrContentRetryDelay(), request.getJcrContentSerializationType(),
             request.getJcrContentJcrMixinTypes(), request.isJcrContentTriggerReceive(),
             request.isJcrContentTriggerSpecific(), request.getJcrContentCqTemplate(), request.isJcrContentEnabled(),
-            request.isJcrReverseReplication(), request.getOperation());
+            request.isJcrReverseReplication(), request.getOperation(), request.isJcrContentTriggerDistribute(), 
+            request.isJcrContentTriggerModified(), request.getUserId(), request.isJcrContentProtocolHTTPSRelaxed());
     }
     
 

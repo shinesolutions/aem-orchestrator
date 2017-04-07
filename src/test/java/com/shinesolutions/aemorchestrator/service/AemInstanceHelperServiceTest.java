@@ -33,7 +33,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import com.shinesolutions.aemorchestrator.exception.InstanceNotInHealthyState;
+import com.shinesolutions.aemorchestrator.exception.InstanceNotInHealthyStateException;
+import com.shinesolutions.aemorchestrator.exception.NoPairFoundException;
+import com.shinesolutions.aemorchestrator.model.EC2Instance;
 import com.shinesolutions.aemorchestrator.model.EnvironmentValues;
 import com.shinesolutions.aemorchestrator.model.InstanceTags;
 import com.shinesolutions.aemorchestrator.util.HttpUtil;
@@ -218,34 +220,138 @@ public class AemInstanceHelperServiceTest {
     
     @Test
     public void testFindUnpairedPublishDispatcher() throws Exception {
-        String instance1 = "1st-324983";
-        String instance2 = "2nd-348894";
-        String instance3 = "3rd-134333";
+        String publishAZ = "A";
+        EC2Instance instance1 = new EC2Instance().withInstanceId("1st-324981").withAvailabilityZone(publishAZ);
+        EC2Instance instance2 = new EC2Instance().withInstanceId("2nd-111982").withAvailabilityZone(publishAZ);
+        EC2Instance instance3 = new EC2Instance().withInstanceId("3rd-222983").withAvailabilityZone(publishAZ);
         
         Map<String, String> tagsWithPairName = new HashMap<String, String>();
         tagsWithPairName.put(PAIR_INSTANCE_ID.getTagName(), "testPair");
         
         Map<String, String> tagsWithoutPairName = new HashMap<String, String>();
         
-        List<String> instanceIds = new ArrayList<String>();
+        List<EC2Instance> instanceIds = new ArrayList<EC2Instance>();
         instanceIds.add(instance1);
         instanceIds.add(instance2);
         instanceIds.add(instance3);
         
-        when(awsHelperService.getInstanceIdsForAutoScalingGroup(envValues.getAutoScaleGroupNameForPublishDispatcher())).thenReturn(instanceIds);
-        when(awsHelperService.getTags(instance1)).thenReturn(tagsWithPairName);
-        when(awsHelperService.getTags(instance2)).thenReturn(tagsWithoutPairName); //Instance 2 is the winner
-        when(awsHelperService.getTags(instance3)).thenReturn(tagsWithPairName);
+        when(awsHelperService.getInstancesForAutoScalingGroup(
+            envValues.getAutoScaleGroupNameForPublishDispatcher())).thenReturn(instanceIds);
+
+        when(awsHelperService.getTags(instance1.getInstanceId())).thenReturn(tagsWithPairName);
+        when(awsHelperService.getTags(instance2.getInstanceId())).thenReturn(tagsWithoutPairName); //Instance 2 is the winner
+        when(awsHelperService.getTags(instance3.getInstanceId())).thenReturn(tagsWithPairName);
         
         String resultInstanceId = aemHelperService.findUnpairedPublishDispatcher(instanceId);
         
-        assertThat(resultInstanceId, equalTo(instance2));
+        assertThat(resultInstanceId, equalTo(instance2.getInstanceId()));
+    }
+    
+    @Test
+    public void testFindUnpairedPublishDispatcherDiffAvailablityZone() throws Exception {
+        String publishAZ = "A";
+        EC2Instance instance1 = new EC2Instance().withInstanceId("1st-324981").withAvailabilityZone(publishAZ);
+        EC2Instance instance2 = new EC2Instance().withInstanceId("2nd-111982").withAvailabilityZone("B"); //Diff AZ
+        EC2Instance instance3 = new EC2Instance().withInstanceId("3rd-222983").withAvailabilityZone(publishAZ);
+        
+        Map<String, String> tagsWithPairName = new HashMap<String, String>();
+        tagsWithPairName.put(PAIR_INSTANCE_ID.getTagName(), "testPair");
+        
+        Map<String, String> tagsWithoutPairName = new HashMap<String, String>();
+        
+        List<EC2Instance> instanceIds = new ArrayList<EC2Instance>();
+        instanceIds.add(instance1);
+        instanceIds.add(instance2);
+        instanceIds.add(instance3);
+        
+        when(awsHelperService.getInstancesForAutoScalingGroup(
+            envValues.getAutoScaleGroupNameForPublishDispatcher())).thenReturn(instanceIds);
+        when(awsHelperService.getAvailabilityZone(instanceId)).thenReturn(publishAZ);
+        when(awsHelperService.getTags(instance1.getInstanceId())).thenReturn(tagsWithPairName);
+        when(awsHelperService.getTags(instance2.getInstanceId())).thenReturn(tagsWithoutPairName); 
+        when(awsHelperService.getTags(instance3.getInstanceId())).thenReturn(tagsWithoutPairName);
+        
+        String resultInstanceId = aemHelperService.findUnpairedPublishDispatcher(instanceId);
+        
+        //It should pick the one with same AZ
+        assertThat(resultInstanceId, equalTo(instance3.getInstanceId()));
+    }
+    
+    @Test
+    public void testFindUnpairedPublishDispatcherSameAvailablityZone() throws Exception {
+        String publishAZ = "A";
+        EC2Instance instance1 = new EC2Instance().withInstanceId("1st-324981").withAvailabilityZone(publishAZ);
+        EC2Instance instance2 = new EC2Instance().withInstanceId("2nd-111982").withAvailabilityZone(publishAZ);
+        EC2Instance instance3 = new EC2Instance().withInstanceId("3rd-222983").withAvailabilityZone(publishAZ);
+        
+        Map<String, String> tagsWithPairName = new HashMap<String, String>();
+        tagsWithPairName.put(PAIR_INSTANCE_ID.getTagName(), "testPair");
+        
+        Map<String, String> tagsWithoutPairName = new HashMap<String, String>();
+        
+        List<EC2Instance> instanceIds = new ArrayList<EC2Instance>();
+        instanceIds.add(instance1);
+        instanceIds.add(instance2);
+        instanceIds.add(instance3);
+        
+        when(awsHelperService.getInstancesForAutoScalingGroup(
+            envValues.getAutoScaleGroupNameForPublishDispatcher())).thenReturn(instanceIds);
+        when(awsHelperService.getAvailabilityZone(instanceId)).thenReturn(publishAZ);
+        when(awsHelperService.getTags(instance1.getInstanceId())).thenReturn(tagsWithPairName);
+        when(awsHelperService.getTags(instance2.getInstanceId())).thenReturn(tagsWithoutPairName); 
+        when(awsHelperService.getTags(instance3.getInstanceId())).thenReturn(tagsWithoutPairName);
+        
+        String resultInstanceId = aemHelperService.findUnpairedPublishDispatcher(instanceId);
+        
+        //If AZ the same, then it should pick the first one
+        assertThat(resultInstanceId, equalTo(instance2.getInstanceId()));
+    }
+    
+    @Test
+    public void testFindUnpairedPublishDispatcherNoSameAvailablityZone() throws Exception {
+        String publishAZ = "A";
+        EC2Instance instance1 = new EC2Instance().withInstanceId("1st-324981").withAvailabilityZone(publishAZ);
+        EC2Instance instance2 = new EC2Instance().withInstanceId("2nd-111982").withAvailabilityZone("B");
+        EC2Instance instance3 = new EC2Instance().withInstanceId("3rd-222983").withAvailabilityZone("B");
+        
+        Map<String, String> tagsWithPairName = new HashMap<String, String>();
+        tagsWithPairName.put(PAIR_INSTANCE_ID.getTagName(), "testPair");
+        
+        Map<String, String> tagsWithoutPairName = new HashMap<String, String>();
+        
+        List<EC2Instance> instanceIds = new ArrayList<EC2Instance>();
+        instanceIds.add(instance1);
+        instanceIds.add(instance2);
+        instanceIds.add(instance3);
+        
+        when(awsHelperService.getInstancesForAutoScalingGroup(
+            envValues.getAutoScaleGroupNameForPublishDispatcher())).thenReturn(instanceIds);
+        when(awsHelperService.getAvailabilityZone(instanceId)).thenReturn(publishAZ);
+        when(awsHelperService.getTags(instance1.getInstanceId())).thenReturn(tagsWithPairName);
+        when(awsHelperService.getTags(instance2.getInstanceId())).thenReturn(tagsWithoutPairName); 
+        when(awsHelperService.getTags(instance3.getInstanceId())).thenReturn(tagsWithoutPairName);
+        
+        String resultInstanceId = aemHelperService.findUnpairedPublishDispatcher(instanceId);
+        
+        //If all AZ are different, then it should pick the first one
+        assertThat(resultInstanceId, equalTo(instance2.getInstanceId()));
+    }
+    
+    @Test(expected=NoPairFoundException.class)
+    public void testFindUnpairedPublishFail() throws Exception {
+        List<EC2Instance> instanceIds = new ArrayList<EC2Instance>();
+        
+        when(awsHelperService.getInstancesForAutoScalingGroup(
+            envValues.getAutoScaleGroupNameForPublishDispatcher())).thenReturn(instanceIds);
+
+        aemHelperService.findUnpairedPublishDispatcher(instanceId);
     }
     
     @Test
     public void testFindUnpairedPublishDispatcherAlreadyPaired() throws Exception {
-        String instance1 = "1st-324983";
-        String instance2 = "2nd-348894";
+        String publishAZ = "A";
+        EC2Instance instance1 = new EC2Instance().withInstanceId("1st-324981").withAvailabilityZone(publishAZ);
+        EC2Instance instance2 = new EC2Instance().withInstanceId("2nd-111982").withAvailabilityZone(publishAZ);
         
         Map<String, String> tagsWithPairName = new HashMap<String, String>();
         tagsWithPairName.put(PAIR_INSTANCE_ID.getTagName(), "testPair");
@@ -253,18 +359,21 @@ public class AemInstanceHelperServiceTest {
         Map<String, String> tagsWithAlreadyPairedId = new HashMap<String, String>();
         tagsWithAlreadyPairedId.put(PAIR_INSTANCE_ID.getTagName(), instanceId);
         
-        List<String> instanceIds = new ArrayList<String>();
+        List<EC2Instance> instanceIds = new ArrayList<EC2Instance>();
         instanceIds.add(instance1);
         instanceIds.add(instance2);
         
-        when(awsHelperService.getInstanceIdsForAutoScalingGroup(envValues.getAutoScaleGroupNameForPublishDispatcher())).thenReturn(instanceIds);
-        when(awsHelperService.getTags(instance1)).thenReturn(tagsWithPairName);
-        when(awsHelperService.getTags(instance2)).thenReturn(tagsWithAlreadyPairedId); //Instance 2 is the winner
+        when(awsHelperService.getInstancesForAutoScalingGroup(
+            envValues.getAutoScaleGroupNameForPublishDispatcher())).thenReturn(instanceIds);
+        
+        when(awsHelperService.getTags(instance1.getInstanceId())).thenReturn(tagsWithPairName);
+        when(awsHelperService.getTags(instance2.getInstanceId())).thenReturn(tagsWithAlreadyPairedId); //Instance 2 is the winner
         
         String resultInstanceId = aemHelperService.findUnpairedPublishDispatcher(instanceId);
         
-        assertThat(resultInstanceId, equalTo(instance2));
+        assertThat(resultInstanceId, equalTo(instance2.getInstanceId()));
     }
+    
     
     @Test
     public void testGetPublishIdForPairedDispatcherWithFoundPair() throws Exception {
@@ -518,14 +627,14 @@ public class AemInstanceHelperServiceTest {
         aemHelperService.waitForPublishToBeHealthy(instanceId);
     }
     
-    @Test(expected=InstanceNotInHealthyState.class)
+    @Test(expected=InstanceNotInHealthyStateException.class)
     public void testWaitForPublishToBeHealthyNotOk() throws Exception {
         when(httpUtil.isHttpGetResponseOk(anyString())).thenReturn(false);
         
         aemHelperService.waitForPublishToBeHealthy(instanceId);
     }
     
-    @Test(expected=InstanceNotInHealthyState.class)
+    @Test(expected=InstanceNotInHealthyStateException.class)
     public void testWaitForPublishToBeHealthyWithIOException() throws Exception {
         when(httpUtil.isHttpGetResponseOk(anyString())).thenThrow(new IOException());
         

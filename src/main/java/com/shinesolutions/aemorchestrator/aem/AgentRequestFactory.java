@@ -77,6 +77,7 @@ public class AgentRequestFactory {
             .withJcrContentTriggerSpecific(false)
             .withJcrContentCqTemplate(CQ_TEMPLATE_REPLICATION_AGENT)
             .withJcrContentEnabled(true);
+            
     }
     
     public PostAgentWithHttpInfoRequest getCreateReverseReplicationAgentRequest(AgentRunMode runMode, String agentName, 
@@ -93,6 +94,7 @@ public class AgentRequestFactory {
             .withJcrContentTransportUri(aemBaseUrl + reverseReplicationTransportUriPostfix)
             .withJcrContentTransportUser(user)
             .withJcrContentTransportPassword(password)
+            .withUserId(user)
             .withJcrContentLogLevel(DEFAULT_LOG_LEVEL)
             .withJcrContentNoVersioning(false)
             .withJcrContentProtocolHTTPHeaders(Collections.emptyList())

@@ -24,7 +24,9 @@ import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Component;
 
-import com.shinesolutions.aemorchestrator.exception.InstanceNotInHealthyState;
+import com.shinesolutions.aemorchestrator.exception.InstanceNotInHealthyStateException;
+import com.shinesolutions.aemorchestrator.exception.NoPairFoundException;
+import com.shinesolutions.aemorchestrator.model.EC2Instance;
 import com.shinesolutions.aemorchestrator.model.EnvironmentValues;
 import com.shinesolutions.aemorchestrator.model.InstanceTags;
 import com.shinesolutions.aemorchestrator.util.HttpUtil;
@@ -152,16 +154,16 @@ public class AemInstanceHelperService {
      * Will stop blocking once the Publish instance is deemed to be in a healthy state, or will
      * throw an exception if not
      * @param instanceId of the Publish instance
-     * @throws InstanceNotInHealthyState thrown if reaches waiting period time out
+     * @throws InstanceNotInHealthyStateException thrown if reaches waiting period time out
      */
-    @Retryable(maxAttempts=10, value=InstanceNotInHealthyState.class, backoff=@Backoff(delay=5000))
-    public void waitForPublishToBeHealthy(String instanceId) throws InstanceNotInHealthyState {
+    @Retryable(maxAttempts=10, value=InstanceNotInHealthyStateException.class, backoff=@Backoff(delay=5000))
+    public void waitForPublishToBeHealthy(String instanceId) throws InstanceNotInHealthyStateException {
         try {
             if(!isPubishHealthy(instanceId)) {
-                throw new InstanceNotInHealthyState(instanceId);
+                throw new InstanceNotInHealthyStateException(instanceId);
             }
         } catch (Exception e) {
-            throw new InstanceNotInHealthyState(instanceId, e);
+            throw new InstanceNotInHealthyStateException(instanceId, e);
         }
     }
 
@@ -315,11 +317,29 @@ public class AemInstanceHelperService {
      * @return Publish Dispatcher instance ID tag
      * @throws NoSuchElementException if can't find unpaired Publish Dispatcher
      */
-    @Retryable(maxAttempts=10, value=NoSuchElementException.class, backoff=@Backoff(delay=5000))
-    public String findUnpairedPublishDispatcher(String instanceId) throws NoSuchElementException {
-        List<String> dispatcherIds = awsHelperService.getInstanceIdsForAutoScalingGroup(
+    @Retryable(maxAttempts=10, value=NoPairFoundException.class, backoff=@Backoff(delay=5000))
+    public String findUnpairedPublishDispatcher(String instanceId) throws NoPairFoundException {
+        String unpairedDispatcher = null;
+        
+        List<EC2Instance> dispatcherIds = awsHelperService.getInstancesForAutoScalingGroup(
             envValues.getAutoScaleGroupNameForPublishDispatcher());
-        return dispatcherIds.stream().filter(d -> isViablePair(instanceId, d)).findFirst().get();
+        //Filter the list to get all possible eligible candidates
+        dispatcherIds = dispatcherIds.stream().filter(d -> 
+            isViablePair(instanceId, d.getInstanceId())).collect(Collectors.toList());
+        
+        if(dispatcherIds.size() > 1) {
+            String publishAZ = awsHelperService.getAvailabilityZone(instanceId);
+            
+            //If there are many candidates, then pick the one with the same AZ or else use first
+            unpairedDispatcher = (dispatcherIds.stream().filter(i -> i.getAvailabilityZone().equalsIgnoreCase(publishAZ))
+                .findFirst().orElse(dispatcherIds.get(0))).getInstanceId();
+        } else if (dispatcherIds.size() == 1) {
+            unpairedDispatcher = dispatcherIds.get(0).getInstanceId();
+        } else {
+            throw new NoPairFoundException(instanceId);
+        }
+        
+        return unpairedDispatcher;
     }
     
     private boolean isViablePair(String instanceId, String dispatcherInstanceId) {

@@ -31,6 +31,8 @@ public class InfoActuator implements InfoContributor {
         authorInfo.put("elastic-load-balancer-dns", envValues.getElasticLoadBalancerAuthorDns());
         
         builder.withDetail("author", authorInfo);
+        
+        builder.withDetail("alarm-notification-topic-arn", envValues.getTopicArn());
     }
 
 }
