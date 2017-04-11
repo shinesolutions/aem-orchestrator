@@ -12,21 +12,60 @@ import com.shinesolutions.swaggeraem4j.api.SlingApi;
  */
 @Component
 public class AemApiHelper {
-    
-    public ApiResponse<Void> postAgentWithHttpInfo(SlingApi slingApi, PostAgentWithHttpInfoRequest request) throws ApiException {
-        return slingApi.postAgentWithHttpInfo(request.getRunMode(), request.getName(),
-            request.getJcrPrimaryType(), request.getJcrContentCqName(), request.getJcrContentJcrTitle(),
-            request.getJcrContentJcrDescription(), request.getJcrContentSlingResourceType(),
-            request.getJcrContentTransportUri(), request.getJcrContentTransportUser(),
-            request.getJcrContentTransportPassword(), request.getJcrContentLogLevel(),
-            request.isJcrContentNoVersioning(), request.getJcrContentProtocolHTTPHeaders(),
-            request.getJcrContentProtocolHTTPHeadersTypeHint(), request.getJcrContentProtocolHTTPMethod(),
-            request.getJcrContentRetryDelay(), request.getJcrContentSerializationType(),
-            request.getJcrContentJcrMixinTypes(), request.isJcrContentTriggerReceive(),
-            request.isJcrContentTriggerSpecific(), request.getJcrContentCqTemplate(), request.isJcrContentEnabled(),
-            request.isJcrReverseReplication(), request.getOperation(), request.isJcrContentTriggerDistribute(), 
-            request.isJcrContentTriggerModified(), request.getUserId(), request.isJcrContentProtocolHTTPSRelaxed());
+
+    public ApiResponse<Void> postAgentWithHttpInfo(SlingApi slingApi, PostAgentWithHttpInfoRequest request)
+        throws ApiException {
+        return slingApi.postAgentWithHttpInfo(
+            request.getRunMode(), 
+            request.getName(), 
+            request.getJcrContentCqName(), 
+            request.getJcrContentCqTemplate(),
+            request.getJcrContentEnabled(),
+            request.getJcrContentJcrDescription(),
+            request.getJcrContentJcrLastModified(),
+            request.getJcrContentJcrLastModifiedBy(),
+            request.getJcrContentJcrMixinTypes(),
+            request.getJcrContentJcrTitle(),
+            request.getJcrContentLogLevel(),
+            request.getJcrContentNoStatusUpdate(),
+            request.getJcrContentNoVersioning(),
+            request.getJcrContentProtocolConnectTimeout(),
+            request.getJcrContentProtocolHTTPConnectionClosed(),
+            request.getJcrContentProtocolHTTPExpired(),
+            request.getJcrContentProtocolHTTPHeaders(),
+            request.getJcrContentProtocolHTTPHeadersTypeHint(),
+            request.getJcrContentProtocolHTTPMethod(),
+            request.getJcrContentProtocolHTTPSRelaxed(),
+            request.getJcrContentProtocolInterface(),
+            request.getJcrContentProtocolSocketTimeout(),
+            request.getJcrContentProtocolVersion(),
+            request.getJcrContentProxyNTLMDomain(),
+            request.getJcrContentProxyNTLMHost(),
+            request.getJcrContentProxyHost(),
+            request.getJcrContentProxyPassword(),
+            request.getJcrContentProxyPort(),
+            request.getJcrContentProxyUser(),
+            request.getJcrContentQueueBatchMaxSize(),
+            request.getJcrContentQueueBatchMode(),
+            request.getJcrContentQueueBatchWaitTime(),
+            request.getJcrContentRetryDelay(),
+            request.getJcrContentReverseReplication(),
+            request.getJcrContentSerializationType(),
+            request.getJcrContentSlingResourceType(),
+            request.getJcrContentSSL(),
+            request.getJcrContentTransportNTLMDomain(),
+            request.getJcrContentTransportNTLMHost(),
+            request.getJcrContentTransportPassword(),
+            request.getJcrContentTransportUri(),
+            request.getJcrContentTransportUser(),
+            request.getJcrContentTriggerDistribute(),
+            request.getJcrContentTriggerModified(),
+            request.getJcrContentTriggerOnOffTime(),
+            request.getJcrContentTriggerReceive(),
+            request.getJcrContentTriggerSpecific(),
+            request.getJcrContentUserId(),
+            request.getJcrPrimaryType(),
+            request.getOperation());
     }
-    
 
 }

@@ -71,6 +71,7 @@ Here is a complete list of all configurable properties:
 | endpoints.info.enabled                                        | true                                  | false                                |
 | startup.waitForAuthorElb.maxAttempts                          | 100                                   |                                      |
 | startup.waitForAuthorElb.backOffPeriod                        | 5000                                  |                                      |
+| http.client.relaxed.ssl.enable                                | true                                  | false                                |
 You can also view the base [application.properties](src/main/resources/application.properties) file.
 
 ## Additional Details
@@ -186,7 +187,7 @@ http://localhost:4503
 ```
 
 #### aem.relaxed.ssl.enable
-Enable if you want self-certified SSL certificates to be accepted by AEM when setting up replication agents. Will also turn off host name verification when the Orchestrator performs health checks to AEM instances.
+Enable if you want self-certified SSL certificates to be accepted by AEM when setting up replication agents. 
 
 
 ### Orchestrator Properties
@@ -212,5 +213,8 @@ Before the Orchestrator starts receiving messages on the SQS queue, it first wai
 
 #### startup.waitForAuthorElb.backOffPeriod
 Same as above, but defines how long to wait in seconds between checking the Author ELB is in a healthy state.
+
+#### http.client.relaxed.ssl.enable
+When Orchestrator performs health checks to AEM instances (via https) it will ignore host name verification if this is enabled.
 
 

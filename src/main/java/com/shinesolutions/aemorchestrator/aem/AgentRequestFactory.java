@@ -1,5 +1,8 @@
 package com.shinesolutions.aemorchestrator.aem;
 
+import static com.shinesolutions.aemorchestrator.model.AemSSL.RELAXED;
+import static com.shinesolutions.aemorchestrator.model.AemSSL.DEFAULT;
+
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.concurrent.TimeUnit;
@@ -14,7 +17,7 @@ public class AgentRequestFactory {
     private String reverseReplicationTransportUriPostfix;
     
     @Value("${aem.relaxed.ssl.enable}")
-    private Boolean enableRelaxedSSL;
+    private boolean enableRelaxedSSL;
     
     private static final String JCR_PRIMARY_TYPE = "cq:Page";
     private static final String SLING_RESOURCE_TYPE_REPLICATION_AGENT = "cq/replication/components/agent";
@@ -32,7 +35,6 @@ public class AgentRequestFactory {
             .withRunMode(runMode.getValue())
             .withName(agentName)
             .withJcrPrimaryType(JCR_PRIMARY_TYPE)
-            .withJcrContentCqName(null)
             .withJcrContentJcrTitle(agentName)
             .withJcrContentJcrDescription(agentDescription)
             .withJcrContentSlingResourceType(SLING_RESOURCE_TYPE_REPLICATION_AGENT)
@@ -50,8 +52,9 @@ public class AgentRequestFactory {
             .withJcrContentTriggerReceive(true)
             .withJcrContentTriggerSpecific(true)
             .withJcrContentCqTemplate(CQ_TEMPLATE_REPLICATION_AGENT)
-            .withJcrContentEnabled(true)
-            .withJcrContentProtocolHTTPSRelaxed(enableRelaxedSSL);
+            .withJcrContentSSL(enableRelaxedSSL ? RELAXED.getValue() : DEFAULT.getValue())
+            .withJcrContentEnabled(true);
+            
 
     }
     
@@ -62,7 +65,6 @@ public class AgentRequestFactory {
             .withRunMode(runMode.getValue())
             .withName(agentName)
             .withJcrPrimaryType(JCR_PRIMARY_TYPE)
-            .withJcrContentCqName(null)
             .withJcrContentJcrTitle(agentName)
             .withJcrContentJcrDescription(agentDescription)
             .withJcrContentSlingResourceType(SLING_RESOURCE_TYPE_REPLICATION_AGENT)
@@ -70,18 +72,11 @@ public class AgentRequestFactory {
             .withJcrContentTransportUser(user)
             .withJcrContentTransportPassword(password)
             .withJcrContentLogLevel(DEFAULT_LOG_LEVEL)
-            .withJcrContentNoVersioning(false)
-            .withJcrContentProtocolHTTPHeaders(Collections.emptyList())
-            .withJcrContentProtocolHTTPHeadersTypeHint(null)
-            .withJcrContentProtocolHTTPMethod(null)
             .withJcrContentRetryDelay("" + TimeUnit.MINUTES.toMillis(1))
             .withJcrContentSerializationType("durbo")
-            .withJcrContentJcrMixinTypes(null)
-            .withJcrContentTriggerReceive(false)
-            .withJcrContentTriggerSpecific(false)
             .withJcrContentCqTemplate(CQ_TEMPLATE_REPLICATION_AGENT)
-            .withJcrContentEnabled(true)
-            .withJcrContentProtocolHTTPSRelaxed(enableRelaxedSSL);
+            .withJcrContentSSL(enableRelaxedSSL ? RELAXED.getValue() : DEFAULT.getValue())
+            .withJcrContentEnabled(true);
             
     }
     
@@ -92,28 +87,23 @@ public class AgentRequestFactory {
             .withRunMode(runMode.getValue())
             .withName(agentName)
             .withJcrPrimaryType(JCR_PRIMARY_TYPE)
-            .withJcrContentCqName(null)
             .withJcrContentJcrTitle(agentName)
             .withJcrContentJcrDescription(agentDescription)
             .withJcrContentSlingResourceType(SLING_RESOURCE_TYPE_REVERSE_REPLICATION_AGENT)
             .withJcrContentTransportUri(aemBaseUrl + reverseReplicationTransportUriPostfix)
             .withJcrContentTransportUser(user)
             .withJcrContentTransportPassword(password)
-            .withUserId(user)
+            .withJcrContentUserId(user)
             .withJcrContentLogLevel(DEFAULT_LOG_LEVEL)
-            .withJcrContentNoVersioning(false)
             .withJcrContentProtocolHTTPHeaders(Collections.emptyList())
             .withJcrContentProtocolHTTPHeadersTypeHint(null)
             .withJcrContentProtocolHTTPMethod("GET")
             .withJcrContentRetryDelay("" + TimeUnit.MINUTES.toMillis(1))
             .withJcrContentSerializationType("durbo")
-            .withJcrContentJcrMixinTypes(null)
-            .withJcrContentTriggerReceive(false)
-            .withJcrContentTriggerSpecific(false)
             .withJcrContentCqTemplate(CQ_TEMPLATE_REVERSE_REPLICATION_AGENT)
-            .withJcrContentEnabled(true)
-            .withJcrReverseReplication(true)
-            .withJcrContentProtocolHTTPSRelaxed(enableRelaxedSSL);
+            .withJcrContentReverseReplication(true)
+            .withJcrContentSSL(enableRelaxedSSL ? RELAXED.getValue() : DEFAULT.getValue())
+            .withJcrContentEnabled(true);
     }
     
     public PostAgentWithHttpInfoRequest getPauseReplicationAgentRequest(
@@ -123,23 +113,9 @@ public class AgentRequestFactory {
             .withRunMode(runMode.getValue())
             .withName(agentName)
             .withJcrPrimaryType(JCR_PRIMARY_TYPE)
-            .withJcrContentCqName(null)
             .withJcrContentJcrTitle(agentName)
-            .withJcrContentJcrDescription(null)
             .withJcrContentSlingResourceType(SLING_RESOURCE_TYPE_REPLICATION_AGENT)
-            .withJcrContentTransportUri(null)
             .withJcrContentTransportUser("orchestrator-pause") // Is meant be an invalid user
-            .withJcrContentTransportPassword(null)
-            .withJcrContentLogLevel(null)
-            .withJcrContentNoVersioning(false)
-            .withJcrContentProtocolHTTPHeaders(Collections.emptyList())
-            .withJcrContentProtocolHTTPHeadersTypeHint(null)
-            .withJcrContentProtocolHTTPMethod(null)
-            .withJcrContentRetryDelay(null)
-            .withJcrContentSerializationType(null)
-            .withJcrContentJcrMixinTypes(null)
-            .withJcrContentTriggerReceive(false)
-            .withJcrContentTriggerSpecific(false)
             .withJcrContentCqTemplate(CQ_TEMPLATE_REPLICATION_AGENT)
             .withJcrContentEnabled(false);
 
@@ -152,23 +128,10 @@ public class AgentRequestFactory {
             .withRunMode(runMode.getValue())
             .withName(agentName)
             .withJcrPrimaryType(JCR_PRIMARY_TYPE)
-            .withJcrContentCqName(null)
             .withJcrContentJcrTitle(agentName)
-            .withJcrContentJcrDescription(null)
             .withJcrContentSlingResourceType(SLING_RESOURCE_TYPE_REPLICATION_AGENT)
-            .withJcrContentTransportUri(null)
             .withJcrContentTransportUser(user)
             .withJcrContentTransportPassword(password)
-            .withJcrContentLogLevel(null)
-            .withJcrContentNoVersioning(false)
-            .withJcrContentProtocolHTTPHeaders(Collections.emptyList())
-            .withJcrContentProtocolHTTPHeadersTypeHint(null)
-            .withJcrContentProtocolHTTPMethod(null)
-            .withJcrContentRetryDelay(null)
-            .withJcrContentSerializationType(null)
-            .withJcrContentJcrMixinTypes(null)
-            .withJcrContentTriggerReceive(false)
-            .withJcrContentTriggerSpecific(false)
             .withJcrContentCqTemplate(CQ_TEMPLATE_REPLICATION_AGENT)
             .withJcrContentEnabled(true);
 
