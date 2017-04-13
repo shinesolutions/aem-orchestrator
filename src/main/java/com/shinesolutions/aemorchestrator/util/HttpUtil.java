@@ -36,8 +36,6 @@ public class HttpUtil {
      */
     public boolean isHttpGetResponseOk(String url) throws ClientProtocolException, IOException {
 
-        logger.debug("Use relaxed SSL HTTP Client settings: " + enableRelaxedSslHttpClient);
-
         int statusCode;
 
         try (CloseableHttpClient client = buildCloseableHttpClient()) {

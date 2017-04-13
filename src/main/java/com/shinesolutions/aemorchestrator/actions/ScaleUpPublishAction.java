@@ -77,7 +77,7 @@ public class ScaleUpPublishAction implements Action {
             }
             
         } catch (ApiException e) {
-            logger.error("Error while attempting to create a new publish replication agent on publish instance "
+            logger.error("Error while attempting to create a new publish replication agent for publish instance "
                 + instanceId, e);
             success = false;
         }
