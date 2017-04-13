@@ -1,24 +1,16 @@
 package com.shinesolutions.aemorchestrator.config;
 
-import java.security.KeyManagementException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-
-import org.apache.http.client.HttpClient;
-import org.apache.http.conn.ssl.NoopHostnameVerifier;
-import org.apache.http.impl.client.HttpClientBuilder;
+import com.shinesolutions.aemorchestrator.model.AemCredentials;
+import com.shinesolutions.aemorchestrator.model.EnvironmentValues;
+import com.shinesolutions.aemorchestrator.model.UserPasswordCredentials;
+import com.shinesolutions.aemorchestrator.service.AwsHelperService;
+import com.shinesolutions.aemorchestrator.util.CredentialsExtractor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
-
-import com.shinesolutions.aemorchestrator.model.AemCredentials;
-import com.shinesolutions.aemorchestrator.model.EnvironmentValues;
-import com.shinesolutions.aemorchestrator.model.UserPasswordCredentials;
-import com.shinesolutions.aemorchestrator.service.AwsHelperService;
-import com.shinesolutions.aemorchestrator.util.CredentialsExtractor;
 
 @Configuration
 @Profile("default")
@@ -73,11 +65,7 @@ public class AemConfig {
     
     @Value("${aws.cloudformation.sns.logicalId.eventTopic}")
     private String awsSnsTopicLogicalId;
-    
-    @Value("${http.client.relaxed.ssl.enable}")
-    private boolean enableRelaxedSslHttpClient;
 
-    
     @Bean
     public AemCredentials aemCredentials(final AwsHelperService awsHelper) throws Exception {
         AemCredentials aemCredentials;
@@ -147,24 +135,6 @@ public class AemConfig {
         logger.debug("Resolved SNS topic ARN to: " + envValues.getTopicArn());
 
         return envValues;
-    }
-    
-    @Bean
-    public HttpClient httpClient() throws KeyManagementException, NoSuchAlgorithmException, KeyStoreException {
-        logger.debug("Use relaxed SSL HTTP Client settings: " + enableRelaxedSslHttpClient);
-        
-        HttpClient client;
-        
-        if(enableRelaxedSslHttpClient) {
-            client = HttpClientBuilder.create()
-                .setSSLHostnameVerifier(new NoopHostnameVerifier())
-                .build();
-            
-        } else {
-            client = HttpClientBuilder.create().build();
-        }
-        
-        return client;
     }
     
 }
