@@ -18,6 +18,15 @@ public class AgentRequestFactory {
     
     @Value("${aem.relaxed.ssl.enable}")
     private boolean enableRelaxedSSL;
+
+    @Value("${aem.flush.logLevel}")
+    private String flushLogLevel;
+
+    @Value("${aem.replication.logLevel}")
+    private String replicationLogLevel;
+
+    @Value("${aem.reverseReplication.logLevel}")
+    private String reverseReplicationLogLevel;
     
     private static final String JCR_PRIMARY_TYPE = "cq:Page";
     private static final String SLING_RESOURCE_TYPE_REPLICATION_AGENT = "cq/replication/components/agent";
@@ -41,7 +50,7 @@ public class AgentRequestFactory {
             .withJcrContentTransportUri(aemDispatcherBaseUrl + "/dispatcher/invalidate.cache")
             .withJcrContentTransportUser("")
             .withJcrContentTransportPassword("")
-            .withJcrContentLogLevel(DEFAULT_LOG_LEVEL)
+            .withJcrContentLogLevel(getLogType(flushLogLevel))
             .withJcrContentNoVersioning(true)
             .withJcrContentProtocolHTTPHeaders(Arrays.asList("CQ-Action:{action}"))
             .withJcrContentProtocolHTTPHeadersTypeHint("String[]")
@@ -71,7 +80,7 @@ public class AgentRequestFactory {
             .withJcrContentTransportUri(aemBaseUrl + TRANSPORT_URI_POSTFIX)
             .withJcrContentTransportUser(user)
             .withJcrContentTransportPassword(password)
-            .withJcrContentLogLevel(DEFAULT_LOG_LEVEL)
+            .withJcrContentLogLevel(getLogType(replicationLogLevel))
             .withJcrContentRetryDelay("" + TimeUnit.MINUTES.toMillis(1))
             .withJcrContentSerializationType("durbo")
             .withJcrContentCqTemplate(CQ_TEMPLATE_REPLICATION_AGENT)
@@ -94,7 +103,7 @@ public class AgentRequestFactory {
             .withJcrContentTransportUser(user)
             .withJcrContentTransportPassword(password)
             .withJcrContentUserId(user)
-            .withJcrContentLogLevel(DEFAULT_LOG_LEVEL)
+            .withJcrContentLogLevel(getLogType(reverseReplicationLogLevel))
             .withJcrContentProtocolHTTPHeaders(Collections.emptyList())
             .withJcrContentProtocolHTTPHeadersTypeHint(null)
             .withJcrContentProtocolHTTPMethod("GET")
@@ -142,5 +151,9 @@ public class AgentRequestFactory {
             .withRunMode(runMode.getValue())
             .withName(agentName)
             .withOperation(OPERATION_DELETE);
+    }
+
+    private String getLogType(String agentLogLevel) {
+        return (agentLogLevel != null && !agentLogLevel.isEmpty()) ? agentLogLevel : DEFAULT_LOG_LEVEL;
     }
 }
