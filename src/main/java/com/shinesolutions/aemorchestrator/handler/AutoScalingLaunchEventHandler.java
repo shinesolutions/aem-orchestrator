@@ -1,17 +1,15 @@
 package com.shinesolutions.aemorchestrator.handler;
 
-import java.util.Map;
-
-import javax.annotation.Resource;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Component;
-
 import com.shinesolutions.aemorchestrator.actions.Action;
 import com.shinesolutions.aemorchestrator.model.EventMessage;
 import com.shinesolutions.aemorchestrator.service.AwsHelperService;
 import com.shinesolutions.aemorchestrator.util.EventMessageExtractor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
+
+import javax.annotation.Resource;
+import java.util.Map;
 
 @Component
 public class AutoScalingLaunchEventHandler implements MessageHandler {
@@ -33,7 +31,12 @@ public class AutoScalingLaunchEventHandler implements MessageHandler {
 
         try {
             EventMessage eventMessage = eventMessageExtractor.extractMessage(message);
-            
+
+            if (eventMessage.getDescription() != null && eventMessage.getDescription().startsWith("Moving EC2 instance out of Standby")) {
+                logger.info("Detected a 'Moving EC2 instance out of Standby' event. The stack should already be aware of this instance. No action to perform.");
+                return true;
+            }
+
             Action action = scaleUpAutoScaleGroupMappings.get(eventMessage.getAutoScalingGroupName());
             if (action == null) {
                 logger.warn(
