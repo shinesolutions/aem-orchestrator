@@ -1,34 +1,27 @@
 package com.shinesolutions.aemorchestrator.service;
 
-import static com.shinesolutions.aemorchestrator.model.InstanceTags.AEM_AUTHOR_HOST;
-import static com.shinesolutions.aemorchestrator.model.InstanceTags.AEM_PUBLISH_DISPATCHER_HOST;
-import static com.shinesolutions.aemorchestrator.model.InstanceTags.AEM_PUBLISH_HOST;
-import static com.shinesolutions.aemorchestrator.model.InstanceTags.NAME;
-import static com.shinesolutions.aemorchestrator.model.InstanceTags.PAIR_INSTANCE_ID;
-import static com.shinesolutions.aemorchestrator.model.InstanceTags.SNAPSHOT_ID;
-import static com.shinesolutions.aemorchestrator.model.InstanceTags.SNAPSHOT_TYPE;
-
-import java.io.IOException;
-import java.security.GeneralSecurityException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
-import javax.annotation.Resource;
-
-import org.apache.http.client.ClientProtocolException;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.retry.annotation.Backoff;
-import org.springframework.retry.annotation.Retryable;
-import org.springframework.stereotype.Component;
-
 import com.shinesolutions.aemorchestrator.exception.InstanceNotInHealthyStateException;
 import com.shinesolutions.aemorchestrator.exception.NoPairFoundException;
 import com.shinesolutions.aemorchestrator.model.EC2Instance;
 import com.shinesolutions.aemorchestrator.model.EnvironmentValues;
 import com.shinesolutions.aemorchestrator.model.InstanceTags;
 import com.shinesolutions.aemorchestrator.util.HttpUtil;
+import org.apache.http.client.ClientProtocolException;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
+import org.springframework.stereotype.Component;
+
+import javax.annotation.Resource;
+import java.io.IOException;
+import java.security.GeneralSecurityException;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+import static com.shinesolutions.aemorchestrator.model.InstanceTags.*;
 
 /*
  * Service used for finding URLs, IDs etc of AEM/AWS instances
@@ -226,9 +219,25 @@ public class AemInstanceHelperService {
      * @return Active publish instance ID to get snapshot from, null if can't be found
      */
     public String getPublishIdToSnapshotFrom(String excludeInstanceId) {
-        List<String> publishIds = awsHelperService.getInstanceIdsForAutoScalingGroup(
-            envValues.getAutoScaleGroupNameForPublish());
-        return publishIds.stream().filter(s -> !s.equals(excludeInstanceId)).findFirst().orElse(null);
+
+        List<String> publishIds = awsHelperService.getInstanceIdsForAutoScalingGroup( envValues.getAutoScaleGroupNameForPublish());
+
+        return publishIds.stream().filter(s -> !s.equals(excludeInstanceId))
+                .filter(i -> awsHelperService.getTags(i).get(InstanceTags.SNAPSHOT_ID.getTagName()) != null)
+                .sorted((o1, o2) -> {
+
+                    Date launchTime1 = awsHelperService.getLaunchTime(o1);
+                    Date launchTime2 = awsHelperService.getLaunchTime(o2);
+
+                    final int launchTimeCompareTo = launchTime1.compareTo(launchTime2);
+
+                    if (launchTimeCompareTo == 0) {
+                        return o1.compareTo(o2);
+                    }
+
+                    return launchTimeCompareTo;
+                })
+                .findFirst().orElse(null);
     }
     
     /**

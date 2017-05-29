@@ -1,51 +1,21 @@
 package com.shinesolutions.aemorchestrator.service;
 
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
-import javax.annotation.Resource;
-
-import org.springframework.retry.annotation.Backoff;
-import org.springframework.retry.annotation.Retryable;
-import org.springframework.stereotype.Component;
-
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.services.autoscaling.AmazonAutoScaling;
-import com.amazonaws.services.autoscaling.model.AutoScalingGroup;
-import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsRequest;
-import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsResult;
+import com.amazonaws.services.autoscaling.model.*;
 import com.amazonaws.services.autoscaling.model.Instance;
-import com.amazonaws.services.autoscaling.model.SetDesiredCapacityRequest;
 import com.amazonaws.services.cloudformation.AmazonCloudFormation;
 import com.amazonaws.services.cloudformation.model.DescribeStackResourcesRequest;
 import com.amazonaws.services.cloudformation.model.DescribeStackResourcesResult;
 import com.amazonaws.services.cloudwatch.AmazonCloudWatch;
-import com.amazonaws.services.cloudwatch.model.ComparisonOperator;
-import com.amazonaws.services.cloudwatch.model.DeleteAlarmsRequest;
-import com.amazonaws.services.cloudwatch.model.Dimension;
-import com.amazonaws.services.cloudwatch.model.PutMetricAlarmRequest;
-import com.amazonaws.services.cloudwatch.model.Statistic;
+import com.amazonaws.services.cloudwatch.model.*;
 import com.amazonaws.services.ec2.AmazonEC2;
-import com.amazonaws.services.ec2.model.CreateSnapshotRequest;
-import com.amazonaws.services.ec2.model.CreateSnapshotResult;
-import com.amazonaws.services.ec2.model.CreateTagsRequest;
-import com.amazonaws.services.ec2.model.DescribeInstanceAttributeRequest;
-import com.amazonaws.services.ec2.model.DescribeInstanceAttributeResult;
-import com.amazonaws.services.ec2.model.DescribeInstancesRequest;
-import com.amazonaws.services.ec2.model.DescribeInstancesResult;
+import com.amazonaws.services.ec2.model.*;
 import com.amazonaws.services.ec2.model.DescribeTagsRequest;
 import com.amazonaws.services.ec2.model.DescribeTagsResult;
-import com.amazonaws.services.ec2.model.EbsInstanceBlockDevice;
 import com.amazonaws.services.ec2.model.Filter;
-import com.amazonaws.services.ec2.model.InstanceBlockDeviceMapping;
-import com.amazonaws.services.ec2.model.InstanceState;
-import com.amazonaws.services.ec2.model.InstanceStateName;
 import com.amazonaws.services.ec2.model.Tag;
 import com.amazonaws.services.ec2.model.TagDescription;
-import com.amazonaws.services.ec2.model.TerminateInstancesRequest;
 import com.amazonaws.services.elasticloadbalancing.AmazonElasticLoadBalancing;
 import com.amazonaws.services.elasticloadbalancing.model.DescribeLoadBalancersRequest;
 import com.amazonaws.services.elasticloadbalancing.model.DescribeLoadBalancersResult;
@@ -56,6 +26,17 @@ import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.util.IOUtils;
 import com.shinesolutions.aemorchestrator.model.EC2Instance;
 import com.shinesolutions.aemorchestrator.model.InstanceTags;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
+import org.springframework.stereotype.Component;
+
+import javax.annotation.Resource;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 
 /**
@@ -112,7 +93,27 @@ public class AwsHelperService {
                 instanceId + ". Instance may not be active", e);
         }
     }
-    
+
+    /**
+     * Gets the launch time of a given AWS EC2 instance
+     * Will automatically retry 10 times every 10 seconds if no instance is found
+     * @param instanceId the EC2 instance ID
+     * @return Date launchTime
+     */
+    @Retryable(maxAttempts=10, value=AmazonServiceException.class, backoff=@Backoff(delay=5000))
+    public Date getLaunchTime(String instanceId) {
+        DescribeInstancesResult result = amazonEC2Client.describeInstances(
+                new DescribeInstancesRequest().withInstanceIds(instanceId));
+
+        try {
+            return result.getReservations().get(0).getInstances().get(0).getLaunchTime();
+        } catch (Exception e) {
+            throw new AmazonServiceException("Failed to get Launch Date for instance ID: " +
+                    instanceId + ". Instance may not be active", e);
+        }
+    }
+
+
     /**
      * Gets the availability zone of a given instance
      * @param instanceId the AWS instance ID

@@ -1,29 +1,12 @@
 package com.shinesolutions.aemorchestrator.service;
 
-import static com.shinesolutions.aemorchestrator.model.InstanceTags.AEM_AUTHOR_HOST;
-import static com.shinesolutions.aemorchestrator.model.InstanceTags.AEM_PUBLISH_DISPATCHER_HOST;
-import static com.shinesolutions.aemorchestrator.model.InstanceTags.AEM_PUBLISH_HOST;
-import static com.shinesolutions.aemorchestrator.model.InstanceTags.PAIR_INSTANCE_ID;
-import static com.shinesolutions.aemorchestrator.model.InstanceTags.SNAPSHOT_ID;
-import static com.shinesolutions.aemorchestrator.model.InstanceTags.SNAPSHOT_TYPE;
-import static com.shinesolutions.aemorchestrator.model.InstanceTags.NAME;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.startsWith;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.util.ReflectionTestUtils.setField;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
+import com.shinesolutions.aemorchestrator.exception.InstanceNotInHealthyStateException;
+import com.shinesolutions.aemorchestrator.exception.NoPairFoundException;
+import com.shinesolutions.aemorchestrator.model.EC2Instance;
+import com.shinesolutions.aemorchestrator.model.EnvironmentValues;
+import com.shinesolutions.aemorchestrator.model.InstanceTags;
+import com.shinesolutions.aemorchestrator.util.HttpUtil;
+import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -33,12 +16,17 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import com.shinesolutions.aemorchestrator.exception.InstanceNotInHealthyStateException;
-import com.shinesolutions.aemorchestrator.exception.NoPairFoundException;
-import com.shinesolutions.aemorchestrator.model.EC2Instance;
-import com.shinesolutions.aemorchestrator.model.EnvironmentValues;
-import com.shinesolutions.aemorchestrator.model.InstanceTags;
-import com.shinesolutions.aemorchestrator.util.HttpUtil;
+import java.io.IOException;
+import java.util.*;
+
+import static com.shinesolutions.aemorchestrator.model.InstanceTags.*;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.startsWith;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.*;
+import static org.springframework.test.util.ReflectionTestUtils.setField;
 
 @RunWith(MockitoJUnitRunner.class)
 public class AemInstanceHelperServiceTest {
@@ -146,10 +134,27 @@ public class AemInstanceHelperServiceTest {
         instanceIds.add(excludeInstanceId);
         instanceIds.add(instanceId);
         instanceIds.add("extra-89351");
-        
+
+        Date dt = new Date();
+
+        DateTime originalDateTime = new DateTime(dt);
+        Date originalDate = originalDateTime.toDate();
+        DateTime originalPlusOneDateTime = originalDateTime.plusDays(1);
+        Date originalPlusOneDate = originalPlusOneDateTime.toDate();
+
         when(awsHelperService.getInstanceIdsForAutoScalingGroup(
             envValues.getAutoScaleGroupNameForPublish())).thenReturn(instanceIds);
-        
+
+        Map<String, String> instanceTags1 = new HashMap<String, String>();
+        Map<String, String> instanceTags2 = new HashMap<String, String>();
+        instanceTags2.put(InstanceTags.SNAPSHOT_ID.getTagName(), "");
+
+        when(awsHelperService.getTags(anyString())).thenReturn(instanceTags1);
+        when(awsHelperService.getTags(anyString())).thenReturn(instanceTags2);
+
+        when(awsHelperService.getLaunchTime(instanceId)).thenReturn(originalDate);
+        when(awsHelperService.getLaunchTime("extra-89351")).thenReturn(originalPlusOneDate);
+
         when(httpUtil.isHttpGetResponseOk(anyString())).thenReturn(true);
         
         String resultInstanceId = aemHelperService.getPublishIdToSnapshotFrom(excludeInstanceId);
