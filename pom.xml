@@ -11,7 +11,7 @@
     <connection>scm:git:git@github.com:shinesolutions/aem-orchestrator.git</connection>
     <developerConnection>scm:git:git@github.com:shinesolutions/aem-orchestrator.git</developerConnection>
     <url>https://github.com/shinesolutions/aem-orchestrator</url>
-    <tag>1.0.0</tag>
+    <tag>HEAD</tag>
   </scm>
   <prerequisites>
     <maven>2.2.0</maven>
