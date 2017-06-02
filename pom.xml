@@ -4,7 +4,7 @@
   <artifactId>aem-orchestrator</artifactId>
   <packaging>jar</packaging>
   <name>aem-orchestrator</name>
-  <version>0.9.4-SNAPSHOT</version>
+  <version>1.0.0-SNAPSHOT</version>
   <url>https://github.com/shinesolutions/aem-orchestrator</url>
   <description>Java application for orchestrating AEM infrastructure created using aem-aws-stack-builder</description>
   <scm>
