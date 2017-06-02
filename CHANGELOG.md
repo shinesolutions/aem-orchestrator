@@ -1,4 +1,4 @@
-### 0.9.4
+### 1.0.0
 * increase the default the wait for healthy author elb time to 12.5 minutes.
 * ignore auto scaling launch event fired from moving ec2 instance out of standby
 * use the oldest publish instance with snapshot id tag to get a snapshot from for new publish instance
