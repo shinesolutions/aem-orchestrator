@@ -19,15 +19,10 @@
 
   <distributionManagement>
     <repository>
-      <id>ossrh</id>
+      <id>sonatype-release</id>
       <name>Sonatype Release</name>
       <url>https://oss.sonatype.org/service/local/staging/deploy/maven2</url>
     </repository>
-    <snapshotRepository>
-      <id>ossrh</id>
-      <name> sonatype-snapshot</name>
-      <url>https://oss.sonatype.org/content/repositories/snapshots</url>
-    </snapshotRepository>
   </distributionManagement>
 
   <licenses>
@@ -182,35 +177,51 @@
           <executable>true</executable>
         </configuration>
       </plugin>
-
-      <plugin>
-        <groupId>org.sonatype.plugins</groupId>
-        <artifactId>nexus-staging-maven-plugin</artifactId>
-        <version>1.6.6</version>
-        <extensions>true</extensions>
-        <configuration>
-          <serverId>ossrh</serverId>
-          <nexusUrl>https://oss.sonatype.org/</nexusUrl>
-          <autoReleaseAfterClose>true</autoReleaseAfterClose>
-        </configuration>
-      </plugin>
-
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-gpg-plugin</artifactId>
-        <version>1.6</version>
-        <executions>
-          <execution>
-            <id>sign-artifacts</id>
-            <phase>verify</phase>
-            <goals>
-              <goal>sign</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
     </plugins>
+
+    <extensions>
+      <extension>
+        <groupId>org.springframework.build</groupId>
+        <artifactId>aws-maven</artifactId>
+        <version>5.0.0.RELEASE</version>
+      </extension>
+    </extensions>
   </build>
+
+  <profiles>
+    <profile>
+      <id>sign-artifacts</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-gpg-plugin</artifactId>
+            <version>1.5</version>
+            <executions>
+              <execution>
+                <id>sign-artifacts</id>
+                <phase>verify</phase>
+                <goals>
+                  <goal>sign</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+
+    <profile>
+      <id>s3-snapshot</id>
+      <distributionManagement>
+        <snapshotRepository>
+          <id>aws-snapshot</id>
+          <name>AWS Snapshot Repository</name>
+          <url>s3://${env.S3_BUCKET}/snapshot</url>
+        </snapshotRepository>
+      </distributionManagement>
+    </profile>
+  </profiles>
 
   <parent>
     <groupId>org.springframework.boot</groupId>
@@ -253,6 +264,7 @@
       <groupId>org.springframework.retry</groupId>
       <artifactId>spring-retry</artifactId>
     </dependency>
+
     <dependency>
       <groupId>com.amazonaws</groupId>
       <artifactId>amazon-sqs-java-messaging-lib</artifactId>
