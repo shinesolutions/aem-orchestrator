@@ -1,5 +1,5 @@
 ### 1.0.1
-* Fix replication agent pausing to keep agent enabled #31
+* Fix replication agent pausing not adding activated content to the queue #31
 
 ### 1.0.0
 * increase the default the wait for healthy author elb time to 12.5 minutes.
