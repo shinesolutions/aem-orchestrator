@@ -10,12 +10,15 @@ import java.util.concurrent.TimeUnit;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+// TODO: modify all methods here to use this.request
+// to allow the injection of a mock PostAgentWithHttpInfoRequest
+
 @Component
 public class AgentRequestFactory {
-    
+
     @Value("${aem.reverseReplication.transportUri.postfix}")
     private String reverseReplicationTransportUriPostfix;
-    
+
     @Value("${aem.relaxed.ssl.enable}")
     private boolean enableRelaxedSSL;
 
@@ -27,7 +30,7 @@ public class AgentRequestFactory {
 
     @Value("${aem.reverseReplication.logLevel}")
     private String reverseReplicationLogLevel;
-    
+
     private static final String JCR_PRIMARY_TYPE = "cq:Page";
     private static final String SLING_RESOURCE_TYPE_REPLICATION_AGENT = "cq/replication/components/agent";
     private static final String CQ_TEMPLATE_REPLICATION_AGENT = "/libs/cq/replication/templates/agent";
@@ -36,8 +39,18 @@ public class AgentRequestFactory {
     private static final String TRANSPORT_URI_POSTFIX = "/bin/receive?sling:authRequestLogin=1";
     private static final String DEFAULT_LOG_LEVEL = "info";
     private static final String OPERATION_DELETE = "delete";
-    
-    public PostAgentWithHttpInfoRequest getCreateFlushAgentRequest(AgentRunMode runMode, String agentName, 
+
+    private PostAgentWithHttpInfoRequest request;
+
+    public AgentRequestFactory() {
+      this.request = new PostAgentWithHttpInfoRequest();
+    }
+
+    public AgentRequestFactory(PostAgentWithHttpInfoRequest request) {
+      this.request = request;
+    }
+
+    public PostAgentWithHttpInfoRequest getCreateFlushAgentRequest(AgentRunMode runMode, String agentName,
         String agentDescription, String aemDispatcherBaseUrl) {
 
         return new PostAgentWithHttpInfoRequest()
@@ -63,11 +76,11 @@ public class AgentRequestFactory {
             .withJcrContentCqTemplate(CQ_TEMPLATE_REPLICATION_AGENT)
             .withJcrContentSSL(enableRelaxedSSL ? RELAXED.getValue() : DEFAULT.getValue())
             .withJcrContentEnabled(true);
-            
+
 
     }
-    
-    public PostAgentWithHttpInfoRequest getCreateReplicationAgentRequest(AgentRunMode runMode, String agentName, 
+
+    public PostAgentWithHttpInfoRequest getCreateReplicationAgentRequest(AgentRunMode runMode, String agentName,
         String agentDescription, String aemBaseUrl, String user, String password) {
 
         return new PostAgentWithHttpInfoRequest()
@@ -86,10 +99,10 @@ public class AgentRequestFactory {
             .withJcrContentCqTemplate(CQ_TEMPLATE_REPLICATION_AGENT)
             .withJcrContentSSL(enableRelaxedSSL ? RELAXED.getValue() : DEFAULT.getValue())
             .withJcrContentEnabled(true);
-            
+
     }
-    
-    public PostAgentWithHttpInfoRequest getCreateReverseReplicationAgentRequest(AgentRunMode runMode, String agentName, 
+
+    public PostAgentWithHttpInfoRequest getCreateReverseReplicationAgentRequest(AgentRunMode runMode, String agentName,
         String agentDescription, String aemBaseUrl, String user, String password) {
 
         return new PostAgentWithHttpInfoRequest()
@@ -114,11 +127,11 @@ public class AgentRequestFactory {
             .withJcrContentSSL(enableRelaxedSSL ? RELAXED.getValue() : DEFAULT.getValue())
             .withJcrContentEnabled(true);
     }
-    
+
     public PostAgentWithHttpInfoRequest getPauseReplicationAgentRequest(
         AgentRunMode runMode, String agentName) {
 
-        return new PostAgentWithHttpInfoRequest()
+        return this.request
             .withRunMode(runMode.getValue())
             .withName(agentName)
             .withJcrPrimaryType(JCR_PRIMARY_TYPE)
@@ -126,10 +139,10 @@ public class AgentRequestFactory {
             .withJcrContentSlingResourceType(SLING_RESOURCE_TYPE_REPLICATION_AGENT)
             .withJcrContentTransportUser("orchestrator-pause") // Is meant be an invalid user
             .withJcrContentCqTemplate(CQ_TEMPLATE_REPLICATION_AGENT)
-            .withJcrContentEnabled(false);
+            .withJcrContentEnabled(true);
 
     }
-    
+
     public PostAgentWithHttpInfoRequest getResumeReplicationAgentRequest(
         AgentRunMode runMode, String agentName, String user, String password) {
 
@@ -145,7 +158,7 @@ public class AgentRequestFactory {
             .withJcrContentEnabled(true);
 
     }
-    
+
     public PostAgentWithHttpInfoRequest getDeleteAgentRequest(AgentRunMode runMode, String agentName) {
         return new PostAgentWithHttpInfoRequest()
             .withRunMode(runMode.getValue())

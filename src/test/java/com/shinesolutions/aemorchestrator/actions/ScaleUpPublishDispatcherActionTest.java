@@ -18,33 +18,33 @@ import com.shinesolutions.aemorchestrator.service.AemInstanceHelperService;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ScaleUpPublishDispatcherActionTest {
-    
+
     @Mock
     private AemInstanceHelperService aemHelperService;
-    
+
     @InjectMocks
     private ScaleUpPublishDispatcherAction action;
-    
+
     private String instanceId;
 
     @Before
     public void setUp() throws Exception {
         instanceId = "i-4398603686";
-        
+
     }
 
     @Test
     public void testSameDesiredCapacity() {
         when(aemHelperService.getAutoScalingGroupDesiredCapacityForPublishDispatcher()).thenReturn(2);
         when(aemHelperService.getAutoScalingGroupDesiredCapacityForPublish()).thenReturn(2);
-        
+
         boolean success = action.execute(instanceId);
-        
+
         verify(aemHelperService, times(0)).setAutoScalingGroupDesiredCapacityForPublish(anyInt());
-        
+
         assertThat(success, equalTo(true));
     }
-    
+
     @Test
     public void testHigherDesiredCapacity() {
         int dispatcherDesiredCapcity = 4;
@@ -52,14 +52,14 @@ public class ScaleUpPublishDispatcherActionTest {
             dispatcherDesiredCapcity);
         when(aemHelperService.getAutoScalingGroupDesiredCapacityForPublish()).thenReturn(
             dispatcherDesiredCapcity + 1);
-        
+
         boolean success = action.execute(instanceId);
-        
+
         verify(aemHelperService, times(1)).setAutoScalingGroupDesiredCapacityForPublish(dispatcherDesiredCapcity);
-        
+
         assertThat(success, equalTo(true));
     }
-    
+
     @Test
     public void testLowerDesiredCapacity() {
         int dispatcherDesiredCapcity = 3;
@@ -67,11 +67,11 @@ public class ScaleUpPublishDispatcherActionTest {
             dispatcherDesiredCapcity);
         when(aemHelperService.getAutoScalingGroupDesiredCapacityForPublish()).thenReturn(
             dispatcherDesiredCapcity - 1);
-        
+
         boolean success = action.execute(instanceId);
-        
+
         verify(aemHelperService, times(1)).setAutoScalingGroupDesiredCapacityForPublish(dispatcherDesiredCapcity);
-        
+
         assertThat(success, equalTo(true));
     }
 
