@@ -1,8 +1,11 @@
 package com.shinesolutions.aemorchestrator.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Details {
+
     @JsonProperty("Subnet ID")
     private String subnetID;
 
