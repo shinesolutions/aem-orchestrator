@@ -6,7 +6,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.retry.backoff.ExponentialBackOffPolicy;
-import org.springframework.retry.backoff.FixedBackOffPolicy;
 import org.springframework.retry.policy.SimpleRetryPolicy;
 import org.springframework.retry.support.RetryTemplate;
 import org.springframework.stereotype.Component;
@@ -24,6 +23,12 @@ public class ResourceReadyChecker {
     @Value("${startup.waitForAuthorElb.backOffPeriod}")
     private long waitForAuthorBackOffPeriod;
 
+    @Value("${startup.waitForAuthorElb.maxBackOffPeriod}")
+    private long waitForAuthorMaxBackOffPeriod;
+
+    @Value("${startup.waitForAuthorElb.backOffPeriodMultiplier}")
+    private double waitForAuthorBackOffPeriodMultiplier;
+
     @Resource
     private AemInstanceHelperService aemInstanceHelperService;
     
@@ -36,6 +41,8 @@ public class ResourceReadyChecker {
         
         ExponentialBackOffPolicy exponentialBackOffPolicy = new ExponentialBackOffPolicy();
         exponentialBackOffPolicy.setInitialInterval(waitForAuthorBackOffPeriod);
+        exponentialBackOffPolicy.setMaxInterval(waitForAuthorMaxBackOffPeriod);
+        exponentialBackOffPolicy.setMultiplier(waitForAuthorBackOffPeriodMultiplier);
 
         SimpleRetryPolicy retryPolicy = new SimpleRetryPolicy();
         retryPolicy.setMaxAttempts(waitForAuthorElbMaxAttempts);

@@ -31,7 +31,7 @@ public class ResourceReadyCheckerTest {
 
     @Before
     public void setUp() throws Exception {
-        setFields(1, 1);
+        setFields(1, 1, 1, 1);
     }
 
     @Test
@@ -56,7 +56,7 @@ public class ResourceReadyCheckerTest {
     public void testManyFailsThenSucceed() throws Exception {
         when(aemInstanceHelperService.isAuthorElbHealthy()).thenReturn(false,false,false,true);
         
-        setFields(5, 1);
+        setFields(5, 1, 1, 1);
         
         boolean result = startupManager.isResourcesReady();
         
@@ -68,7 +68,7 @@ public class ResourceReadyCheckerTest {
         int numberOfRetries = 5;
         when(aemInstanceHelperService.isAuthorElbHealthy()).thenReturn(false);
         
-        setFields(numberOfRetries, 1);
+        setFields(numberOfRetries, 1, 1, 1);
         
         boolean result = startupManager.isResourcesReady();
         
@@ -93,16 +93,19 @@ public class ResourceReadyCheckerTest {
         when(aemInstanceHelperService.isAuthorElbHealthy()).thenThrow(new IOException())
             .thenThrow(new ClientProtocolException()).thenReturn(false).thenReturn(true);
         
-        setFields(5, 1);
+        setFields(5, 1, 1, 1);
 
         boolean result = startupManager.isResourcesReady();
         
         assertThat(result, equalTo(true));
     }
     
-    private void setFields(int waitForAuthorElbMaxAttempts, long waitForAuthorBackOffPeriod) {
+    private void setFields(int waitForAuthorElbMaxAttempts, long waitForAuthorBackOffPeriod, 
+                           long waitForAuthorMaxBackOffPeriod, long waitForAuthorBackOffPeriodMultiplier) {
         setField(startupManager, "waitForAuthorElbMaxAttempts", waitForAuthorElbMaxAttempts);
         setField(startupManager, "waitForAuthorBackOffPeriod", waitForAuthorBackOffPeriod);
+        setField(startupManager, "waitForAuthorMaxBackOffPeriod", waitForAuthorMaxBackOffPeriod);
+        setField(startupManager, "waitForAuthorBackOffPeriodMultiplier", waitForAuthorBackOffPeriodMultiplier);
     }
 
 }
