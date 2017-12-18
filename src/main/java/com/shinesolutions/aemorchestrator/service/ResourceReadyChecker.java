@@ -38,14 +38,9 @@ public class ResourceReadyChecker {
      */
     public boolean isResourcesReady() {
         boolean isStartupOk = false;
-        
-        ExponentialBackOffPolicy exponentialBackOffPolicy = new ExponentialBackOffPolicy();
-        exponentialBackOffPolicy.setInitialInterval(waitForAuthorBackOffPeriod);
-        exponentialBackOffPolicy.setMaxInterval(waitForAuthorMaxBackOffPeriod);
-        exponentialBackOffPolicy.setMultiplier(waitForAuthorBackOffPeriodMultiplier);
 
-        SimpleRetryPolicy retryPolicy = new SimpleRetryPolicy();
-        retryPolicy.setMaxAttempts(waitForAuthorElbMaxAttempts);
+        ExponentialBackOffPolicy exponentialBackOffPolicy = getExponentialBackOffPolicy();
+        SimpleRetryPolicy retryPolicy = getSimpleRetryPolicy();
 
         RetryTemplate retryTemplate = new RetryTemplate();
         retryTemplate.setRetryPolicy(retryPolicy);
@@ -67,6 +62,20 @@ public class ResourceReadyChecker {
         
         return isStartupOk;
     }
-    
-    
+
+    private SimpleRetryPolicy getSimpleRetryPolicy() {
+        SimpleRetryPolicy retryPolicy = new SimpleRetryPolicy();
+        retryPolicy.setMaxAttempts(waitForAuthorElbMaxAttempts);
+        return retryPolicy;
+    }
+
+    private ExponentialBackOffPolicy getExponentialBackOffPolicy() {
+        ExponentialBackOffPolicy exponentialBackOffPolicy = new ExponentialBackOffPolicy();
+        exponentialBackOffPolicy.setInitialInterval(waitForAuthorBackOffPeriod);
+        exponentialBackOffPolicy.setMaxInterval(waitForAuthorMaxBackOffPeriod);
+        exponentialBackOffPolicy.setMultiplier(waitForAuthorBackOffPeriodMultiplier);
+        return exponentialBackOffPolicy;
+    }
+
+
 }
