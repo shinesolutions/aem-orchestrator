@@ -34,7 +34,7 @@ public class AlarmContentHealthCheckActionTest {
 
     @Test
     public void testTerminateSuccess() {
-        setField(alarmContentHealthCheckAction,"terminateInstance",true);
+        setField(alarmContentHealthCheckAction,"terminateInstanceEnable",true);
 
         boolean result = alarmContentHealthCheckAction.execute(instanceId);
         
@@ -46,7 +46,7 @@ public class AlarmContentHealthCheckActionTest {
 
     @Test
     public void testNotifySuccess() {
-        setField(alarmContentHealthCheckAction,"terminateInstance",false);
+        setField(alarmContentHealthCheckAction,"terminateInstanceEnable",false);
 
         boolean result = alarmContentHealthCheckAction.execute(instanceId);
 
@@ -58,7 +58,7 @@ public class AlarmContentHealthCheckActionTest {
     
     @Test
     public void testTerminateWithException() {
-        setField(alarmContentHealthCheckAction,"terminateInstance",true);
+        setField(alarmContentHealthCheckAction,"terminateInstanceEnable",true);
         doThrow(new RuntimeException()).when(awsHelperService).terminateInstance(instanceId);
         
         boolean result = alarmContentHealthCheckAction.execute(instanceId);

@@ -14,8 +14,8 @@ public class AlarmContentHealthCheckAction implements Action {
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
-    @Value("${alarm.content.health.check.terminate.instance}")
-    private boolean terminateInstance;
+    @Value("${alarm.content.health.check.terminate.instance.enable}")
+    private boolean terminateInstanceEnable;
 
 
     @Resource
@@ -30,7 +30,7 @@ public class AlarmContentHealthCheckAction implements Action {
 
         try {
 
-            if(terminateInstance) {
+            if(terminateInstanceEnable) {
                 terminate(instanceId);
             }else {
                 notify(instanceId);
