@@ -73,7 +73,7 @@ For example if a Publish instance stopped responding the ASG would terminate it,
 Currently there is only one alarm, the [AEM Content Health Check](https://github.com/shinesolutions/aem-aws-stack-provisioner/blob/master/templates/aem-tools/content-healthcheck.py.epp). This will trigger if the Publish Dispatcher is not seeing healthy content (defined in a [descriptor file](https://github.com/shinesolutions/aem-aws-stack-provisioner/blob/master/examples/content-healthcheck-descriptor.json)) on the Publish instance. When the alarm triggers the Orchestrator is notified via an SQS message and it will perform an *Alarm Content Health Check Action*.
 
 ### Recovery
-Aside from stack startup, the AEM Orchestrator is deisgned to recover the stack from multiple scenarios:
+Aside from stack startup, the AEM Orchestrator is designed to recover the stack from multiple scenarios:
 
 * Termination of a single instance (Author Dispatcher, Publish or Publish Dispatcher)
 * Termination of many or all instances

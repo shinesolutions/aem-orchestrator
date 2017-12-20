@@ -24,7 +24,9 @@ public class AutoScalingTerminateEventHandler implements MessageHandler {
     private EventMessageExtractor eventMessageExtractor;
 
     public boolean handleEvent(String message) {
+        logger.debug("Raw message: " + message);
         boolean success = false;
+
         try {
             EventMessage eventMessage = eventMessageExtractor.extractMessage(message);
             

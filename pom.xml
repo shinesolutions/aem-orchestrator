@@ -66,7 +66,7 @@
               <value>conf/log4j.properties</value>
             </property>
           </systemProperties>
-          <argLine>-Xms512m -Xmx1500m</argLine>
+          <argLine>${argLine} -Xms512m -Xmx1500m</argLine>
           <parallel>methods</parallel>
           <forkMode>pertest</forkMode>
         </configuration>
@@ -177,6 +177,28 @@
           <executable>true</executable>
         </configuration>
       </plugin>
+
+      <plugin>
+          <groupId>org.jacoco</groupId>
+          <artifactId>jacoco-maven-plugin</artifactId>
+          <version>0.7.9</version>
+          <executions>
+              <execution>
+                  <id>default-prepare-agent</id>
+                  <goals>
+                      <goal>prepare-agent</goal>
+                  </goals>
+              </execution>
+              <execution>
+                  <id>default-report</id>
+                  <phase>prepare-package</phase>
+                  <goals>
+                      <goal>report</goal>
+                  </goals>
+              </execution>
+          </executions>
+      </plugin>
+
     </plugins>
 
     <extensions>
@@ -307,6 +329,14 @@
       <version>4.11</version>
       <scope>test</scope>
     </dependency>
+
+    <!-- Test Coverage -->
+    <dependency>
+      <groupId>org.jacoco</groupId>
+      <artifactId>jacoco-maven-plugin</artifactId>
+      <version>0.7.9</version>
+    </dependency>
+
   </dependencies>
 
 </project>
