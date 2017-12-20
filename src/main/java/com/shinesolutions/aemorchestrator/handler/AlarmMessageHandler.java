@@ -29,6 +29,7 @@ public class AlarmMessageHandler implements MessageHandler {
 
     @Override
     public boolean handleEvent(String message) {
+        logger.debug("Raw message: " + message);
         boolean success = false;
         
         try {

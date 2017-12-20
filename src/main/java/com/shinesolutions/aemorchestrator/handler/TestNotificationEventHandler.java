@@ -11,6 +11,8 @@ public class TestNotificationEventHandler implements MessageHandler {
 
     @Override
     public boolean handleEvent(String message) {
+        logger.debug("Raw message: " + message);
+
         logger.info("Test notification received, ignoring");
         return true;
     }
