@@ -5,6 +5,7 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.springframework.test.util.ReflectionTestUtils.setField;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -32,7 +33,9 @@ public class AlarmContentHealthCheckActionTest {
     }
 
     @Test
-    public void testSuccess() {
+    public void testTerminateSuccess() {
+        setField(alarmContentHealthCheckAction,"terminateInstance",true);
+
         boolean result = alarmContentHealthCheckAction.execute(instanceId);
         
         //Insure it terminates the publish instance
@@ -40,9 +43,22 @@ public class AlarmContentHealthCheckActionTest {
         
         assertThat(result, equalTo(true));
     }
+
+    @Test
+    public void testNotifySuccess() {
+        setField(alarmContentHealthCheckAction,"terminateInstance",false);
+
+        boolean result = alarmContentHealthCheckAction.execute(instanceId);
+
+        //Insure it terminates the publish instance
+        verify(awsHelperService, times(0)).terminateInstance(instanceId);
+
+        assertThat(result, equalTo(true));
+    }
     
     @Test
-    public void testWithException() {
+    public void testTerminateWithException() {
+        setField(alarmContentHealthCheckAction,"terminateInstance",true);
         doThrow(new RuntimeException()).when(awsHelperService).terminateInstance(instanceId);
         
         boolean result = alarmContentHealthCheckAction.execute(instanceId);
