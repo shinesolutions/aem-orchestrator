@@ -1,6 +1,8 @@
 ### 1.0.1
 * Fix replication agent pausing not adding activated content to the queue #31
 * Fix unrecognised InvokingAlarms field error when ASG scale up policy is triggered #30
+* Add debug logs showing raw message on each event handler #34
+* Modify resource readiness checker to use exponential backoff retry policy #29
 
 ### 1.0.0
 * increase the default the wait for healthy author elb time to 12.5 minutes.
