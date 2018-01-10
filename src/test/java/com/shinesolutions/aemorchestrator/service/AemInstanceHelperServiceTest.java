@@ -1,5 +1,6 @@
 package com.shinesolutions.aemorchestrator.service;
 
+import com.amazonaws.services.ec2.model.DescribeInstancesRequest;
 import com.shinesolutions.aemorchestrator.exception.InstanceNotInHealthyStateException;
 import com.shinesolutions.aemorchestrator.exception.NoPairFoundException;
 import com.shinesolutions.aemorchestrator.model.EC2Instance;
@@ -22,6 +23,7 @@ import java.util.*;
 import static com.shinesolutions.aemorchestrator.model.InstanceTags.*;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.startsWith;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
@@ -35,6 +37,7 @@ public class AemInstanceHelperServiceTest {
     private String aemPublishProtocol;
     private String aemAuthorDispatcherProtocol;
     private String aemAuthorProtocol;
+    private String awsPublishDispatcherStackName;
     private Integer aemPublishDispatcherPort;
     private Integer aemPublishPort;
     private Integer aemAuthorDispatcherPort;
@@ -69,11 +72,13 @@ public class AemInstanceHelperServiceTest {
         envValues.setAutoScaleGroupNameForAuthorDispatcher("authorTestName");
         envValues.setElasticLoadBalancerNameForAuthor("elasticLoadBalancerNameForAuthor");
         envValues.setElasticLoadBalancerAuthorDns("elasticLoadBalancerAuthorDns");
+        envValues.setTopicArn("topicArn");
         
         aemPublishDispatcherProtocol = "pdpd";
         aemPublishProtocol = "pppp";
         aemAuthorDispatcherProtocol = "adad";
         aemAuthorProtocol = "aaaa";
+        awsPublishDispatcherStackName = "awsPublishDispatcherStackName";
         aemPublishDispatcherPort = 1111;
         aemPublishPort = 2222;
         aemAuthorDispatcherPort = 3333;
@@ -85,6 +90,7 @@ public class AemInstanceHelperServiceTest {
         setField(aemHelperService, "aemPublishProtocol", aemPublishProtocol);
         setField(aemHelperService, "aemAuthorDispatcherProtocol", aemAuthorDispatcherProtocol);
         setField(aemHelperService, "aemAuthorProtocol", aemAuthorProtocol);
+        setField(aemHelperService, "awsPublishDispatcherStackName", awsPublishDispatcherStackName);
         
         setField(aemHelperService, "aemPublishDispatcherPort", aemPublishDispatcherPort);
         setField(aemHelperService, "aemPublishPort", aemPublishPort);
@@ -130,7 +136,7 @@ public class AemInstanceHelperServiceTest {
     @Test
     public void testGetPublishIdToSnapshotFrom() throws Exception {
         String excludeInstanceId = "exclude-352768";
-        List<String> instanceIds = new ArrayList<String>();
+        List<String> instanceIds = new ArrayList<>();
         instanceIds.add(excludeInstanceId);
         instanceIds.add(instanceId);
         instanceIds.add("extra-89351");
@@ -145,12 +151,10 @@ public class AemInstanceHelperServiceTest {
         when(awsHelperService.getInstanceIdsForAutoScalingGroup(
             envValues.getAutoScaleGroupNameForPublish())).thenReturn(instanceIds);
 
-        Map<String, String> instanceTags1 = new HashMap<String, String>();
-        Map<String, String> instanceTags2 = new HashMap<String, String>();
-        instanceTags2.put(InstanceTags.SNAPSHOT_ID.getTagName(), "");
+        Map<String, String> instanceTags1 = new HashMap<>();
+        instanceTags1.put(InstanceTags.SNAPSHOT_ID.getTagName(), "");
 
         when(awsHelperService.getTags(anyString())).thenReturn(instanceTags1);
-        when(awsHelperService.getTags(anyString())).thenReturn(instanceTags2);
 
         when(awsHelperService.getLaunchTime(instanceId)).thenReturn(originalDate);
         when(awsHelperService.getLaunchTime("extra-89351")).thenReturn(originalPlusOneDate);
@@ -161,11 +165,68 @@ public class AemInstanceHelperServiceTest {
         
         assertThat(resultInstanceId, equalTo(instanceId));
     }
+
+    @Test
+    public void testGetPublishIdToSnapshotFromWithSameLaunchTime() throws Exception {
+        final String alphabeticallyFirst = "AAA";
+        final String alphabeticallySecond = "BBB";
+        List<String> instanceIds = new ArrayList<>();
+        instanceIds.add(alphabeticallySecond);
+        instanceIds.add(alphabeticallyFirst);
+
+        when(awsHelperService.getInstanceIdsForAutoScalingGroup(
+                envValues.getAutoScaleGroupNameForPublish())).thenReturn(instanceIds);
+
+        Map<String, String> instanceTags1 = new HashMap<>();
+        instanceTags1.put(InstanceTags.SNAPSHOT_ID.getTagName(), "");
+
+        when(awsHelperService.getTags(anyString())).thenReturn(instanceTags1);
+
+        Date originalDate = new Date();
+        when(awsHelperService.getLaunchTime(alphabeticallyFirst)).thenReturn(originalDate);
+        when(awsHelperService.getLaunchTime(alphabeticallySecond)).thenReturn(originalDate);
+
+        when(httpUtil.isHttpGetResponseOk(anyString())).thenReturn(true);
+
+        String resultInstanceId = aemHelperService.getPublishIdToSnapshotFrom("exclude-352768");
+
+        assertThat(resultInstanceId, equalTo(alphabeticallyFirst));
+    }
+    
+    @Test
+    public void testGetPublishIdToSnapshotFromWithOnlyExcludedInstance() {
+        String excludeInstanceId = "exclude-352768";
+        List<String> instanceIds = new ArrayList<>();
+        instanceIds.add(excludeInstanceId);
+
+        when(awsHelperService.getInstanceIdsForAutoScalingGroup(
+                envValues.getAutoScaleGroupNameForPublish())).thenReturn(instanceIds);
+
+        String resultInstanceId = aemHelperService.getPublishIdToSnapshotFrom(excludeInstanceId);
+
+        assertThat(resultInstanceId, equalTo(null));
+    }
+
+    @Test
+    public void testGetPublishIdToSnapshotFromWithNoTagName() {
+        String excludeInstanceId = "exclude-352768";
+        List<String> instanceIds = new ArrayList<>();
+        instanceIds.add(instanceId);
+
+        when(awsHelperService.getInstanceIdsForAutoScalingGroup(
+                envValues.getAutoScaleGroupNameForPublish())).thenReturn(instanceIds);
+
+        when(awsHelperService.getTags(anyString())).thenReturn(new HashMap<>());
+
+        String resultInstanceId = aemHelperService.getPublishIdToSnapshotFrom(excludeInstanceId);
+
+        assertThat(resultInstanceId, equalTo(null));
+    }
     
     @Test
     public void testGetPublishIdToSnapshotFromWithNoInstances() throws Exception {
         when(awsHelperService.getInstanceIdsForAutoScalingGroup(
-            envValues.getAutoScaleGroupNameForPublish())).thenReturn(new ArrayList<String>());
+            envValues.getAutoScaleGroupNameForPublish())).thenReturn(new ArrayList<>());
         
         String resultInstanceId = aemHelperService.getPublishIdToSnapshotFrom("s-2397106");
         
@@ -716,4 +777,21 @@ public class AemInstanceHelperServiceTest {
         assertThat(resultId, equalTo(snapshotId));
     }
 
+    @Test
+    public void testCreateContentHealthAlarmForPublisher() {
+        aemHelperService.createContentHealthAlarmForPublisher(instanceId);
+
+        final ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
+        verify(awsHelperService).createContentHealthCheckAlarm(captor.capture(), captor.capture(), eq(instanceId), eq(awsPublishDispatcherStackName), eq(envValues.getTopicArn()));
+        assertThat(captor.getAllValues().stream().allMatch(param -> param.endsWith(instanceId)), is(true));
+    }
+    
+    @Test
+    public void testDeleteContentHealthAlarmForPublisher() {
+        aemHelperService.deleteContentHealthAlarmForPublisher(instanceId);
+
+        final ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
+        verify(awsHelperService).deleteAlarm(captor.capture());
+        assertThat(captor.getValue().endsWith(instanceId), is(true));
+    } 
 }
