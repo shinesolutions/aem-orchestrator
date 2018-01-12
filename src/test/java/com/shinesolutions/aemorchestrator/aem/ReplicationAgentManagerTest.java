@@ -23,8 +23,6 @@ public class ReplicationAgentManagerTest {
 
     private AemApiHelper aemApiHelper;
 
-    private AemCredentials aemCredentials;
-
     private AgentRequestFactory agentRequestFactory;
 
     private String authorAemBaseUrl;
@@ -58,7 +56,7 @@ public class ReplicationAgentManagerTest {
         replicatorCredentials.setUserName("orchestratorUsername");
         replicatorCredentials.setPassword("orchestratorPassword");
 
-        aemCredentials = new AemCredentials();
+        AemCredentials aemCredentials = new AemCredentials();
         aemCredentials.setReplicatorCredentials(replicatorCredentials);
         aemCredentials.setOrchestratorCredentials(orchestratorCredentials);
 
