@@ -7,7 +7,7 @@ import com.shinesolutions.swaggeraem4j.ApiResponse;
 import com.shinesolutions.swaggeraem4j.api.SlingApi;
 
 /**
- * Wrapper for making cals to the AEM Client API easier
+ * Wrapper for making calls to the AEM Client API easier
  *
  */
 @Component
