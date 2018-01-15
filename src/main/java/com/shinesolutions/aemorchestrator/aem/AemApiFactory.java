@@ -26,11 +26,11 @@ public class AemApiFactory {
         REPLICATOR
     };
     
-    public SlingApi getSlingApi(String baseBath, AgentAction action) {
+    public SlingApi getSlingApi(String basePath, AgentAction action) {
         //Only a 'create' type agent action requires the replicator user
         UserType user = action == AgentAction.CREATE ? UserType.REPLICATOR : UserType.ORCHESTRATOR;
 
-        return new SlingApi(getApiClient(baseBath, user));
+        return new SlingApi(getApiClient(basePath, user));
     }
     
     private ApiClient getApiClient(String basePath, UserType user) {
