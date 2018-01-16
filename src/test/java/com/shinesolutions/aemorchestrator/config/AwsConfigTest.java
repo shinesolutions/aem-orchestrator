@@ -5,8 +5,6 @@ import com.amazonaws.auth.AWSCredentialsProvider;
 import com.shinesolutions.aemorchestrator.model.ProxyDetails;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.runners.MockitoJUnitRunner;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
@@ -14,7 +12,6 @@ import static org.hamcrest.core.IsNull.notNullValue;
 import static org.hamcrest.core.IsNull.nullValue;
 import static org.springframework.test.util.ReflectionTestUtils.setField;
 
-@RunWith(MockitoJUnitRunner.class)
 public class AwsConfigTest {
 
     private AwsConfig awsConfig;

@@ -6,8 +6,6 @@ import com.shinesolutions.aemorchestrator.model.EnvironmentValues;
 import com.shinesolutions.aemorchestrator.model.EventType;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.runners.MockitoJUnitRunner;
 
 import java.util.Map;
 
@@ -16,7 +14,6 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
 public class MappingConfigTest {
 
     private MappingConfig mappingConfig;
@@ -58,10 +55,10 @@ public class MappingConfigTest {
         when(environmentValues.getAutoScaleGroupNameForPublishDispatcher()).thenReturn(key1);
         when(environmentValues.getAutoScaleGroupNameForPublish()).thenReturn(key2);
         when(environmentValues.getAutoScaleGroupNameForAuthorDispatcher()).thenReturn(key3);
-        
+
         Map<String, Action> mappings = mappingConfig.scaleDownAutoScaleGroupMappings(
-                scaleDownPublishDispatcherAction, 
-                scaleDownPublishAction, 
+                scaleDownPublishDispatcherAction,
+                scaleDownPublishAction,
                 scaleDownAuthorDispatcherAction,
                 environmentValues);
 
@@ -85,7 +82,7 @@ public class MappingConfigTest {
         when(environmentValues.getAutoScaleGroupNameForAuthorDispatcher()).thenReturn(key3);
 
         Map<String, Action> mappings = mappingConfig.scaleUpAutoScaleGroupMappings(
-                scaleUpPublishDispatcherAction, 
+                scaleUpPublishDispatcherAction,
                 scaleUpPublishAction,
                 scaleUpAuthorDispatcherAction,
                 environmentValues);
