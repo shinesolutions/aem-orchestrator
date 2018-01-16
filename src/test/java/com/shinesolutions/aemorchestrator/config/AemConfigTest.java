@@ -8,8 +8,11 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.runners.MockitoJUnitRunner;
 
+import java.io.IOException;
+
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.util.ReflectionTestUtils.setField;
@@ -43,6 +46,17 @@ public class AemConfigTest {
         assertThat(aemCredentials.getOrchestratorCredentials().getPassword(), equalTo(orchestratorPassword));
         assertThat(aemCredentials.getReplicatorCredentials().getUserName(), equalTo(replicatorUsername));
         assertThat(aemCredentials.getReplicatorCredentials().getPassword(), equalTo(replicatorPassword));
+    }
+    
+    @Test (expected = IOException.class)
+    public void testAemCredentials_ReadingThrowsException() throws Exception {
+        String s3CredentialFileUri = "s3CredentialFileUri";
+        setField(aemConfig, "s3CredentialFileUri", s3CredentialFileUri);
+        setField(aemConfig, "readCredentialsFromS3", true);
+
+        AwsHelperService awsHelperService = mock(AwsHelperService.class);
+        when(awsHelperService.readFileFromS3(s3CredentialFileUri)).thenThrow(new IOException());
+        aemConfig.aemCredentials(awsHelperService);
     }
 
     @Test
