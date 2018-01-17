@@ -56,7 +56,16 @@ public class AutoScalingLaunchEventHandlerTest {
     }
 
     @Test
-    public void testNoActionFound() throws Exception {
+    public void testNoActionToPerform() {
+        message.setDescription("Moving EC2 instance out of Standby");
+    
+        boolean result = handler.handleEvent(messageContent);
+        
+        assertThat(result, equalTo(true));
+    } 
+    
+    @Test
+    public void testNoActionFound() {
         when(scaleUpAutoScaleGroupMappings.get(anyString())).thenReturn(null);
         
         boolean result = handler.handleEvent(messageContent);
@@ -65,7 +74,17 @@ public class AutoScalingLaunchEventHandlerTest {
     }
     
     @Test
-    public void testInstanceNotRunning() throws Exception {
+    public void testNoActionFoundWithEventDescription() {
+        message.setDescription("Test description");
+        when(scaleUpAutoScaleGroupMappings.get(anyString())).thenReturn(null);
+        
+        boolean result = handler.handleEvent(messageContent);
+        
+        assertThat(result, equalTo(false));
+    }
+    
+    @Test
+    public void testInstanceNotRunning() {
         when(scaleUpAutoScaleGroupMappings.get(anyString())).thenReturn(action);
         when(awsHelperService.isInstanceRunning(message.getEC2InstanceId())).thenReturn(false);
         
@@ -76,7 +95,7 @@ public class AutoScalingLaunchEventHandlerTest {
     }
     
     @Test
-    public void testInstanceHandlesExceptionsGracefully() throws Exception {
+    public void testInstanceHandlesExceptionsGracefully() {
         when(scaleUpAutoScaleGroupMappings.get(anyString())).thenThrow(new RuntimeException());
         
         boolean result = handler.handleEvent(messageContent);
@@ -85,7 +104,7 @@ public class AutoScalingLaunchEventHandlerTest {
     }
     
     @Test
-    public void testSuccessAndActionDeleteMessage() throws Exception {
+    public void testSuccessAndActionDeleteMessage() {
         when(scaleUpAutoScaleGroupMappings.get(anyString())).thenReturn(action);
         when(awsHelperService.isInstanceRunning(message.getEC2InstanceId())).thenReturn(true);
         when(action.execute(message.getEC2InstanceId())).thenReturn(true);
@@ -97,7 +116,7 @@ public class AutoScalingLaunchEventHandlerTest {
     }
     
     @Test
-    public void testSuccessAndActionKeepMessage() throws Exception {
+    public void testSuccessAndActionKeepMessage() {
         when(scaleUpAutoScaleGroupMappings.get(anyString())).thenReturn(action);
         when(awsHelperService.isInstanceRunning(message.getEC2InstanceId())).thenReturn(true);
         when(action.execute(message.getEC2InstanceId())).thenReturn(false);
