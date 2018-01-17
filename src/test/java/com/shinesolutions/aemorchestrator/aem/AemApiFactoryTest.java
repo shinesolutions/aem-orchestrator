@@ -19,60 +19,60 @@ import static org.springframework.test.util.ReflectionTestUtils.setField;
 
 @RunWith(MockitoJUnitRunner.class)
 public class AemApiFactoryTest {
-
+    
     @InjectMocks
     private AemApiFactory aemApiFactory;
-
+    
     @Mock
     private AemCredentials aemCredentials;
-
+    
     private String basePath;
-
+    
     private Integer connectionTimeout;
-
+    
     private Boolean useDebug;
-
+    
     @Before
     public void setup() {
         basePath = "testBasePath";
         useDebug = false;
         connectionTimeout = 30000;
-
+        
         setField(aemApiFactory, "useDebug", useDebug);
         setField(aemApiFactory, "connectionTimeout", connectionTimeout);
     }
-
+    
     @Test
     public void testGetSlingApi_ClientIsOrchestrator() {
         UserPasswordCredentials orchestratorCredentials = new UserPasswordCredentials();
         orchestratorCredentials.setUserName("orchestratorUsername");
         orchestratorCredentials.setPassword("orchestratorPassword");
         when(aemCredentials.getOrchestratorCredentials()).thenReturn(orchestratorCredentials);
-
+        
         SlingApi result = aemApiFactory.getSlingApi(basePath, AgentAction.DELETE);
-
+        
         assertThat(result.getApiClient().getBasePath(), equalTo(basePath));
         assertThat(result.getApiClient().isDebugging(), is(useDebug));
         assertThat(result.getApiClient().getConnectTimeout(), equalTo(connectionTimeout));
-
+        
         HttpBasicAuth auth = (HttpBasicAuth) result.getApiClient().getAuthentication("aemAuth");
         assertThat(auth.getUsername(), equalTo(orchestratorCredentials.getUserName()));
         assertThat(auth.getPassword(), equalTo(orchestratorCredentials.getPassword()));
     }
-
+    
     @Test
     public void testGetSlingApi_ClientIsReplicator() {
         UserPasswordCredentials replicatorCredentials = new UserPasswordCredentials();
         replicatorCredentials.setUserName("replicatorUsername");
         replicatorCredentials.setPassword("replicatorPassword");
         when(aemCredentials.getReplicatorCredentials()).thenReturn(replicatorCredentials);
-
+        
         SlingApi result = aemApiFactory.getSlingApi(basePath, AgentAction.CREATE);
-
+        
         assertThat(result.getApiClient().getBasePath(), equalTo(basePath));
         assertThat(result.getApiClient().isDebugging(), is(useDebug));
         assertThat(result.getApiClient().getConnectTimeout(), equalTo(connectionTimeout));
-
+        
         HttpBasicAuth auth = (HttpBasicAuth) result.getApiClient().getAuthentication("aemAuth");
         assertThat(auth.getUsername(), equalTo(replicatorCredentials.getUserName()));
         assertThat(auth.getPassword(), equalTo(replicatorCredentials.getPassword()));

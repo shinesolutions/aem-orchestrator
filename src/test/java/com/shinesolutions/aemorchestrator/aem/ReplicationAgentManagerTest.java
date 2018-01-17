@@ -18,34 +18,34 @@ import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ReplicationAgentManagerTest {
-
+    
     @Mock
     private AemApiFactory aemApiFactory;
-
+    
     @Mock
     private AemApiHelper aemApiHelper;
-
+    
     @Mock
     private AemCredentials aemCredentials;
-
+    
     @Mock
     private AgentRequestFactory agentRequestFactory;
-
+    
     private String authorAemBaseUrl;
-
+    
     private String password;
-
+    
     private String publishAemBaseUrl;
-
+    
     private String publishId;
-
+    
     @InjectMocks
     private ReplicationAgentManager replicationAgentManager;
-
+    
     private AgentRunMode runMode;
-
+    
     private SlingApi slingApi;
-
+    
     private String username;
     
     @Before
@@ -56,19 +56,19 @@ public class ReplicationAgentManagerTest {
         runMode = AgentRunMode.AUTHOR;
         username = "replicatorUsername";
         password = "replicatorPassword";
-
+        
         UserPasswordCredentials replicatorCredentials = new UserPasswordCredentials();
         replicatorCredentials.setUserName(username);
         replicatorCredentials.setPassword(password);
         when(aemCredentials.getReplicatorCredentials()).thenReturn(replicatorCredentials);
-
+        
         slingApi = new SlingApi();
         when(aemApiFactory.getSlingApi(anyString(), any(AgentAction.class))).thenReturn(slingApi);
-
+        
         ApiResponse<Void> response = new ApiResponse<>(1, null, null);
         when(aemApiHelper.postAgentWithHttpInfo(any(SlingApi.class), any(PostAgentWithHttpInfoRequest.class))).thenReturn(response);
     }
-
+    
     @Test
     public void testCreateReplicationAgent() throws ApiException {
         PostAgentWithHttpInfoRequest request = new PostAgentWithHttpInfoRequest();
@@ -80,9 +80,9 @@ public class ReplicationAgentManagerTest {
                 anyString(),
                 anyString()))
                 .thenReturn(request);
-
+        
         replicationAgentManager.createReplicationAgent(publishId, publishAemBaseUrl, authorAemBaseUrl, runMode);
-
+        
         verify(agentRequestFactory).getCreateReplicationAgentRequest(
                 eq(runMode),
                 endsWith(publishId),
@@ -93,7 +93,7 @@ public class ReplicationAgentManagerTest {
         verify(aemApiFactory).getSlingApi(eq(authorAemBaseUrl), eq(AgentAction.CREATE));
         verify(aemApiHelper).postAgentWithHttpInfo(slingApi, request);
     }
-
+    
     @Test
     public void testCreateReverseReplicationAgent() throws ApiException {
         PostAgentWithHttpInfoRequest request = new PostAgentWithHttpInfoRequest();
@@ -105,9 +105,9 @@ public class ReplicationAgentManagerTest {
                 anyString(),
                 anyString()))
                 .thenReturn(request);
-
+        
         replicationAgentManager.createReverseReplicationAgent(publishId, publishAemBaseUrl, authorAemBaseUrl, runMode);
-
+        
         verify(agentRequestFactory).getCreateReverseReplicationAgentRequest(
                 eq(runMode),
                 endsWith(publishId),
@@ -118,43 +118,43 @@ public class ReplicationAgentManagerTest {
         verify(aemApiFactory).getSlingApi(eq(authorAemBaseUrl), eq(AgentAction.CREATE));
         verify(aemApiHelper).postAgentWithHttpInfo(slingApi, request);
     }
-
+    
     @Test
     public void testDeleteReplicationAgent() throws ApiException {
         PostAgentWithHttpInfoRequest request = new PostAgentWithHttpInfoRequest();
         when(agentRequestFactory.getDeleteAgentRequest(any(AgentRunMode.class), anyString())).thenReturn(request);
-
+        
         replicationAgentManager.deleteReplicationAgent(publishId, authorAemBaseUrl, runMode);
-
+        
         verify(agentRequestFactory).getDeleteAgentRequest(eq(runMode), endsWith(publishId));
         verify(aemApiFactory).getSlingApi(eq(authorAemBaseUrl), eq(AgentAction.DELETE));
         verify(aemApiHelper).postAgentWithHttpInfo(slingApi, request);
     }
-
+    
     @Test
     public void testDeleteReverseReplicationAgent() throws ApiException {
         PostAgentWithHttpInfoRequest request = new PostAgentWithHttpInfoRequest();
         when(agentRequestFactory.getDeleteAgentRequest(any(AgentRunMode.class), anyString())).thenReturn(request);
-
+        
         replicationAgentManager.deleteReverseReplicationAgent(publishId, authorAemBaseUrl, runMode);
-
+        
         verify(agentRequestFactory).getDeleteAgentRequest(eq(runMode), endsWith(publishId));
         verify(aemApiFactory).getSlingApi(eq(authorAemBaseUrl), eq(AgentAction.DELETE));
         verify(aemApiHelper).postAgentWithHttpInfo(slingApi, request);
     }
-
+    
     @Test
     public void testPauseReplicationAgent() throws ApiException {
         PostAgentWithHttpInfoRequest request = new PostAgentWithHttpInfoRequest();
         when(agentRequestFactory.getPauseReplicationAgentRequest(any(AgentRunMode.class), anyString())).thenReturn(request);
-
+        
         replicationAgentManager.pauseReplicationAgent(publishId, authorAemBaseUrl, runMode);
-
+        
         verify(agentRequestFactory).getPauseReplicationAgentRequest(eq(runMode), endsWith(publishId));
         verify(aemApiFactory).getSlingApi(eq(authorAemBaseUrl), eq(AgentAction.PAUSE));
         verify(aemApiHelper).postAgentWithHttpInfo(slingApi, request);
     }
-
+    
     @Test
     public void testResumeReplicationAgent() throws ApiException {
         PostAgentWithHttpInfoRequest request = new PostAgentWithHttpInfoRequest();
@@ -164,9 +164,9 @@ public class ReplicationAgentManagerTest {
                 anyString(),
                 anyString()))
                 .thenReturn(request);
-
+        
         replicationAgentManager.resumeReplicationAgent(publishId, authorAemBaseUrl, runMode);
-
+        
         verify(agentRequestFactory).getResumeReplicationAgentRequest(
                 eq(runMode),
                 endsWith(publishId),
