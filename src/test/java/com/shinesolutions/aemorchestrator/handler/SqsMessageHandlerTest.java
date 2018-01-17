@@ -11,6 +11,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.util.ReflectionTestUtils.setField;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -30,8 +31,6 @@ import com.shinesolutions.aemorchestrator.util.SnsMessageExtractor;
 @RunWith(MockitoJUnitRunner.class)
 public class SqsMessageHandlerTest {
 
-    private Map<String, MessageHandler> eventTypeHandlerMappings;
-    
     @Mock
     private SnsMessageExtractor snsMessageExtractor;
 
@@ -44,15 +43,12 @@ public class SqsMessageHandlerTest {
     private MessageHandler mockEventHandler1;
     private MessageHandler mockEventHandler2;
     
-    private String subject;
-    private String messageBody;
-    
     private static final String TEXT = "\"text\"";
 
     @Before
     public void setup() throws Exception {
-        subject = "test1Subject";
-        messageBody = TEXT.replace("\"", "\\\"");
+        String subject = "test1Subject";
+        String messageBody = TEXT.replace("\"", "\\\"");
         
         snsMessage = new SnsMessage();
         snsMessage.setSubject(subject);
@@ -61,7 +57,7 @@ public class SqsMessageHandlerTest {
         mockEventHandler1 = mock(MessageHandler.class);
         mockEventHandler2 = mock(MessageHandler.class);
         
-        eventTypeHandlerMappings = new HashMap<String, MessageHandler>();
+        Map<String, MessageHandler> eventTypeHandlerMappings = new HashMap<>();
         eventTypeHandlerMappings.put("test1", mockEventHandler1);
         eventTypeHandlerMappings.put("test2", mockEventHandler2);
 
@@ -74,7 +70,7 @@ public class SqsMessageHandlerTest {
     }
 
     @Test
-    public void testSuccess() throws Exception {
+    public void testSuccess() {
         ArgumentCaptor<String> eventMessageCaptor = ArgumentCaptor.forClass(String.class);
 
         when(mockEventHandler1.handleEvent(anyString())).thenReturn(true);
@@ -90,7 +86,7 @@ public class SqsMessageHandlerTest {
     }
 
     @Test
-    public void testSuccessWithDifferentSubject() throws Exception {
+    public void testSuccessWithDifferentSubject() {
         snsMessage.setSubject("test2Subject");
         
         when(mockEventHandler2.handleEvent(anyString())).thenReturn(true);
@@ -115,10 +111,35 @@ public class SqsMessageHandlerTest {
         assertThat(result, equalTo(true));
     }
 
-
     @Test
-    public void testNoEventHandlerFound() throws Exception {
-        snsMessage.setSubject("uknownSubject");
+    public void testNoSnsMessage() throws IOException {
+        snsMessage = null;
+        when(snsMessageExtractor.extractMessage(anyString())).thenReturn(snsMessage);
+        
+    
+        boolean result = sqsMessageHandler.handleMessage(testMessage);
+    
+        verify(mockEventHandler1, never()).handleEvent(anyString());
+        verify(mockEventHandler2, never()).handleEvent(anyString());
+    
+        assertThat(result, equalTo(false));
+    }
+    
+    @Test
+    public void testNoSnsMessageSubject() {
+        snsMessage.setSubject(null);
+
+        boolean result = sqsMessageHandler.handleMessage(testMessage);
+
+        verify(mockEventHandler1, never()).handleEvent(anyString());
+        verify(mockEventHandler2, never()).handleEvent(anyString());
+
+        assertThat(result, equalTo(false));
+    }
+    
+    @Test
+    public void testNoEventHandlerFound() {
+        snsMessage.setSubject("unknownSubject");
 
         boolean result = sqsMessageHandler.handleMessage(testMessage);
 
@@ -139,5 +160,4 @@ public class SqsMessageHandlerTest {
 
         assertThat(result, equalTo(false));
     }
-
 }
