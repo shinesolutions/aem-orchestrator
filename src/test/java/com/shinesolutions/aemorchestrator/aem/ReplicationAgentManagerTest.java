@@ -42,13 +42,12 @@ public class ReplicationAgentManagerTest {
     @InjectMocks
     private ReplicationAgentManager replicationAgentManager;
 
-    private SlingApi slingApi;
-
     private AgentRunMode runMode;
 
+    private SlingApi slingApi;
+
     private String username;
-
-
+    
     @Before
     public void setup() throws ApiException {
         publishId = "testPublishId";

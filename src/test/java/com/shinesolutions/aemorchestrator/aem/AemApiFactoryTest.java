@@ -14,7 +14,6 @@ import org.mockito.runners.MockitoJUnitRunner;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.util.ReflectionTestUtils.setField;
 
@@ -49,7 +48,7 @@ public class AemApiFactoryTest {
         orchestratorCredentials.setUserName("orchestratorUsername");
         orchestratorCredentials.setPassword("orchestratorPassword");
         when(aemCredentials.getOrchestratorCredentials()).thenReturn(orchestratorCredentials);
-        
+
         SlingApi result = aemApiFactory.getSlingApi(basePath, AgentAction.DELETE);
 
         assertThat(result.getApiClient().getBasePath(), equalTo(basePath));
@@ -67,7 +66,7 @@ public class AemApiFactoryTest {
         replicatorCredentials.setUserName("replicatorUsername");
         replicatorCredentials.setPassword("replicatorPassword");
         when(aemCredentials.getReplicatorCredentials()).thenReturn(replicatorCredentials);
-        
+
         SlingApi result = aemApiFactory.getSlingApi(basePath, AgentAction.CREATE);
 
         assertThat(result.getApiClient().getBasePath(), equalTo(basePath));
