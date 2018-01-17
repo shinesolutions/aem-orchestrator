@@ -15,50 +15,50 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.util.ReflectionTestUtils.setField;
 
 public class AemConfigTest {
-
+    
     private AemConfig aemConfig;
-
+    
     @Before
     public void setup() {
         aemConfig = new AemConfig();
     }
-
+    
     @Test
     public void testAemCredentials_ReadFromPropertiesFile() throws Exception {
         String orchestratorUsername = "orchestratorUsername";
         String orchestratorPassword = "orchestratorPassword";
         String replicatorUsername = "replicatorUsername";
         String replicatorPassword = "replicatorPassword";
-
+        
         setField(aemConfig, "readCredentialsFromS3", false);
         setField(aemConfig, "orchestratorUsername", orchestratorUsername);
         setField(aemConfig, "orchestratorPassword", orchestratorPassword);
         setField(aemConfig, "replicatorUsername", replicatorUsername);
         setField(aemConfig, "replicatorPassword", replicatorPassword);
-
+        
         AemCredentials aemCredentials = aemConfig.aemCredentials(null);
-
+        
         assertThat(aemCredentials.getOrchestratorCredentials().getUserName(), equalTo(orchestratorUsername));
         assertThat(aemCredentials.getOrchestratorCredentials().getPassword(), equalTo(orchestratorPassword));
         assertThat(aemCredentials.getReplicatorCredentials().getUserName(), equalTo(replicatorUsername));
         assertThat(aemCredentials.getReplicatorCredentials().getPassword(), equalTo(replicatorPassword));
     }
-
+    
     @Test(expected = IOException.class)
     public void testAemCredentials_ReadingThrowsException() throws Exception {
         String s3CredentialFileUri = "s3CredentialFileUri";
         setField(aemConfig, "s3CredentialFileUri", s3CredentialFileUri);
         setField(aemConfig, "readCredentialsFromS3", true);
-
+        
         AwsHelperService awsHelperService = mock(AwsHelperService.class);
         when(awsHelperService.readFileFromS3(s3CredentialFileUri)).thenThrow(new IOException());
         aemConfig.aemCredentials(awsHelperService);
     }
-
+    
     @Test
     public void testEnvValue() {
         AwsHelperService awsHelperService = mock(AwsHelperService.class);
-
+        
         // Set autoScaleGroupNameForPublishDispatcher
         String awsPublishDispatcherStackName = "awsPublishDispatcherStackName";
         String awsPublishDispatcherAutoScaleGroupLogicalId = "awsPublishDispatcherAutoScaleGroupLogicalId";
@@ -69,7 +69,7 @@ public class AemConfigTest {
                 awsPublishDispatcherStackName,
                 awsPublishDispatcherAutoScaleGroupLogicalId))
                 .thenReturn(autoScaleGroupNameForPublishDispatcher);
-
+        
         // Set autoScaleGroupNameForPublish
         String awsPublishStackName = "awsPublishStackName";
         String awsPublishAutoScaleGroupLogicalId = "awsPublishAutoScaleGroupLogicalId";
@@ -80,7 +80,7 @@ public class AemConfigTest {
                 awsPublishStackName,
                 awsPublishAutoScaleGroupLogicalId))
                 .thenReturn(autoScaleGroupNameForPublish);
-
+        
         // Set autoScaleGroupNameForAuthorDispatcher
         String awsAuthorDispatcherStackName = "awsAuthorDispatcherStackName";
         String awsAuthorDispatcherAutoScaleGroupLogicalId = "awsAuthorDispatcherAutoScaleGroupLogicalId";
@@ -91,7 +91,7 @@ public class AemConfigTest {
                 awsAuthorDispatcherStackName,
                 awsAuthorDispatcherAutoScaleGroupLogicalId))
                 .thenReturn(autoScaleGroupNameForAuthorDispatcher);
-
+        
         // Set elasticLoadBalancerNameForAuthor
         String awsAuthorStackName = "awsAuthorStackName";
         String awsAuthorLoadBalancerLogicalId = "awsAuthorLoadBalancerLogicalId";
@@ -102,11 +102,11 @@ public class AemConfigTest {
                 awsAuthorStackName,
                 awsAuthorLoadBalancerLogicalId))
                 .thenReturn(elasticLoadBalancerNameForAuthor);
-
+        
         // Set elasticLoadBalancerAuthorDns
         String elasticLoadBalancerAuthorDns = "elasticLoadBalancerAuthorDns";
         when(awsHelperService.getElbDnsName(elasticLoadBalancerNameForAuthor)).thenReturn(elasticLoadBalancerAuthorDns);
-
+        
         // Set topicArn
         String awsMessagingStackName = "awsMessagingStackName";
         String awsSnsTopicLogicalId = "awsSnsTopicLogicalId";
@@ -114,9 +114,9 @@ public class AemConfigTest {
         setField(aemConfig, "awsMessagingStackName", awsMessagingStackName);
         setField(aemConfig, "awsSnsTopicLogicalId", awsSnsTopicLogicalId);
         when(awsHelperService.getStackPhysicalResourceId(awsMessagingStackName, awsSnsTopicLogicalId)).thenReturn(topicArn);
-
+        
         EnvironmentValues envValues = aemConfig.envValues(awsHelperService);
-
+        
         assertThat(envValues.getAutoScaleGroupNameForPublishDispatcher(), equalTo(autoScaleGroupNameForPublishDispatcher));
         assertThat(envValues.getAutoScaleGroupNameForPublish(), equalTo(autoScaleGroupNameForPublish));
         assertThat(envValues.getAutoScaleGroupNameForAuthorDispatcher(), equalTo(autoScaleGroupNameForAuthorDispatcher));
