@@ -1,3 +1,6 @@
+### 1.0.2
+*
+
 ### 1.0.1
 * Fix replication agent pausing not adding activated content to the queue #31
 * Fix unrecognised InvokingAlarms field error when ASG scale up policy is triggered #30
