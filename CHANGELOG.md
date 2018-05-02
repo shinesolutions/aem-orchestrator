@@ -1,5 +1,5 @@
 ### 1.0.2
-*
+* Previously, the attribute aws.cloudformation.stackName.publishDispatcher (application.properties) previously used the ARN id. From now on, this uses the Stack Name.
 
 ### 1.0.1
 * Fix replication agent pausing not adding activated content to the queue #31
