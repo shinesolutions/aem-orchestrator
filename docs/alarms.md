@@ -74,5 +74,4 @@ INFO c.s.a.actions.AlarmContentHealthCheckAction - Executing AlarmContentHealthC
 INFO c.s.a.actions.AlarmContentHealthCheckAction - Terminated publish instance i-435dxxxxxxxxxxxxxxx
 ```
 
-
-
+By default, the health check is turned off.
