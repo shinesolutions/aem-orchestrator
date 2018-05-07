@@ -4,14 +4,14 @@
   <artifactId>aem-orchestrator</artifactId>
   <packaging>jar</packaging>
   <name>aem-orchestrator</name>
-  <version>1.0.2-SNAPSHOT</version>
+  <version>1.0.2</version>
   <url>https://github.com/shinesolutions/aem-orchestrator</url>
   <description>Java application for orchestrating AEM infrastructure created using aem-aws-stack-builder</description>
   <scm>
     <connection>scm:git:git@github.com:shinesolutions/aem-orchestrator.git</connection>
     <developerConnection>scm:git:git@github.com:shinesolutions/aem-orchestrator.git</developerConnection>
     <url>https://github.com/shinesolutions/aem-orchestrator</url>
-    <tag>HEAD</tag>
+    <tag>aem-orchestrator-1.0.2</tag>
   </scm>
   <prerequisites>
     <maven>2.2.0</maven>
