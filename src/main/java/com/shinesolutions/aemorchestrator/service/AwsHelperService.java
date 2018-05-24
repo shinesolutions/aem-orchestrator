@@ -251,12 +251,14 @@ public class AwsHelperService {
     }
     
     /**
-     * Gets a physical resource ID on a given stack for a logical resource ID 
-     * @param stackName the name of the cloud formation stack
+     * Gets a physical resource ID on a given stack for a logical resource ID
+     * @param stackName the name or the unique stack ID of the cloud formation stack
      * @param logicalResourceId the logical name of the stack resource
      * @return Physical resource ID
      */
     public String getStackPhysicalResourceId(String stackName, String logicalResourceId) {
+        // describeStackResources takes either name or stack ID
+        // See: https://docs.aws.amazon.com/AWSCloudFormation/latest/APIReference/API_DescribeStackResources.html
         DescribeStackResourcesResult result = amazonCloudFormationClient.describeStackResources(
             new DescribeStackResourcesRequest().withStackName(stackName));
         
