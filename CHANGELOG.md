@@ -1,6 +1,9 @@
+### 1.0.3
+* Change alarm.content.health.check.terminate.instance.enable default to false
+* By default, Orchestrator does not terminate instance when content health check fails
+
 ### 1.0.2
-* Previously, the attribute aws.cloudformation.stackName.publishDispatcher (application.properties) previously used the ARN id. From now on, this uses the Stack Name.
-* Disable automatic termination of instances if content health check fails. See alarm.content.health.check.terminate.instance.enable (application.properties)
+* Fix aws.cloudformation.stackName.publishDispatcher to be really the stack name, it used to have stack ARN
 
 ### 1.0.1
 * Fix replication agent pausing not adding activated content to the queue #31
