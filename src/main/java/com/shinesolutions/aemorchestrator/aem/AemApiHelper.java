@@ -16,9 +16,11 @@ public class AemApiHelper {
     public ApiResponse<Void> postAgentWithHttpInfo(SlingApi slingApi, PostAgentWithHttpInfoRequest request)
         throws ApiException {
         return slingApi.postAgentWithHttpInfo(
-            request.getRunMode(), 
-            request.getName(), 
-            request.getJcrContentCqName(), 
+            request.getRunMode(),
+            request.getName(),
+            request.getJcrContentCqDistribute(),
+            request.getJcrContentCqDistributeTypeHint(),
+            request.getJcrContentCqName(),
             request.getJcrContentCqTemplate(),
             request.getJcrContentEnabled(),
             request.getJcrContentJcrDescription(),

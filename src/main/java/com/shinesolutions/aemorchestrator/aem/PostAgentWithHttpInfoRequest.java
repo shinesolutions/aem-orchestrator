@@ -7,6 +7,8 @@ public class PostAgentWithHttpInfoRequest {
 
     private String runMode;
     private String name;
+    private Boolean jcrContentCqDistribute;
+    private String jcrContentCqDistributeTypeHint;
     private String jcrContentCqName;
     private String jcrContentCqTemplate;
     private Boolean jcrContentEnabled;
@@ -93,6 +95,22 @@ public class PostAgentWithHttpInfoRequest {
     public PostAgentWithHttpInfoRequest withJcrPrimaryType(String jcrPrimaryType) {
         this.setJcrPrimaryType(jcrPrimaryType);
         return this;
+    }
+
+    public Boolean getJcrContentCqDistribute() {
+        return jcrContentCqDistribute;
+    }
+
+    public void setJcrContentCqDistribute(Boolean jcrContentCqDistribute) {
+        this.jcrContentCqDistribute = jcrContentCqDistribute;
+    }
+
+    public String getJcrContentCqDistributeTypeHint() {
+        return jcrContentCqDistributeTypeHint;
+    }
+
+    public void setJcrContentCqDistributeTypeHint(String jcrContentCqDistributeTypeHint) {
+        this.jcrContentCqDistributeTypeHint = jcrContentCqDistributeTypeHint;
     }
 
     public String getJcrContentCqName() {
@@ -469,7 +487,7 @@ public class PostAgentWithHttpInfoRequest {
     public void setJcrContentProtocolHTTPExpired(String jcrContentProtocolHTTPExpired) {
         this.jcrContentProtocolHTTPExpired = jcrContentProtocolHTTPExpired;
     }
-    
+
     public PostAgentWithHttpInfoRequest withJcrContentProtocolHTTPExpired(String  jcrContentProtocolHTTPExpired) {
         this.setJcrContentProtocolHTTPExpired(jcrContentProtocolHTTPExpired);
         return this;
@@ -482,7 +500,7 @@ public class PostAgentWithHttpInfoRequest {
     public void setJcrContentProtocolInterface(String jcrContentProtocolInterface) {
         this.jcrContentProtocolInterface = jcrContentProtocolInterface;
     }
-    
+
     public PostAgentWithHttpInfoRequest withJcrContentProtocolInterface(String jcrContentProtocolInterface) {
         this.setJcrContentProtocolInterface(jcrContentProtocolInterface);
         return this;
@@ -495,7 +513,7 @@ public class PostAgentWithHttpInfoRequest {
     public void setJcrContentProtocolSocketTimeout(BigDecimal jcrContentProtocolSocketTimeout) {
         this.jcrContentProtocolSocketTimeout = jcrContentProtocolSocketTimeout;
     }
-    
+
     public PostAgentWithHttpInfoRequest withJcrContentProtocolSocketTimeout(BigDecimal jcrContentProtocolSocketTimeout) {
         this.setJcrContentProtocolSocketTimeout(jcrContentProtocolSocketTimeout);
         return this;
@@ -508,7 +526,7 @@ public class PostAgentWithHttpInfoRequest {
     public void setJcrContentProtocolVersion(String jcrContentProtocolVersion) {
         this.jcrContentProtocolVersion = jcrContentProtocolVersion;
     }
-    
+
     public PostAgentWithHttpInfoRequest withJcrContentProtocolVersion(String jcrContentProtocolVersion) {
         this.setJcrContentProtocolVersion(jcrContentProtocolVersion);
         return this;
@@ -521,7 +539,7 @@ public class PostAgentWithHttpInfoRequest {
     public void setJcrContentProxyNTLMDomain(String jcrContentProxyNTLMDomain) {
         this.jcrContentProxyNTLMDomain = jcrContentProxyNTLMDomain;
     }
-    
+
     public PostAgentWithHttpInfoRequest withJcrContentProxyNTLMDomain(String jcrContentProxyNTLMDomain) {
         this.setJcrContentProxyNTLMDomain(jcrContentProxyNTLMDomain);
         return this;
@@ -534,7 +552,7 @@ public class PostAgentWithHttpInfoRequest {
     public void setJcrContentProxyNTLMHost(String jcrContentProxyNTLMHost) {
         this.jcrContentProxyNTLMHost = jcrContentProxyNTLMHost;
     }
-    
+
     public PostAgentWithHttpInfoRequest withJcrContentProxyNTLMHost(String jcrContentProxyNTLMHost) {
         this.setJcrContentProxyNTLMHost(jcrContentProxyNTLMHost);
         return this;
@@ -547,7 +565,7 @@ public class PostAgentWithHttpInfoRequest {
     public void setJcrContentProxyHost(String jcrContentProxyHost) {
         this.jcrContentProxyHost = jcrContentProxyHost;
     }
-    
+
     public PostAgentWithHttpInfoRequest withJcrContentProxyHost(String jcrContentProxyHost) {
         this.setJcrContentProxyHost(jcrContentProxyHost);
         return this;
@@ -560,7 +578,7 @@ public class PostAgentWithHttpInfoRequest {
     public void setJcrContentProxyPort(BigDecimal jcrContentProxyPort) {
         this.jcrContentProxyPort = jcrContentProxyPort;
     }
-    
+
     public PostAgentWithHttpInfoRequest withJcrContentProxyPort(BigDecimal jcrContentProxyPort) {
         this.setJcrContentProxyPort(jcrContentProxyPort);
         return this;
@@ -573,7 +591,7 @@ public class PostAgentWithHttpInfoRequest {
     public void setJcrContentProxyUser(String jcrContentProxyUser) {
         this.jcrContentProxyUser = jcrContentProxyUser;
     }
-    
+
     public PostAgentWithHttpInfoRequest withJcrContentProxyUser(String jcrContentProxyUser) {
         this.setJcrContentProxyUser(jcrContentProxyUser);
         return this;
@@ -586,7 +604,7 @@ public class PostAgentWithHttpInfoRequest {
     public void setJcrContentProxyPassword(String jcrContentProxyPassword) {
         this.jcrContentProxyPassword = jcrContentProxyPassword;
     }
-    
+
     public PostAgentWithHttpInfoRequest withJcrContentProxyPassword(String jcrContentProxyPassword) {
         this.setJcrContentProxyPassword(jcrContentProxyPassword);
         return this;
@@ -599,7 +617,7 @@ public class PostAgentWithHttpInfoRequest {
     public void setJcrContentQueueBatchMaxSize(BigDecimal jcrContentQueueBatchMaxSize) {
         this.jcrContentQueueBatchMaxSize = jcrContentQueueBatchMaxSize;
     }
-    
+
     public PostAgentWithHttpInfoRequest withJcrContentQueueBatchMaxSize(BigDecimal jcrContentQueueBatchMaxSize) {
         this.setJcrContentQueueBatchMaxSize(jcrContentQueueBatchMaxSize);
         return this;
@@ -612,7 +630,7 @@ public class PostAgentWithHttpInfoRequest {
     public void setJcrContentQueueBatchMode(String jcrContentQueueBatchMode) {
         this.jcrContentQueueBatchMode = jcrContentQueueBatchMode;
     }
-    
+
     public PostAgentWithHttpInfoRequest withJcrContentQueueBatchMode(String jcrContentQueueBatchMode) {
         this.setJcrContentQueueBatchMode(jcrContentQueueBatchMode);
         return this;
@@ -625,7 +643,7 @@ public class PostAgentWithHttpInfoRequest {
     public void setJcrContentQueueBatchWaitTime(BigDecimal jcrContentQueueBatchWaitTime) {
         this.jcrContentQueueBatchWaitTime = jcrContentQueueBatchWaitTime;
     }
-    
+
     public PostAgentWithHttpInfoRequest withJcrContentQueueBatchWaitTime(BigDecimal jcrContentQueueBatchWaitTime) {
         this.setJcrContentQueueBatchWaitTime(jcrContentQueueBatchWaitTime);
         return this;
@@ -638,7 +656,7 @@ public class PostAgentWithHttpInfoRequest {
     public void setJcrContentReverseReplication(Boolean jcrContentReverseReplication) {
         this.jcrContentReverseReplication = jcrContentReverseReplication;
     }
-    
+
     public PostAgentWithHttpInfoRequest withJcrContentReverseReplication(Boolean jcrContentReverseReplication) {
         this.setJcrContentReverseReplication(jcrContentReverseReplication);
         return this;
@@ -651,7 +669,7 @@ public class PostAgentWithHttpInfoRequest {
     public void setJcrContentSSL(String jcrContentSSL) {
         this.jcrContentSSL = jcrContentSSL;
     }
-    
+
     public PostAgentWithHttpInfoRequest withJcrContentSSL(String jcrContentSSL) {
         this.setJcrContentSSL(jcrContentSSL);
         return this;
@@ -664,7 +682,7 @@ public class PostAgentWithHttpInfoRequest {
     public void setJcrContentTransportNTLMDomain(String jcrContentTransportNTLMDomain) {
         this.jcrContentTransportNTLMDomain = jcrContentTransportNTLMDomain;
     }
-    
+
     public PostAgentWithHttpInfoRequest withJcrContentTransportNTLMDomain(String jcrContentTransportNTLMDomain) {
         this.setJcrContentTransportNTLMDomain(jcrContentTransportNTLMDomain);
         return this;
@@ -677,7 +695,7 @@ public class PostAgentWithHttpInfoRequest {
     public void setJcrContentTransportNTLMHost(String jcrContentTransportNTLMHost) {
         this.jcrContentTransportNTLMHost = jcrContentTransportNTLMHost;
     }
-    
+
     public PostAgentWithHttpInfoRequest withJcrContentTransportNTLMHost(String jcrContentTransportNTLMHost) {
         this.setJcrContentTransportNTLMHost(jcrContentTransportNTLMHost);
         return this;
@@ -690,7 +708,7 @@ public class PostAgentWithHttpInfoRequest {
     public void setJcrContentTriggerOnOffTime(Boolean jcrContentTriggerOnOffTime) {
         this.jcrContentTriggerOnOffTime = jcrContentTriggerOnOffTime;
     }
-    
+
     public PostAgentWithHttpInfoRequest withJcrContentTriggerOnOffTime(Boolean jcrContentTriggerOnOffTime) {
         this.setJcrContentTriggerOnOffTime(jcrContentTriggerOnOffTime);
         return this;
@@ -703,7 +721,7 @@ public class PostAgentWithHttpInfoRequest {
     public void setJcrContentUserId(String jcrContentUserId) {
         this.jcrContentUserId = jcrContentUserId;
     }
-    
+
     public PostAgentWithHttpInfoRequest withJcrContentUserId(String jcrContentUserId) {
         this.setJcrContentUserId(jcrContentUserId);
         return this;
