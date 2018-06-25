@@ -1,3 +1,6 @@
+### 2.0.1
+*
+
 ### 2.0.0
 * Upgrade swaggeraem4j to 0.10.0 with AEM 6.4 support
 * Add JCR content CQ distribute property to post agent request model
