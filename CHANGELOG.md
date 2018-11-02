@@ -1,3 +1,10 @@
+### 2.0.1
+* Change default orchestrator and replicator credentials to overwrite-me/overwrite-me
+
+### 2.0.0
+* Upgrade swaggeraem4j to 0.10.0 with AEM 6.4 support
+* Add JCR content CQ distribute property to post agent request model
+
 ### 1.0.3
 * Change alarm.content.health.check.terminate.instance.enable default to false
 * By default, Orchestrator does not terminate instance when content health check fails
