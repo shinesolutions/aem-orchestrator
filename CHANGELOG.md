@@ -1,5 +1,5 @@
 ### 2.0.1
-*
+* Change default orchestrator and replicator credentials to overwrite-me/overwrite-me
 
 ### 2.0.0
 * Upgrade swaggeraem4j to 0.10.0 with AEM 6.4 support
