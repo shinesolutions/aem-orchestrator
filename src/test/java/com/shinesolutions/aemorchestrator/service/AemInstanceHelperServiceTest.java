@@ -132,7 +132,30 @@ public class AemInstanceHelperServiceTest {
         
         assertThat(aemUrl, equalTo(aemAuthorDispatcherProtocol + "://" + privateIp + ":" + aemAuthorDispatcherPort));
     }
-    
+
+    @Test
+    public void testGetAemComponentInitStateOK() throws Exception {
+
+      Map<String, String> tagsComponentInitStatusSuccess = new HashMap<String, String>();
+      tagsComponentInitStatusSuccess.put(COMPONENT_INIT_STATUS.getTagName(), "Success");
+
+      when(awsHelperService.getTags(instanceId)).thenReturn(tagsComponentInitStatusSuccess);
+
+      boolean result = aemHelperService.getAemComponentInitState(instanceId);
+      assertThat(result, equalTo(true));
+    }
+
+    @Test
+    public void testGetAemComponentInitStateNotOK() throws Exception {
+      Map<String, String> tagsComponentInitStatusFailed = new HashMap<String, String>();
+      tagsComponentInitStatusFailed.put(COMPONENT_INIT_STATUS.getTagName(), "Failed");
+
+      when(awsHelperService.getTags(instanceId)).thenReturn(tagsComponentInitStatusFailed);
+
+      boolean result = aemHelperService.getAemComponentInitState(instanceId);
+      assertThat(result, equalTo(false));
+    }
+
     @Test
     public void testGetPublishIdToSnapshotFrom() throws Exception {
         String excludeInstanceId = "exclude-352768";
@@ -661,25 +684,23 @@ public class AemInstanceHelperServiceTest {
     
     @Test
     public void testIsPubishHealthyOk() throws Exception {
-        ArgumentCaptor<String> urlCaptor = ArgumentCaptor.forClass(String.class);
-        String publishIp = "testPublishIP";
-        
-        when(httpUtil.isHttpGetResponseOk(urlCaptor.capture())).thenReturn(true);
-        
-        when(awsHelperService.getPrivateIp(instanceId)).thenReturn(publishIp);
-        
+        Map<String, String> tagsComponentInitStatusSuccess = new HashMap<String, String>();
+        tagsComponentInitStatusSuccess.put(COMPONENT_INIT_STATUS.getTagName(), "Success");
+
+        when(awsHelperService.getTags(instanceId)).thenReturn(tagsComponentInitStatusSuccess);
+
         boolean result = aemHelperService.isPubishHealthy(instanceId);
-        
-        String url = urlCaptor.getValue();
-        
-        assertThat(url, startsWith(aemPublishProtocol + "://" + publishIp + ":" + aemPublishPort));
+
         assertThat(result, equalTo(true));
     }
     
     @Test
     public void testIsPubishHealthyNotOk() throws Exception {
-        when(httpUtil.isHttpGetResponseOk(anyString())).thenReturn(false);
-        
+        Map<String, String> tagsComponentInitStatusRunning = new HashMap<String, String>();
+        tagsComponentInitStatusRunning.put(COMPONENT_INIT_STATUS.getTagName(), "Running");
+
+        when(awsHelperService.getTags(instanceId)).thenReturn(tagsComponentInitStatusRunning);
+
         boolean result = aemHelperService.isPubishHealthy(instanceId);
         
         assertThat(result, equalTo(false));
@@ -687,23 +708,31 @@ public class AemInstanceHelperServiceTest {
     
     @Test
     public void testWaitForPublishToBeHealthyOk() throws Exception {
-        when(httpUtil.isHttpGetResponseOk(anyString())).thenReturn(true);
-        
-        //Will throw an exception if not ok
+        Map<String, String> tagsComponentInitStatusSuccess = new HashMap<String, String>();
+        tagsComponentInitStatusSuccess.put(COMPONENT_INIT_STATUS.getTagName(), "Success");
+
+        when(awsHelperService.getTags(instanceId)).thenReturn(tagsComponentInitStatusSuccess);
+
         aemHelperService.waitForPublishToBeHealthy(instanceId);
     }
     
     @Test(expected=InstanceNotInHealthyStateException.class)
     public void testWaitForPublishToBeHealthyNotOk() throws Exception {
-        when(httpUtil.isHttpGetResponseOk(anyString())).thenReturn(false);
-        
+        Map<String, String> tagsComponentInitStatusFailed = new HashMap<String, String>();
+        tagsComponentInitStatusFailed.put(COMPONENT_INIT_STATUS.getTagName(), "Failed");
+
+        when(awsHelperService.getTags(instanceId)).thenReturn(tagsComponentInitStatusFailed);
+
         aemHelperService.waitForPublishToBeHealthy(instanceId);
     }
     
     @Test(expected=InstanceNotInHealthyStateException.class)
     public void testWaitForPublishToBeHealthyWithIOException() throws Exception {
-        when(httpUtil.isHttpGetResponseOk(anyString())).thenThrow(new IOException());
-        
+        Map<String, String> tagsComponentInitStatusFailed = new HashMap<String, String>();
+        tagsComponentInitStatusFailed.put(COMPONENT_INIT_STATUS.getTagName(), "Failed");
+
+        when(awsHelperService.getTags(instanceId)).thenReturn(tagsComponentInitStatusFailed);
+
         aemHelperService.waitForPublishToBeHealthy(instanceId);
     }
     

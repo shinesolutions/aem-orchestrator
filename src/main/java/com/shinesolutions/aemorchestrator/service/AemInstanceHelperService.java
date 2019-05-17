@@ -127,18 +127,34 @@ public class AemInstanceHelperService {
     }
     
     /**
+     * Gets the Publish instance base AEM URL for a given EC2 instance ID
+     * @param instanceId C2 instance ID
+     * @return true if provisioning was successful
+     */
+    public boolean getAemComponentInitState(String instanceId) {
+      //
+      String componentInitStatus = awsHelperService.getTags(instanceId).get(
+          InstanceTags.COMPONENT_INIT_STATUS.getTagName());
+
+      switch(componentInitStatus) {
+        case "Failed":
+          return false;
+        case "Running":
+          return false;
+        case "Success":
+          return true;
+        default:
+          return false;
+      }
+    }
+
+    /**
      * Helper method for determining if the given Publish instance is in a healthy state
      * @param instanceId the publish AWS instance id
      * @return true if the Publish instance is in a healthy state
-     * @throws ClientProtocolException if there's an error in the HTTP protocol
-     * @throws IOException (normally if can't connect)
-     * @throws GeneralSecurityException for any SSL related issue
      */
-    public boolean isPubishHealthy(String instanceId) throws ClientProtocolException, IOException, 
-        GeneralSecurityException {
-        String url = getAemUrlForPublish(instanceId) + AEM_HEALTH_CHECK_URL_POSTFIX;
-
-        return httpUtil.isHttpGetResponseOk(url);
+    public boolean isPubishHealthy(String instanceId) {
+        return getAemComponentInitState(instanceId);
     }
     
     /**
