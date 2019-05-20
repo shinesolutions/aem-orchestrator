@@ -7,11 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- Added new EC2 Tag COMPONENT_INIT_STATUS
+- Added new COMPONENT_INIT_STATUS to instance tags
 
 ### Changed
 - Change default orchestrator and replicator credentials to overwrite-me/overwrite-me
-- Changed process of determining the healthy publish instance
+- Changed process of determining the healthy publish instance to check component init state instead of just AEM health
 
 ## [2.0.0] - unknown
 
