@@ -55,7 +55,7 @@ public class AemInstanceHelperService {
 
     @Value("${aws.snapshot.tags}")
     private List<String> tagsToApplyToSnapshot;
-    
+
     @Value("${aws.cloudformation.stackName.publishDispatcher}")
     private String awsPublishDispatcherStackName;
 
@@ -125,7 +125,7 @@ public class AemInstanceHelperService {
 
         return httpUtil.isHttpGetResponseOk(url);
     }
-    
+
     /**
      * Gets the Publish instance base AEM URL for a given EC2 instance ID.
      * Component init status indicates its cloud init status.
@@ -136,7 +136,7 @@ public class AemInstanceHelperService {
       String componentInitStatus = awsHelperService.getTags(instanceId).get(
           InstanceTags.COMPONENT_INIT_STATUS.getTagName());
 
-      String aemComponentInitState;
+      boolean aemComponentInitState;
       switch(componentInitStatus) {
         case "Failed":
           aemComponentInitState = false;
@@ -163,7 +163,7 @@ public class AemInstanceHelperService {
     public boolean isPubishHealthy(String instanceId) {
         return getAemComponentInitState(instanceId);
     }
-    
+
     /**
      * Blocking method that continually checks to see if a given Publish instance is in a healthy state.
      * Will stop blocking once the Publish instance is deemed to be in a healthy state, or will
@@ -262,17 +262,17 @@ public class AemInstanceHelperService {
                 })
                 .findFirst().orElse(null);
     }
-    
+
     /**
-     * If no Publish instances have been set up via snapshot, then the first one will not require a snapshot 
-     * (nothing to snapshot from). The method helps determine if it is the first publish instance to be set up 
+     * If no Publish instances have been set up via snapshot, then the first one will not require a snapshot
+     * (nothing to snapshot from). The method helps determine if it is the first publish instance to be set up
      * after startup.
      * @return true if no instance son the Publish group have the SnapshotId tag, false otherwise
      */
     public boolean isFirstPublishInstance() {
         List<String> publishIds = awsHelperService.getInstanceIdsForAutoScalingGroup(
             envValues.getAutoScaleGroupNameForPublish());
-        
+
         //Check if any of the instances on the group have the SnapshotId tag, if not then it's the first
         return publishIds.stream().filter(i -> awsHelperService.getTags(i).get(
             InstanceTags.SNAPSHOT_ID.getTagName()) != null).findFirst().orElse(null) == null;
@@ -312,13 +312,13 @@ public class AemInstanceHelperService {
         Map<String, String> tagsForSnapshot = activePublishTags.entrySet().stream()
             .filter(map -> tagsToApplyToSnapshot.contains(map.getKey()))
             .collect(Collectors.toMap(p -> p.getKey(), p -> p.getValue()));
-        
+
         tagsForSnapshot.put(SNAPSHOT_TYPE.getTagName(), "orchestration");
         tagsForSnapshot.put(NAME.getTagName(), "AEM publish Snapshot " + instanceId);
-        
+
         String snapshotId = awsHelperService.createSnapshot(volumeId,
             "Orchestration AEM snapshot of publish instance " + instanceId + " and volume " + volumeId);
-        
+
         awsHelperService.addTags(snapshotId, tagsForSnapshot);
 
         return snapshotId;
@@ -351,16 +351,16 @@ public class AemInstanceHelperService {
     @Retryable(maxAttempts=10, value=NoPairFoundException.class, backoff=@Backoff(delay=5000))
     public String findUnpairedPublishDispatcher(String instanceId) throws NoPairFoundException {
         String unpairedDispatcher = null;
-        
+
         List<EC2Instance> dispatcherIds = awsHelperService.getInstancesForAutoScalingGroup(
             envValues.getAutoScaleGroupNameForPublishDispatcher());
         //Filter the list to get all possible eligible candidates
-        dispatcherIds = dispatcherIds.stream().filter(d -> 
+        dispatcherIds = dispatcherIds.stream().filter(d ->
             isViablePair(instanceId, d.getInstanceId())).collect(Collectors.toList());
-        
+
         if(dispatcherIds.size() > 1) {
             String publishAZ = awsHelperService.getAvailabilityZone(instanceId);
-            
+
             //If there are many candidates, then pick the one with the same AZ or else use first
             unpairedDispatcher = (dispatcherIds.stream().filter(i -> i.getAvailabilityZone().equalsIgnoreCase(publishAZ))
                 .findFirst().orElse(dispatcherIds.get(0))).getInstanceId();
@@ -369,29 +369,29 @@ public class AemInstanceHelperService {
         } else {
             throw new NoPairFoundException(instanceId);
         }
-        
+
         return unpairedDispatcher;
     }
-    
+
     private boolean isViablePair(String instanceId, String dispatcherInstanceId) {
         Map<String, String> tags = awsHelperService.getTags(dispatcherInstanceId);
         return !tags.containsKey(PAIR_INSTANCE_ID.getTagName()) || //Either it's missing a pairing tag
             tags.get(PAIR_INSTANCE_ID.getTagName()).equals(instanceId); //Or it's already paired to the instance
     }
-    
+
     /**
      * Creates a CloudWatch content health alarm for a given publish instance
      * @param instanceId of the publish instance
      */
     public void createContentHealthAlarmForPublisher(String instanceId) {
         awsHelperService.createContentHealthCheckAlarm(
-            getContentHealthCheckAlarmName(instanceId), 
+            getContentHealthCheckAlarmName(instanceId),
             "Content Health Alarm for Publish Instance " + instanceId,
             instanceId,
             awsPublishDispatcherStackName,
             envValues.getTopicArn());
     }
-    
+
     /**
      * Deletes a CloudWatch content health alarm for a given publish instance ID
      * @param instanceId of the publish instance
@@ -399,8 +399,8 @@ public class AemInstanceHelperService {
     public void deleteContentHealthAlarmForPublisher(String instanceId) {
         awsHelperService.deleteAlarm(getContentHealthCheckAlarmName(instanceId));
     }
-    
-    
+
+
     private String getContentHealthCheckAlarmName(String instanceId) {
         return "contentHealthCheck-" + instanceId;
     }
