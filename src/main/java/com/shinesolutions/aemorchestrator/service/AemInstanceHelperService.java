@@ -133,20 +133,26 @@ public class AemInstanceHelperService {
      * @return true if provisioning was successful
      */
     public boolean getAemComponentInitState(String instanceId) {
-      //
       String componentInitStatus = awsHelperService.getTags(instanceId).get(
           InstanceTags.COMPONENT_INIT_STATUS.getTagName());
 
+      String aemComponentInitState;
       switch(componentInitStatus) {
         case "Failed":
-          return false;
+          aemComponentInitState = false;
+          break;
         case "InProgress":
-          return false;
+          aemComponentInitState = false;
+          break;
         case "Success":
-          return true;
+          aemComponentInitState = true;
+          break;
+        // anticipate the tag not existing or not having expected value as a false state
         default:
-          return false;
+          aemComponentInitState = false;
+          break;
       }
+      return aemComponentInitState;
     }
 
     /**
