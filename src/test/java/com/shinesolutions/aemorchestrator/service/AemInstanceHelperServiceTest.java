@@ -697,7 +697,7 @@ public class AemInstanceHelperServiceTest {
     @Test
     public void testIsPubishHealthyNotOk() throws Exception {
         Map<String, String> tagsComponentInitStatusRunning = new HashMap<String, String>();
-        tagsComponentInitStatusRunning.put(COMPONENT_INIT_STATUS.getTagName(), "Running");
+        tagsComponentInitStatusRunning.put(COMPONENT_INIT_STATUS.getTagName(), "InProgress");
 
         when(awsHelperService.getTags(instanceId)).thenReturn(tagsComponentInitStatusRunning);
 
