@@ -127,7 +127,8 @@ public class AemInstanceHelperService {
     }
     
     /**
-     * Gets the Publish instance base AEM URL for a given EC2 instance ID
+     * Gets the Publish instance base AEM URL for a given EC2 instance ID.
+     * Component init status indicates its cloud init status.
      * @param instanceId C2 instance ID
      * @return true if provisioning was successful
      */
@@ -139,7 +140,7 @@ public class AemInstanceHelperService {
       switch(componentInitStatus) {
         case "Failed":
           return false;
-        case "Running":
+        case "InProgress":
           return false;
         case "Success":
           return true;
