@@ -7,6 +7,7 @@ public enum InstanceTags {
     AEM_PUBLISH_HOST("PublishHost"), 
     AEM_PUBLISH_DISPATCHER_HOST("PublishDispatcherHost"), 
     AEM_AUTHOR_HOST("AuthorHost"),
+    COMPONENT_INIT_STATUS ("ComponentInitStatus"),
     SNAPSHOT_ID("SnapshotId"),
     SNAPSHOT_TYPE("SnapshotType"),
     NAME("Name");
