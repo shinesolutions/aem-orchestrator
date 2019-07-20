@@ -1,6 +1,5 @@
 package com.shinesolutions.aemorchestrator.service;
 
-import com.amazonaws.services.ec2.model.DescribeInstancesRequest;
 import com.shinesolutions.aemorchestrator.exception.InstanceNotInHealthyStateException;
 import com.shinesolutions.aemorchestrator.exception.NoPairFoundException;
 import com.shinesolutions.aemorchestrator.model.EC2Instance;
@@ -15,9 +14,8 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 
-import java.io.IOException;
 import java.util.*;
 
 import static com.shinesolutions.aemorchestrator.model.InstanceTags.*;
@@ -25,8 +23,6 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.startsWith;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.util.ReflectionTestUtils.setField;
 
@@ -182,8 +178,6 @@ public class AemInstanceHelperServiceTest {
         when(awsHelperService.getLaunchTime(instanceId)).thenReturn(originalDate);
         when(awsHelperService.getLaunchTime("extra-89351")).thenReturn(originalPlusOneDate);
 
-        when(httpUtil.isHttpGetResponseOk(anyString())).thenReturn(true);
-        
         String resultInstanceId = aemHelperService.getPublishIdToSnapshotFrom(excludeInstanceId);
         
         assertThat(resultInstanceId, equalTo(instanceId));
@@ -208,8 +202,6 @@ public class AemInstanceHelperServiceTest {
         Date originalDate = new Date();
         when(awsHelperService.getLaunchTime(alphabeticallyFirst)).thenReturn(originalDate);
         when(awsHelperService.getLaunchTime(alphabeticallySecond)).thenReturn(originalDate);
-
-        when(httpUtil.isHttpGetResponseOk(anyString())).thenReturn(true);
 
         String resultInstanceId = aemHelperService.getPublishIdToSnapshotFrom("exclude-352768");
 
@@ -492,8 +484,7 @@ public class AemInstanceHelperServiceTest {
         when(awsHelperService.getTags(instance1)).thenReturn(tagsWithoutPair);
         when(awsHelperService.getTags(instance2)).thenReturn(tagsMissingPair); 
         when(awsHelperService.getTags(instance3)).thenReturn(tagsWithPair); //Instance 3 is the winner
-        when(awsHelperService.getTags(instance4)).thenReturn(tagsWithoutPair);
-        
+
         String resultInstanceId = aemHelperService.getPublishIdForPairedDispatcher(dispatcherId);
         
         assertThat(resultInstanceId, equalTo(instance3));
@@ -553,21 +544,12 @@ public class AemInstanceHelperServiceTest {
     
     @Test
     public void testGetDispatcherIdForPairedPublishWithNoPair() throws Exception {
-        String instance1 = "1st-876543";
-        Map<String, String> tagsMissingPair = new HashMap<String, String>();
-        
-        List<String> instanceIds = new ArrayList<String>();
-        instanceIds.add("1st-876543");
-
-        when(awsHelperService.getInstanceIdsForAutoScalingGroup(envValues.getAutoScaleGroupNameForPublish())).thenReturn(instanceIds);
-        when(awsHelperService.getTags(instance1)).thenReturn(tagsMissingPair);
-
         String resultInstanceId = aemHelperService.getDispatcherIdForPairedPublish("irrelevant-id");
         
         // If can't find pair, then should return null
         assertThat(resultInstanceId, equalTo(null));
     }
-    
+
     @Test
     public void testGetAutoScalingGroupDesiredCapacityForPublish() {
         int capacityToReturn = 1337;
@@ -695,7 +677,7 @@ public class AemInstanceHelperServiceTest {
     }
     
     @Test
-    public void testIsPubishHealthyNotOk() throws Exception {
+    public void testIsPubishHealthyNotOk() {
         Map<String, String> tagsComponentInitStatusRunning = new HashMap<String, String>();
         tagsComponentInitStatusRunning.put(COMPONENT_INIT_STATUS.getTagName(), "InProgress");
 
@@ -737,7 +719,7 @@ public class AemInstanceHelperServiceTest {
     }
     
     @Test
-    public void testCreatePublishSnapshotWithSelectedTags() throws Exception {
+    public void testCreatePublishSnapshotWithSelectedTags() {
         String tag1 = "testTag1";
         String tag2 = "testTag2";
         
