@@ -20,9 +20,11 @@ import java.util.*;
 
 import static com.shinesolutions.aemorchestrator.model.InstanceTags.*;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.startsWith;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.startsWith;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.util.ReflectionTestUtils.setField;
 
@@ -58,7 +60,7 @@ public class AemInstanceHelperServiceTest {
     private String privateIp;
     
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         instanceId = "test-123456789";
         privateIp = "11.22.33.44";
         
@@ -95,7 +97,7 @@ public class AemInstanceHelperServiceTest {
     }
 
     @Test
-    public void testGetAemUrlForPublishDispatcher() throws Exception {
+    public void testGetAemUrlForPublishDispatcher() {
         when(awsHelperService.getPrivateIp(instanceId)).thenReturn(privateIp);
         
         String aemUrl = aemHelperService.getAemUrlForPublishDispatcher(instanceId);
@@ -104,7 +106,7 @@ public class AemInstanceHelperServiceTest {
     }
     
     @Test
-    public void testGetAemUrlForPublish() throws Exception {
+    public void testGetAemUrlForPublish() {
         when(awsHelperService.getPrivateIp(instanceId)).thenReturn(privateIp);
         
         String aemUrl = aemHelperService.getAemUrlForPublish(instanceId);
@@ -113,7 +115,7 @@ public class AemInstanceHelperServiceTest {
     }
     
     @Test
-    public void testGetAemUrlForAuthorElb() throws Exception {
+    public void testGetAemUrlForAuthorElb() {
         String aemUrl = aemHelperService.getAemUrlForAuthorElb();
         
         assertThat(aemUrl, equalTo(aemAuthorProtocol + "://" + 
@@ -121,7 +123,7 @@ public class AemInstanceHelperServiceTest {
     }
     
     @Test
-    public void testGetAemUrlForAuthorDispatcher() throws Exception {
+    public void testGetAemUrlForAuthorDispatcher() {
         when(awsHelperService.getPrivateIp(instanceId)).thenReturn(privateIp);
         
         String aemUrl = aemHelperService.getAemUrlForAuthorDispatcher(instanceId);
@@ -130,9 +132,9 @@ public class AemInstanceHelperServiceTest {
     }
 
     @Test
-    public void testGetAemComponentInitStateOK() throws Exception {
+    public void testGetAemComponentInitStateOK() {
 
-      Map<String, String> tagsComponentInitStatusSuccess = new HashMap<String, String>();
+      Map<String, String> tagsComponentInitStatusSuccess = new HashMap<>();
       tagsComponentInitStatusSuccess.put(COMPONENT_INIT_STATUS.getTagName(), "Success");
 
       when(awsHelperService.getTags(instanceId)).thenReturn(tagsComponentInitStatusSuccess);
@@ -142,8 +144,8 @@ public class AemInstanceHelperServiceTest {
     }
 
     @Test
-    public void testGetAemComponentInitStateNotOK() throws Exception {
-      Map<String, String> tagsComponentInitStatusFailed = new HashMap<String, String>();
+    public void testGetAemComponentInitStateNotOK() {
+      Map<String, String> tagsComponentInitStatusFailed = new HashMap<>();
       tagsComponentInitStatusFailed.put(COMPONENT_INIT_STATUS.getTagName(), "Failed");
 
       when(awsHelperService.getTags(instanceId)).thenReturn(tagsComponentInitStatusFailed);
@@ -239,7 +241,7 @@ public class AemInstanceHelperServiceTest {
     }
     
     @Test
-    public void testGetPublishIdToSnapshotFromWithNoInstances() throws Exception {
+    public void testGetPublishIdToSnapshotFromWithNoInstances() {
         when(awsHelperService.getInstanceIdsForAutoScalingGroup(
             envValues.getAutoScaleGroupNameForPublish())).thenReturn(new ArrayList<>());
         
@@ -249,10 +251,10 @@ public class AemInstanceHelperServiceTest {
     }
     
     @Test
-    public void testIsFirstPublishInstanceNoSnapshotTags() throws Exception {
-        Map<String, String> instanceTags = new HashMap<String, String>();
+    public void testIsFirstPublishInstanceNoSnapshotTags() {
+        Map<String, String> instanceTags = new HashMap<>();
         
-        List<String> instanceIds = new ArrayList<String>();
+        List<String> instanceIds = new ArrayList<>();
         instanceIds.add("i-1");
         instanceIds.add("i-2");
         
@@ -268,12 +270,12 @@ public class AemInstanceHelperServiceTest {
     
     @Test
     @SuppressWarnings("unchecked")
-    public void testIsFirstPublishInstanceOneSnapshotTag() throws Exception {
-        Map<String, String> instanceTags1 = new HashMap<String, String>();
-        Map<String, String> instanceTags2 = new HashMap<String, String>();
+    public void testIsFirstPublishInstanceOneSnapshotTag() {
+        Map<String, String> instanceTags1 = new HashMap<>();
+        Map<String, String> instanceTags2 = new HashMap<>();
         instanceTags2.put(InstanceTags.SNAPSHOT_ID.getTagName(), "");
         
-        List<String> instanceIds = new ArrayList<String>();
+        List<String> instanceIds = new ArrayList<>();
         instanceIds.add("i-1");
         instanceIds.add("i-2");
         
@@ -288,8 +290,8 @@ public class AemInstanceHelperServiceTest {
     }
     
     @Test
-    public void testIsFirstPublishInstanceWithNoInstances() throws Exception {
-        List<String> instanceIds = new ArrayList<String>();
+    public void testIsFirstPublishInstanceWithNoInstances() {
+        List<String> instanceIds = new ArrayList<>();
         
         when(awsHelperService.getInstanceIdsForAutoScalingGroup(
             envValues.getAutoScaleGroupNameForPublish())).thenReturn(instanceIds);
@@ -306,12 +308,12 @@ public class AemInstanceHelperServiceTest {
         EC2Instance instance2 = new EC2Instance().withInstanceId("2nd-111982").withAvailabilityZone(publishAZ);
         EC2Instance instance3 = new EC2Instance().withInstanceId("3rd-222983").withAvailabilityZone(publishAZ);
         
-        Map<String, String> tagsWithPairName = new HashMap<String, String>();
+        Map<String, String> tagsWithPairName = new HashMap<>();
         tagsWithPairName.put(PAIR_INSTANCE_ID.getTagName(), "testPair");
         
-        Map<String, String> tagsWithoutPairName = new HashMap<String, String>();
+        Map<String, String> tagsWithoutPairName = new HashMap<>();
         
-        List<EC2Instance> instanceIds = new ArrayList<EC2Instance>();
+        List<EC2Instance> instanceIds = new ArrayList<>();
         instanceIds.add(instance1);
         instanceIds.add(instance2);
         instanceIds.add(instance3);
@@ -335,12 +337,12 @@ public class AemInstanceHelperServiceTest {
         EC2Instance instance2 = new EC2Instance().withInstanceId("2nd-111982").withAvailabilityZone("B"); //Diff AZ
         EC2Instance instance3 = new EC2Instance().withInstanceId("3rd-222983").withAvailabilityZone(publishAZ);
         
-        Map<String, String> tagsWithPairName = new HashMap<String, String>();
+        Map<String, String> tagsWithPairName = new HashMap<>();
         tagsWithPairName.put(PAIR_INSTANCE_ID.getTagName(), "testPair");
         
-        Map<String, String> tagsWithoutPairName = new HashMap<String, String>();
+        Map<String, String> tagsWithoutPairName = new HashMap<>();
         
-        List<EC2Instance> instanceIds = new ArrayList<EC2Instance>();
+        List<EC2Instance> instanceIds = new ArrayList<>();
         instanceIds.add(instance1);
         instanceIds.add(instance2);
         instanceIds.add(instance3);
@@ -365,12 +367,12 @@ public class AemInstanceHelperServiceTest {
         EC2Instance instance2 = new EC2Instance().withInstanceId("2nd-111982").withAvailabilityZone(publishAZ);
         EC2Instance instance3 = new EC2Instance().withInstanceId("3rd-222983").withAvailabilityZone(publishAZ);
         
-        Map<String, String> tagsWithPairName = new HashMap<String, String>();
+        Map<String, String> tagsWithPairName = new HashMap<>();
         tagsWithPairName.put(PAIR_INSTANCE_ID.getTagName(), "testPair");
         
-        Map<String, String> tagsWithoutPairName = new HashMap<String, String>();
+        Map<String, String> tagsWithoutPairName = new HashMap<>();
         
-        List<EC2Instance> instanceIds = new ArrayList<EC2Instance>();
+        List<EC2Instance> instanceIds = new ArrayList<>();
         instanceIds.add(instance1);
         instanceIds.add(instance2);
         instanceIds.add(instance3);
@@ -395,12 +397,12 @@ public class AemInstanceHelperServiceTest {
         EC2Instance instance2 = new EC2Instance().withInstanceId("2nd-111982").withAvailabilityZone("B");
         EC2Instance instance3 = new EC2Instance().withInstanceId("3rd-222983").withAvailabilityZone("B");
         
-        Map<String, String> tagsWithPairName = new HashMap<String, String>();
+        Map<String, String> tagsWithPairName = new HashMap<>();
         tagsWithPairName.put(PAIR_INSTANCE_ID.getTagName(), "testPair");
         
-        Map<String, String> tagsWithoutPairName = new HashMap<String, String>();
+        Map<String, String> tagsWithoutPairName = new HashMap<>();
         
-        List<EC2Instance> instanceIds = new ArrayList<EC2Instance>();
+        List<EC2Instance> instanceIds = new ArrayList<>();
         instanceIds.add(instance1);
         instanceIds.add(instance2);
         instanceIds.add(instance3);
@@ -420,7 +422,7 @@ public class AemInstanceHelperServiceTest {
     
     @Test(expected=NoPairFoundException.class)
     public void testFindUnpairedPublishFail() throws Exception {
-        List<EC2Instance> instanceIds = new ArrayList<EC2Instance>();
+        List<EC2Instance> instanceIds = new ArrayList<>();
         
         when(awsHelperService.getInstancesForAutoScalingGroup(
             envValues.getAutoScaleGroupNameForPublishDispatcher())).thenReturn(instanceIds);
@@ -434,13 +436,13 @@ public class AemInstanceHelperServiceTest {
         EC2Instance instance1 = new EC2Instance().withInstanceId("1st-324981").withAvailabilityZone(publishAZ);
         EC2Instance instance2 = new EC2Instance().withInstanceId("2nd-111982").withAvailabilityZone(publishAZ);
         
-        Map<String, String> tagsWithPairName = new HashMap<String, String>();
+        Map<String, String> tagsWithPairName = new HashMap<>();
         tagsWithPairName.put(PAIR_INSTANCE_ID.getTagName(), "testPair");
         
-        Map<String, String> tagsWithAlreadyPairedId = new HashMap<String, String>();
+        Map<String, String> tagsWithAlreadyPairedId = new HashMap<>();
         tagsWithAlreadyPairedId.put(PAIR_INSTANCE_ID.getTagName(), instanceId);
         
-        List<EC2Instance> instanceIds = new ArrayList<EC2Instance>();
+        List<EC2Instance> instanceIds = new ArrayList<>();
         instanceIds.add(instance1);
         instanceIds.add(instance2);
         
@@ -457,7 +459,7 @@ public class AemInstanceHelperServiceTest {
     
     
     @Test
-    public void testGetPublishIdForPairedDispatcherWithFoundPair() throws Exception {
+    public void testGetPublishIdForPairedDispatcherWithFoundPair() {
         String instance1 = "1st-876543";
         String instance2 = "2nd-546424";
         String instance3 = "3rd-134777";
@@ -465,16 +467,16 @@ public class AemInstanceHelperServiceTest {
         
         String dispatcherId = "dis-4385974";
         
-        Map<String, String> tagsWithPair = new HashMap<String, String>();
+        Map<String, String> tagsWithPair = new HashMap<>();
         tagsWithPair.put(PAIR_INSTANCE_ID.getTagName(), dispatcherId);
         
-        Map<String, String> tagsWithoutPair = new HashMap<String, String>();
+        Map<String, String> tagsWithoutPair = new HashMap<>();
         tagsWithoutPair.put(PAIR_INSTANCE_ID.getTagName(), "abc-35734685");
         
-        Map<String, String> tagsMissingPair = new HashMap<String, String>();
+        Map<String, String> tagsMissingPair = new HashMap<>();
         
         // Mock adding a bunch of instances to the auto sacling group
-        List<String> instanceIds = new ArrayList<String>();
+        List<String> instanceIds = new ArrayList<>();
         instanceIds.add(instance1);
         instanceIds.add(instance2);
         instanceIds.add(instance3);
@@ -486,16 +488,17 @@ public class AemInstanceHelperServiceTest {
         when(awsHelperService.getTags(instance3)).thenReturn(tagsWithPair); //Instance 3 is the winner
 
         String resultInstanceId = aemHelperService.getPublishIdForPairedDispatcher(dispatcherId);
-        
+
+        verify(awsHelperService, never()).getTags(instance4);
         assertThat(resultInstanceId, equalTo(instance3));
     }
     
     @Test
-    public void testGetPublishIdForPairedDispatcherWithNoPair() throws Exception {
+    public void testGetPublishIdForPairedDispatcherWithNoPair() {
         String instance1 = "1st-876543";
-        Map<String, String> tagsMissingPair = new HashMap<String, String>();
+        Map<String, String> tagsMissingPair = new HashMap<>();
         
-        List<String> instanceIds = new ArrayList<String>();
+        List<String> instanceIds = new ArrayList<>();
         instanceIds.add("1st-876543");
 
         when(awsHelperService.getInstanceIdsForAutoScalingGroup(envValues.getAutoScaleGroupNameForPublish())).thenReturn(instanceIds);
@@ -508,7 +511,7 @@ public class AemInstanceHelperServiceTest {
     }
     
     @Test
-    public void testGetDispatcherIdForPairedPublishWithFoundPair() throws Exception {
+    public void testGetDispatcherIdForPairedPublishWithFoundPair() {
         String instance1 = "1st-876543";
         String instance2 = "2nd-546424";
         String instance3 = "3rd-134777";
@@ -516,16 +519,16 @@ public class AemInstanceHelperServiceTest {
         
         String publishId = "dis-4385974";
         
-        Map<String, String> tagsWithPair = new HashMap<String, String>();
+        Map<String, String> tagsWithPair = new HashMap<>();
         tagsWithPair.put(PAIR_INSTANCE_ID.getTagName(), publishId);
         
-        Map<String, String> tagsWithoutPair = new HashMap<String, String>();
+        Map<String, String> tagsWithoutPair = new HashMap<>();
         tagsWithoutPair.put(PAIR_INSTANCE_ID.getTagName(), "abc-35734685");
         
-        Map<String, String> tagsMissingPair = new HashMap<String, String>();
+        Map<String, String> tagsMissingPair = new HashMap<>();
         
         // Mock adding a bunch of instances to the auto sacling group
-        List<String> instanceIds = new ArrayList<String>();
+        List<String> instanceIds = new ArrayList<>();
         instanceIds.add(instance1);
         instanceIds.add(instance2);
         instanceIds.add(instance3);
@@ -543,13 +546,22 @@ public class AemInstanceHelperServiceTest {
     }
     
     @Test
-    public void testGetDispatcherIdForPairedPublishWithNoPair() throws Exception {
+    public void testGetDispatcherIdForPairedPublishWithNoPair() {
+        String instance1 = "1st-876543";
+        Map<String, String> tagsMissingPair = new HashMap<>();
+        
+        List<String> instanceIds = new ArrayList<>();
+        instanceIds.add("1st-876543");
+
+        when(awsHelperService.getInstanceIdsForAutoScalingGroup(anyString())).thenReturn(instanceIds);
+        when(awsHelperService.getTags(instance1)).thenReturn(tagsMissingPair);
+
         String resultInstanceId = aemHelperService.getDispatcherIdForPairedPublish("irrelevant-id");
         
         // If can't find pair, then should return null
         assertThat(resultInstanceId, equalTo(null));
     }
-
+    
     @Test
     public void testGetAutoScalingGroupDesiredCapacityForPublish() {
         int capacityToReturn = 1337;
@@ -665,8 +677,8 @@ public class AemInstanceHelperServiceTest {
     }
     
     @Test
-    public void testIsPubishHealthyOk() throws Exception {
-        Map<String, String> tagsComponentInitStatusSuccess = new HashMap<String, String>();
+    public void testIsPubishHealthyOk() {
+        Map<String, String> tagsComponentInitStatusSuccess = new HashMap<>();
         tagsComponentInitStatusSuccess.put(COMPONENT_INIT_STATUS.getTagName(), "Success");
 
         when(awsHelperService.getTags(instanceId)).thenReturn(tagsComponentInitStatusSuccess);
@@ -678,7 +690,7 @@ public class AemInstanceHelperServiceTest {
     
     @Test
     public void testIsPubishHealthyNotOk() {
-        Map<String, String> tagsComponentInitStatusRunning = new HashMap<String, String>();
+        Map<String, String> tagsComponentInitStatusRunning = new HashMap<>();
         tagsComponentInitStatusRunning.put(COMPONENT_INIT_STATUS.getTagName(), "InProgress");
 
         when(awsHelperService.getTags(instanceId)).thenReturn(tagsComponentInitStatusRunning);
@@ -690,7 +702,7 @@ public class AemInstanceHelperServiceTest {
     
     @Test
     public void testWaitForPublishToBeHealthyOk() throws Exception {
-        Map<String, String> tagsComponentInitStatusSuccess = new HashMap<String, String>();
+        Map<String, String> tagsComponentInitStatusSuccess = new HashMap<>();
         tagsComponentInitStatusSuccess.put(COMPONENT_INIT_STATUS.getTagName(), "Success");
 
         when(awsHelperService.getTags(instanceId)).thenReturn(tagsComponentInitStatusSuccess);
@@ -700,7 +712,7 @@ public class AemInstanceHelperServiceTest {
     
     @Test(expected=InstanceNotInHealthyStateException.class)
     public void testWaitForPublishToBeHealthyNotOk() throws Exception {
-        Map<String, String> tagsComponentInitStatusFailed = new HashMap<String, String>();
+        Map<String, String> tagsComponentInitStatusFailed = new HashMap<>();
         tagsComponentInitStatusFailed.put(COMPONENT_INIT_STATUS.getTagName(), "Failed");
 
         when(awsHelperService.getTags(instanceId)).thenReturn(tagsComponentInitStatusFailed);
@@ -710,7 +722,7 @@ public class AemInstanceHelperServiceTest {
     
     @Test(expected=InstanceNotInHealthyStateException.class)
     public void testWaitForPublishToBeHealthyWithIOException() throws Exception {
-        Map<String, String> tagsComponentInitStatusFailed = new HashMap<String, String>();
+        Map<String, String> tagsComponentInitStatusFailed = new HashMap<>();
         tagsComponentInitStatusFailed.put(COMPONENT_INIT_STATUS.getTagName(), "Failed");
 
         when(awsHelperService.getTags(instanceId)).thenReturn(tagsComponentInitStatusFailed);
@@ -729,7 +741,7 @@ public class AemInstanceHelperServiceTest {
         
         setField(aemHelperService, "tagsToApplyToSnapshot", tagsToApplyToSnapshot);
         
-        Map<String, String> activePublishTags = new HashMap<String, String>();
+        Map<String, String> activePublishTags = new HashMap<>();
         activePublishTags.put("someRandomTag1", "someRandomTag1");
         activePublishTags.put(tag1, tag1);
         activePublishTags.put("someRandomTag2", "someRandomTag2");
@@ -758,14 +770,14 @@ public class AemInstanceHelperServiceTest {
     
     
     @Test
-    public void testCreatePublishSnapshotWithNoSelectedTags() throws Exception {
+    public void testCreatePublishSnapshotWithNoSelectedTags() {
         String snapshotId = "x3289751048";
         
-        List <String> tagsToApplyToSnapshot = new ArrayList<String>();
+        List <String> tagsToApplyToSnapshot = new ArrayList<>();
         
         setField(aemHelperService, "tagsToApplyToSnapshot", tagsToApplyToSnapshot);
         
-        Map<String, String> activePublishTags = new HashMap<String, String>();
+        Map<String, String> activePublishTags = new HashMap<>();
         activePublishTags.put("someRandomTag1", "someRandomTag1");
         activePublishTags.put("someRandomTag2", "someRandomTag2");
         activePublishTags.put("someRandomTag3", "someRandomTag3");

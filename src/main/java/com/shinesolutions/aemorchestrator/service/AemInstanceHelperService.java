@@ -243,7 +243,7 @@ public class AemInstanceHelperService {
      */
     public String getPublishIdToSnapshotFrom(String excludeInstanceId) {
 
-        List<String> publishIds = awsHelperService.getInstanceIdsForAutoScalingGroup( envValues.getAutoScaleGroupNameForPublish());
+        List<String> publishIds = awsHelperService.getInstanceIdsForAutoScalingGroup(envValues.getAutoScaleGroupNameForPublish());
 
         return publishIds.stream().filter(s -> !s.equals(excludeInstanceId))
                 .filter(i -> awsHelperService.getTags(i).get(InstanceTags.SNAPSHOT_ID.getTagName()) != null)
