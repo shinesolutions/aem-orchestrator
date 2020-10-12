@@ -16,9 +16,9 @@ import com.amazonaws.services.ec2.model.DescribeTagsResult;
 import com.amazonaws.services.ec2.model.Filter;
 import com.amazonaws.services.ec2.model.Tag;
 import com.amazonaws.services.ec2.model.TagDescription;
-import com.amazonaws.services.elasticloadbalancing.AmazonElasticLoadBalancing;
-import com.amazonaws.services.elasticloadbalancing.model.DescribeLoadBalancersRequest;
-import com.amazonaws.services.elasticloadbalancing.model.DescribeLoadBalancersResult;
+import com.amazonaws.services.elasticloadbalancingv2.AmazonElasticLoadBalancing;
+import com.amazonaws.services.elasticloadbalancingv2.model.DescribeLoadBalancersRequest;
+import com.amazonaws.services.elasticloadbalancingv2.model.DescribeLoadBalancersResult;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3URI;
 import com.amazonaws.services.s3.model.GetObjectRequest;
@@ -71,10 +71,20 @@ public class AwsHelperService {
      */
     public String getElbDnsName(String elbName) {
         DescribeLoadBalancersResult result = amazonElbClient.describeLoadBalancers(new DescribeLoadBalancersRequest()
-            .withLoadBalancerNames(elbName));
-        return result.getLoadBalancerDescriptions().get(0).getDNSName();
+            .withNames(elbName));
+        return result.getLoadBalancers().get(0).getDNSName();
     }
-    
+
+    /**
+     * Return the name for a given AWS ELB group name
+     * @param elbArn the ELB Arn
+     * @return String ELB name
+     */
+    public String getElbName(String elbArn) {
+        DescribeLoadBalancersResult result = amazonElbClient.describeLoadBalancers(new DescribeLoadBalancersRequest()
+            .withLoadBalancerArns(elbArn));
+        return result.getLoadBalancers().get(0).getLoadBalancerName();
+    }
     /**
      * Gets the private IP of a given AWS EC2 instance
      * Will automatically retry 10 times every 10 seconds if no instance is found

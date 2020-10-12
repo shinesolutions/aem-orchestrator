@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Change default orchestrator and replicator credentials to overwrite-me/overwrite-me
 - Changed process of determining the healthy publish instance to check component init state instead of just AEM health
+- Replaced ELB Client with ELBv2 client to support the new AEM OpenCloud architecture which uses an Application Load Balancer #47
 
 ## [2.0.0] - unknown
 
