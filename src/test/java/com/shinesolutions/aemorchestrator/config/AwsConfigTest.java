@@ -21,6 +21,30 @@ public class AwsConfigTest {
         awsConfig = new AwsConfig();
     }
     
+
+    @Test
+    public void testAwsClientConfig_EmptyProxy() {
+        // Setup HTTP proxy
+        String httpProxyHost = "";
+        ProxyDetails proxyDetails = new ProxyDetails();
+        proxyDetails.setHost(httpProxyHost);
+
+        String clientProtocol = "http";
+        int clientConnectionTimeout = 10;
+        int clientMaxErrorRetry = 20;
+        setField(awsConfig, "clientProtocol", clientProtocol);
+        setField(awsConfig, "clientConnectionTimeout", clientConnectionTimeout);
+        setField(awsConfig, "clientMaxErrorRetry", clientMaxErrorRetry);
+
+        setField(awsConfig, "useProxy", false);
+        ClientConfiguration clientConfiguration = awsConfig.awsClientConfig(proxyDetails);
+
+        assertThat(clientConfiguration.getProxyHost(), nullValue());
+        assertThat(clientConfiguration.getProtocol().toString(), equalTo(clientProtocol));
+        assertThat(clientConfiguration.getConnectionTimeout(), equalTo(clientConnectionTimeout));
+        assertThat(clientConfiguration.getMaxErrorRetry(), equalTo(clientMaxErrorRetry));
+    }
+
     @Test
     public void testAwsClientConfig_NoProxy() {
         String clientProtocol = "http";
