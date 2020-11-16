@@ -14,10 +14,10 @@ import com.amazonaws.services.cloudwatch.model.DeleteAlarmsRequest;
 import com.amazonaws.services.cloudwatch.model.PutMetricAlarmRequest;
 import com.amazonaws.services.ec2.AmazonEC2;
 import com.amazonaws.services.ec2.model.*;
-import com.amazonaws.services.elasticloadbalancing.AmazonElasticLoadBalancing;
-import com.amazonaws.services.elasticloadbalancing.model.DescribeLoadBalancersRequest;
-import com.amazonaws.services.elasticloadbalancing.model.DescribeLoadBalancersResult;
-import com.amazonaws.services.elasticloadbalancing.model.LoadBalancerDescription;
+import com.amazonaws.services.elasticloadbalancingv2.AmazonElasticLoadBalancing;
+import com.amazonaws.services.elasticloadbalancingv2.model.DescribeLoadBalancersRequest;
+import com.amazonaws.services.elasticloadbalancingv2.model.DescribeLoadBalancersResult;
+import com.amazonaws.services.elasticloadbalancingv2.model.LoadBalancer;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.GetObjectRequest;
 import com.amazonaws.services.s3.model.S3Object;
@@ -160,15 +160,36 @@ public class AwsHelperServiceTest {
     }
 
     @Test
-    public void testGetElbDnsName() {
-        final LoadBalancerDescription description = new LoadBalancerDescription();
-        description.setDNSName("testDnsName");
+    public void testGetElbName() {
+        final LoadBalancer description = new LoadBalancer();
+        description.setLoadBalancerName("testElbName");
 
-        final List<LoadBalancerDescription> descriptions = new ArrayList<>();
+        final List<LoadBalancer> descriptions = new ArrayList<>();
         descriptions.add(description);
 
         final DescribeLoadBalancersResult result = mock(DescribeLoadBalancersResult.class);
-        when(result.getLoadBalancerDescriptions()).thenReturn(descriptions);
+        when(result.getLoadBalancers()).thenReturn(descriptions);
+
+        when(amazonElbClient.describeLoadBalancers(any(DescribeLoadBalancersRequest.class))).thenReturn(result);
+
+        final String elbArn = "arn:aws:elasticloadbalancing:ap-southeast-2:918473058104:loadbalancer/app/bloch-Autho-1GWRY37R2O1GQ/809dd96ac8ee4083";
+        assertThat(awsHelperService.getElbName(elbArn), equalTo(description.getLoadBalancerName()));
+
+        final ArgumentCaptor<DescribeLoadBalancersRequest> argumentCaptor = ArgumentCaptor.forClass(DescribeLoadBalancersRequest.class);
+        verify(amazonElbClient).describeLoadBalancers(argumentCaptor.capture());
+        assertThat(argumentCaptor.getValue().getLoadBalancerArns().get(0), equalTo(elbArn));
+    }
+
+    @Test
+    public void testGetElbDnsName() {
+        final LoadBalancer description = new LoadBalancer();
+        description.setDNSName("testDnsName");
+
+        final List<LoadBalancer> descriptions = new ArrayList<>();
+        descriptions.add(description);
+
+        final DescribeLoadBalancersResult result = mock(DescribeLoadBalancersResult.class);
+        when(result.getLoadBalancers()).thenReturn(descriptions);
 
         when(amazonElbClient.describeLoadBalancers(any(DescribeLoadBalancersRequest.class))).thenReturn(result);
 
@@ -177,7 +198,7 @@ public class AwsHelperServiceTest {
 
         final ArgumentCaptor<DescribeLoadBalancersRequest> argumentCaptor = ArgumentCaptor.forClass(DescribeLoadBalancersRequest.class);
         verify(amazonElbClient).describeLoadBalancers(argumentCaptor.capture());
-        assertThat(argumentCaptor.getValue().getLoadBalancerNames().get(0), equalTo(elbName));
+        assertThat(argumentCaptor.getValue().getNames().get(0), equalTo(elbName));
     }
 
     @Test

@@ -117,11 +117,11 @@ public class AemConfig {
         
         logger.debug("Resolved auto scaling group name for author dispatcher to: " + 
             envValues.getAutoScaleGroupNameForAuthorDispatcher());
-        
-        envValues.setElasticLoadBalancerNameForAuthor(
-            awsHelper.getStackPhysicalResourceId(awsAuthorStackName, awsAuthorLoadBalancerLogicalId));
-        
-        logger.debug("Resolved elastic load balancer name for author to: " + 
+
+        envValues.setElasticLoadBalancerNameForAuthor(awsHelper.getElbName(
+            awsHelper.getStackPhysicalResourceId(awsAuthorStackName, awsAuthorLoadBalancerLogicalId)));
+
+        logger.debug("Resolved elastic load balancer name for author to: " +
             envValues.getElasticLoadBalancerNameForAuthor());
         
         envValues.setElasticLoadBalancerAuthorDns(awsHelper.getElbDnsName(

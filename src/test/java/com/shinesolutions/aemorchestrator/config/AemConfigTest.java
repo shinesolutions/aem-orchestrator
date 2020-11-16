@@ -96,13 +96,15 @@ public class AemConfigTest {
         String awsAuthorStackName = "awsAuthorStackName";
         String awsAuthorLoadBalancerLogicalId = "awsAuthorLoadBalancerLogicalId";
         String elasticLoadBalancerNameForAuthor = "elasticLoadBalancerNameForAuthor";
+        String elasticLoadBalancerArnForAuthor = "arn:aws:elasticloadbalancing:ap-southeast-2:918473058104:loadbalancer/app/bloch-Autho-1GWRY37R2O1GQ/809dd96ac8ee4083";
         setField(aemConfig, "awsAuthorStackName", awsAuthorStackName);
         setField(aemConfig, "awsAuthorLoadBalancerLogicalId", awsAuthorLoadBalancerLogicalId);
-        when(awsHelperService.getStackPhysicalResourceId(
-                awsAuthorStackName,
-                awsAuthorLoadBalancerLogicalId))
-                .thenReturn(elasticLoadBalancerNameForAuthor);
-        
+        when(awsHelperService.getElbName(
+          awsHelperService.getStackPhysicalResourceId(
+                  awsAuthorStackName,
+                  awsAuthorLoadBalancerLogicalId
+                  ))).thenReturn(elasticLoadBalancerNameForAuthor);
+
         // Set elasticLoadBalancerAuthorDns
         String elasticLoadBalancerAuthorDns = "elasticLoadBalancerAuthorDns";
         when(awsHelperService.getElbDnsName(elasticLoadBalancerNameForAuthor)).thenReturn(elasticLoadBalancerAuthorDns);
