@@ -5,7 +5,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.core.IsNull.nullValue;
+import static org.hamcrest.Matchers.equalTo;
 
 public class ProxyConfigTest {
     
@@ -19,7 +19,9 @@ public class ProxyConfigTest {
     @Test
     public void testProxyDetails_NoEnvironmentVariable() {
         ProxyDetails details = proxyConfig.proxyDetails();
-        
-        assertThat(details, nullValue());
+
+        String httpProxyHost = "";
+
+        assertThat(details.getHost(), equalTo(httpProxyHost));
     }
 }
