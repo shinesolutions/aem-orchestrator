@@ -18,6 +18,10 @@ public class AemApiFactory {
     @Value("${aem.client.api.connection.timeout}")
     private Integer connectionTimeout;
     
+
+    @Value("${aem.client.api.verifyssl}")
+    private boolean verifySsl;
+
     @Resource
     private AemCredentials aemCredentials;
     
@@ -36,6 +40,7 @@ public class AemApiFactory {
     private ApiClient getApiClient(String basePath, UserType user) {
         ApiClient client = new ApiClient();
         
+        client.setVerifyingSsl(verifySsl);
         client.setBasePath(basePath);
         client.setDebugging(useDebug);
         client.setConnectTimeout(connectionTimeout);
