@@ -8,11 +8,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - Added new COMPONENT_INIT_STATUS to instance tags
+- Add configuration to control the verification of the SSL Certificate when executing API calls to AEM #51
 
 ### Changed
 - Change default orchestrator and replicator credentials to overwrite-me/overwrite-me
 - Changed process of determining the healthy publish instance to check component init state instead of just AEM health
 - Replaced ELB Client with ELBv2 client to support the new AEM OpenCloud architecture which uses an Application Load Balancer #47
+- Changed `com.shinesolutions.aemorchestrator.config.ProxyConfig` to return empty string instead of `null` #49
+- Change SSL Verification of the AEM SSL certificate to false #51
+- Change default AEM connection configuration from HTTP to HTTPS #54
 
 ## [2.0.0] - unknown
 

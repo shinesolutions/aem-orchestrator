@@ -120,7 +120,7 @@ public class AwsConfig {
         if (useProxy) {
             clientConfig.setProxyHost(clientProxyHost);
             clientConfig.setProxyPort(clientProxyPort);
-        } else if(proxyDetails != null) {
+        } else if(proxyDetails != null && proxyDetails.getHost() != null && !proxyDetails.getHost().isEmpty()) {
             clientConfig.setProxyHost(proxyDetails.getHost());
             clientConfig.setProxyPort(proxyDetails.getPort());
         }

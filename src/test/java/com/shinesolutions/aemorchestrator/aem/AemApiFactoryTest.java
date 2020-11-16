@@ -32,14 +32,19 @@ public class AemApiFactoryTest {
     
     private Boolean useDebug;
     
+    private Boolean verifySsl;
+
     @Before
     public void setup() {
         basePath = "testBasePath";
         useDebug = false;
+        verifySsl = false;
         connectionTimeout = 30000;
         
         setField(aemApiFactory, "useDebug", useDebug);
         setField(aemApiFactory, "connectionTimeout", connectionTimeout);
+        setField(aemApiFactory, "verifySsl", verifySsl);
+
     }
     
     @Test
@@ -53,6 +58,7 @@ public class AemApiFactoryTest {
         
         assertThat(result.getApiClient().getBasePath(), equalTo(basePath));
         assertThat(result.getApiClient().isDebugging(), is(useDebug));
+        assertThat(result.getApiClient().isVerifyingSsl(), is(verifySsl));
         assertThat(result.getApiClient().getConnectTimeout(), equalTo(connectionTimeout));
         
         HttpBasicAuth auth = (HttpBasicAuth) result.getApiClient().getAuthentication("aemAuth");
@@ -71,6 +77,7 @@ public class AemApiFactoryTest {
         
         assertThat(result.getApiClient().getBasePath(), equalTo(basePath));
         assertThat(result.getApiClient().isDebugging(), is(useDebug));
+        assertThat(result.getApiClient().isVerifyingSsl(), is(verifySsl));
         assertThat(result.getApiClient().getConnectTimeout(), equalTo(connectionTimeout));
         
         HttpBasicAuth auth = (HttpBasicAuth) result.getApiClient().getAuthentication("aemAuth");

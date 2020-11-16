@@ -19,8 +19,8 @@ public class ProxyConfig {
     
     @Bean
     public ProxyDetails proxyDetails() {
-        ProxyDetails details = null;
         
+        ProxyDetails details = new ProxyDetails().withHost("");
         String httpsProxyEnvironmentVar = System.getenv(ENV_HTTPS_PROXY);
         
         if(httpsProxyEnvironmentVar != null && !httpsProxyEnvironmentVar.isEmpty()) {
