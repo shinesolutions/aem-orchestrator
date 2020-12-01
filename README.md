@@ -1,4 +1,4 @@
-[![Build Status](https://img.shields.io/travis/shinesolutions/aem-orchestrator.svg)](http://travis-ci.org/shinesolutions/aem-orchestrator)
+[![Build Status](https://github.com/shinesolutions/aem-orchestrator/workflows/CI/badge.svg)](https://github.com/shinesolutions/aem-orchestrator/actions?query=workflow%3ACI)
 
 # AEM Orchestrator
 AEM Orchestrator is a stateless Java application for orchestrating AEM infrastructure created using [aem-aws-stack-builder](https://github.com/shinesolutions/aem-aws-stack-builder). It's primary function is to keep Adobe Experience Manager (AEM) running in a healthy state despite scaling events or other such impacts on the stack. It does this by listening to a predefined SQS queue and reacting to changes on the stack.
