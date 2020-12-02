@@ -62,6 +62,8 @@ public class HttpUtil {
         CloseableHttpClient client;
 
         if (enableRelaxedSslHttpClient) {
+            
+            // Need to also trust self-signed certificates besides CA signed ones
             SSLContext sslContext = new SSLContextBuilder()
               .loadTrustMaterial(null, TrustAllStrategy.INSTANCE)
               .build();
