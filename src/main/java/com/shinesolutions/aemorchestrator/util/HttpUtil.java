@@ -39,6 +39,9 @@ public class HttpUtil {
      * @return true if response is a HTTP status OK (200)
      * @throws IOException (normally if can't connect)
      * @throws ClientProtocolException if there's an error in the HTTP protocol
+     * @throws KeyStoreException if there's an error with the SSL Keystore
+     * @throws KeyManagementException if there's an error with the SSL Keymanagement
+     * @throws NoSuchAlgorithmException if there's an error with the SSL Algorithm
      */
     public boolean isHttpGetResponseOk(String url) throws ClientProtocolException, IOException, KeyStoreException, KeyManagementException, NoSuchAlgorithmException {
 
@@ -62,7 +65,7 @@ public class HttpUtil {
         CloseableHttpClient client;
 
         if (enableRelaxedSslHttpClient) {
-            
+
             // Need to also trust self-signed certificates besides CA signed ones
             SSLContext sslContext = new SSLContextBuilder()
               .loadTrustMaterial(null, TrustAllStrategy.INSTANCE)
