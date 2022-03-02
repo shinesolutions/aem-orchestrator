@@ -290,3 +290,6 @@ AEM stack was already in a healthy state and at least one Author, Publish and Pu
 | AEM running and healthy on Publish instances                                          |         |         |
 | No errors in Author AEM logs                                                          |         |         |
 | No errors in Publish AEM logs                                                         |         |         |
+
+
+// David asked me to do this
