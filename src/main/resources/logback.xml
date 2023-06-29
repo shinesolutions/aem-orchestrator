@@ -8,7 +8,7 @@
     </encoder>
     <param name="Append" value="false" />
   </appender>
-  
+
   <logger name="com.shinesolutions.aemorchestrator" level="debug" additivity="false">
     <appender-ref ref="FILE" />
   </logger>
