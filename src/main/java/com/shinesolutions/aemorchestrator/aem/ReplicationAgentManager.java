@@ -46,6 +46,20 @@ public class ReplicationAgentManager {
 
         performPostAgentAction(request, authorAemBaseUrl, AgentAction.CREATE);
     }
+
+    public void createPreviewReplicationAgent(String publishId, String publishAemBaseUrl, String authorAemBaseUrl,
+        AgentRunMode runMode) throws ApiException {
+        logger.info("Creating replication agent for preview publish id: " + publishId);
+        
+        PostAgentWithHttpInfoRequest request = agentRequestFactory.getCreateReplicationAgentRequest(runMode,
+            getPreviewReplicationAgentName(publishId), 
+            "Replication agent for preview publish " + publishId, 
+            publishAemBaseUrl, 
+            aemCredentials.getReplicatorCredentials().getUserName(), 
+            aemCredentials.getReplicatorCredentials().getPassword());
+
+        performPostAgentAction(request, authorAemBaseUrl, AgentAction.CREATE);
+    }
     
     public void createReverseReplicationAgent(String publishId, String publishAemBaseUrl, String authorAemBaseUrl,
         AgentRunMode runMode) throws ApiException {
@@ -54,6 +68,20 @@ public class ReplicationAgentManager {
         PostAgentWithHttpInfoRequest request = agentRequestFactory.getCreateReverseReplicationAgentRequest(runMode,
             getReverseReplicationAgentName(publishId), 
             "Reverse replication agent for publish " + publishId, 
+            publishAemBaseUrl, 
+            aemCredentials.getReplicatorCredentials().getUserName(), 
+            aemCredentials.getReplicatorCredentials().getPassword());
+
+        performPostAgentAction(request, authorAemBaseUrl, AgentAction.CREATE);
+    }
+    
+    public void createPreviewReverseReplicationAgent(String publishId, String publishAemBaseUrl, String authorAemBaseUrl,
+        AgentRunMode runMode) throws ApiException {
+        logger.info("Creating reverse replication agent for preview publish id: " + publishId);
+        
+        PostAgentWithHttpInfoRequest request = agentRequestFactory.getCreateReverseReplicationAgentRequest(runMode,
+            getPreviewReverseReplicationAgentName(publishId), 
+            "Reverse replication agent for preview publish " + publishId, 
             publishAemBaseUrl, 
             aemCredentials.getReplicatorCredentials().getUserName(), 
             aemCredentials.getReplicatorCredentials().getPassword());
@@ -71,12 +99,34 @@ public class ReplicationAgentManager {
         performPostAgentAction(request, authorAemBaseUrl, AgentAction.PAUSE);
     }
 
+    public void pausePreviewReplicationAgent(String publishId, String authorAemBaseUrl, AgentRunMode runMode)
+        throws ApiException {
+        logger.info("Pausing replication agent for preview publish id: " + publishId);
+
+        PostAgentWithHttpInfoRequest request = agentRequestFactory.getPauseReplicationAgentRequest(runMode,
+            getPreviewReplicationAgentName(publishId));
+
+        performPostAgentAction(request, authorAemBaseUrl, AgentAction.PAUSE);
+    }
+
     public void resumeReplicationAgent(String publishId, String authorAemBaseUrl, AgentRunMode runMode)
         throws ApiException {
         logger.info("Resuming replication agent for publish id: " + publishId);
         
         PostAgentWithHttpInfoRequest request = agentRequestFactory.getResumeReplicationAgentRequest(runMode,
             getReplicationAgentName(publishId), 
+            aemCredentials.getReplicatorCredentials().getUserName(), 
+            aemCredentials.getReplicatorCredentials().getPassword());
+
+        performPostAgentAction(request, authorAemBaseUrl, AgentAction.RESTART);
+    }
+
+    public void resumePreviewReplicationAgent(String publishId, String authorAemBaseUrl, AgentRunMode runMode)
+        throws ApiException {
+        logger.info("Resuming replication agent for preview publish id: " + publishId);
+        
+        PostAgentWithHttpInfoRequest request = agentRequestFactory.getResumeReplicationAgentRequest(runMode,
+            getPreviewReplicationAgentName(publishId), 
             aemCredentials.getReplicatorCredentials().getUserName(), 
             aemCredentials.getReplicatorCredentials().getPassword());
 
@@ -92,6 +142,16 @@ public class ReplicationAgentManager {
         
         performPostAgentAction(request, authorAemBaseUrl, AgentAction.DELETE);
     }
+
+    public void deletePreviewReplicationAgent(String publishId, String authorAemBaseUrl, AgentRunMode runMode)
+        throws ApiException {
+        logger.info("Deleting replication agent for preview publish id: " + publishId);
+
+        PostAgentWithHttpInfoRequest request = agentRequestFactory.getDeleteAgentRequest(runMode, 
+            getPreviewReplicationAgentName(publishId));
+        
+        performPostAgentAction(request, authorAemBaseUrl, AgentAction.DELETE);
+    }
     
     public void deleteReverseReplicationAgent(String publishId, String authorAemBaseUrl, AgentRunMode runMode)
         throws ApiException {
@@ -99,6 +159,16 @@ public class ReplicationAgentManager {
         
         PostAgentWithHttpInfoRequest request = agentRequestFactory.getDeleteAgentRequest(runMode,
             getReverseReplicationAgentName(publishId));
+        
+        performPostAgentAction(request, authorAemBaseUrl, AgentAction.DELETE);
+    }
+    
+    public void deletePreviewReverseReplicationAgent(String publishId, String authorAemBaseUrl, AgentRunMode runMode)
+        throws ApiException {
+        logger.info("Deleting reverse replication agent for preview publish id: " + publishId);
+        
+        PostAgentWithHttpInfoRequest request = agentRequestFactory.getDeleteAgentRequest(runMode,
+            getPreviewReverseReplicationAgentName(publishId));
         
         performPostAgentAction(request, authorAemBaseUrl, AgentAction.DELETE);
     }
@@ -116,8 +186,16 @@ public class ReplicationAgentManager {
     private String getReplicationAgentName(String instanceId) {
         return "replicationAgent-" + instanceId;
     }
+
+    private String getPreviewReplicationAgentName(String instanceId) {
+        return "previewReplicationAgent-" + instanceId;
+    }
     
     private String getReverseReplicationAgentName(String instanceId) {
         return "reverseReplicationAgent-" + instanceId;
+    }
+    
+    private String getPreviewReverseReplicationAgentName(String instanceId) {
+        return "previewReverseReplicationAgent-" + instanceId;
     }
 }

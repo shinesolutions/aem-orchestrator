@@ -67,12 +67,12 @@ public class ScaleUpPreviewPublishAction implements Action {
     private boolean prepareReplicationAgent(String instanceId, String authorAemBaseUrl, String previewPublishAemBaseUrl) {
         boolean success = true;
         try {
-            replicationAgentManager.createReplicationAgent(instanceId, previewPublishAemBaseUrl, authorAemBaseUrl,
+            replicationAgentManager.createPreviewReplicationAgent(instanceId, previewPublishAemBaseUrl, authorAemBaseUrl,
                 AgentRunMode.PREVIEWPUBLISH);
 
             if(enableReverseReplication) {
                 logger.debug("Reverse replication is enabled");
-                replicationAgentManager.createReverseReplicationAgent(instanceId, previewPublishAemBaseUrl,
+                replicationAgentManager.createPreviewReverseReplicationAgent(instanceId, previewPublishAemBaseUrl,
                     authorAemBaseUrl, AgentRunMode.PREVIEWPUBLISH);
             }
 
@@ -118,7 +118,7 @@ public class ScaleUpPreviewPublishAction implements Action {
 
         // Pause active previewPublish's replication agent before taking snapshot
         try {
-            replicationAgentManager.pauseReplicationAgent(activePreviewPublishId, authorAemBaseUrl, AgentRunMode.PREVIEWPUBLISH);
+            replicationAgentManager.pausePreviewReplicationAgent(activePreviewPublishId, authorAemBaseUrl, AgentRunMode.PREVIEWPUBLISH);
             // Take snapshot
             String volumeId = awsHelperService.getVolumeId(activePreviewPublishId, awsDeviceName);
 
@@ -141,7 +141,7 @@ public class ScaleUpPreviewPublishAction implements Action {
         } finally {
             // Always need to resume active previewPublish instance replication queue
             try {
-                replicationAgentManager.resumeReplicationAgent(activePreviewPublishId, authorAemBaseUrl,
+                replicationAgentManager.resumePreviewReplicationAgent(activePreviewPublishId, authorAemBaseUrl,
                         AgentRunMode.PREVIEWPUBLISH);
             } catch (ApiException e) {
                 logger.error("Failed to restart replication queue for active previewPublish instance: " + activePreviewPublishId, e);
