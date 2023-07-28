@@ -3,6 +3,7 @@ package com.shinesolutions.aemorchestrator.model;
 public enum InstanceTags {
 
     PAIR_INSTANCE_ID("PairInstanceId"),
+    PREVIEW_PAIR_INSTANCE_ID("PreviewPairInstanceId"),
     INSTANCE_ID("InstanceId"),
     AEM_PUBLISH_HOST("PublishHost"),
     AEM_PUBLISH_DISPATCHER_HOST("PublishDispatcherHost"),

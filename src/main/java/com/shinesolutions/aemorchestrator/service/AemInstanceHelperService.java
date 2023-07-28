@@ -271,7 +271,7 @@ public class AemInstanceHelperService {
             envValues.getAutoScaleGroupNameForPreviewPublish());
 
         return previewPublishIds.stream().filter(p -> dispatcherInstanceId.equals(
-            awsHelperService.getTags(p).get(PAIR_INSTANCE_ID.getTagName()))).findFirst().orElse(null);
+            awsHelperService.getTags(p).get(PREVIEW_PAIR_INSTANCE_ID.getTagName()))).findFirst().orElse(null);
     }
 
     /**
@@ -299,7 +299,7 @@ public class AemInstanceHelperService {
             envValues.getAutoScaleGroupNameForPreviewPublishDispatcher());
 
         return dispatcherIds.stream().filter(d -> previewPublishInstanceId.equals(
-            awsHelperService.getTags(d).get(PAIR_INSTANCE_ID.getTagName()))).findFirst().orElse(null);
+            awsHelperService.getTags(d).get(PREVIEW_PAIR_INSTANCE_ID.getTagName()))).findFirst().orElse(null);
     }
 
     /**
@@ -533,14 +533,14 @@ public class AemInstanceHelperService {
      */
     public void pairPreviewPublishWithDispatcher(String previewPublishId, String dispatcherId) {
         Map<String, String> previewPublishTags = new HashMap<String, String>();
-        previewPublishTags.put(AEM_PUBLISH_DISPATCHER_HOST.getTagName(), awsHelperService.getPrivateIp(dispatcherId));
-        previewPublishTags.put(PAIR_INSTANCE_ID.getTagName(), dispatcherId);
+        previewPublishTags.put(AEM_PREVIEW_PUBLISH_DISPATCHER_HOST.getTagName(), awsHelperService.getPrivateIp(dispatcherId));
+        previewPublishTags.put(PREVIEW_PAIR_INSTANCE_ID.getTagName(), dispatcherId);
         awsHelperService.addTags(previewPublishId, previewPublishTags);
 
-        Map<String, String> dispatcherTags = new HashMap<String, String>();
-        dispatcherTags.put(AEM_PUBLISH_HOST.getTagName(), awsHelperService.getPrivateIp(previewPublishId));
-        dispatcherTags.put(PAIR_INSTANCE_ID.getTagName(), previewPublishId);
-        awsHelperService.addTags(dispatcherId, dispatcherTags);
+        Map<String, String> previewDispatcherTags = new HashMap<String, String>();
+        previewDispatcherTags.put(AEM_PREVIEW_PUBLISH_HOST.getTagName(), awsHelperService.getPrivateIp(previewPublishId));
+        previewDispatcherTags.put(PREVIEW_PAIR_INSTANCE_ID.getTagName(), previewPublishId);
+        awsHelperService.addTags(dispatcherId, previewDispatcherTags);
     }
 
     /**
@@ -590,7 +590,7 @@ public class AemInstanceHelperService {
             envValues.getAutoScaleGroupNameForPreviewPublishDispatcher());
         //Filter the list to get all possible eligible candidates
         dispatcherIds = dispatcherIds.stream().filter(d ->
-            isViablePair(instanceId, d.getInstanceId())).collect(Collectors.toList());
+            isViablePreviewPair(instanceId, d.getInstanceId())).collect(Collectors.toList());
 
         if(dispatcherIds.size() > 1) {
             String previewPublishAZ = awsHelperService.getAvailabilityZone(instanceId);
@@ -613,6 +613,12 @@ public class AemInstanceHelperService {
             tags.get(PAIR_INSTANCE_ID.getTagName()).equals(instanceId); //Or it's already paired to the instance
     }
 
+    private boolean isViablePreviewPair(String instanceId, String previewDispatcherInstanceId) {
+        Map<String, String> tags = awsHelperService.getTags(previewDispatcherInstanceId);
+        return !tags.containsKey(PREVIEW_PAIR_INSTANCE_ID.getTagName()) || //Either it's missing a pairing tag
+            tags.get(PREVIEW_PAIR_INSTANCE_ID.getTagName()).equals(instanceId); //Or it's already paired to the instance
+    }
+
     /**
      * Creates a CloudWatch content health alarm for a given publish instance
      * @param instanceId of the publish instance
@@ -633,7 +639,7 @@ public class AemInstanceHelperService {
     public void createContentHealthAlarmForPreviewPublisher(String instanceId) {
         awsHelperService.createContentHealthCheckAlarm(
             getContentHealthCheckAlarmName(instanceId),
-            "Content Health Alarm for PreviewPublish Instance " + instanceId,
+            "Content Health Alarm for Preview Publish Instance " + instanceId,
             instanceId,
             awsPreviewPublishDispatcherStackName,
             envValues.getTopicArn());

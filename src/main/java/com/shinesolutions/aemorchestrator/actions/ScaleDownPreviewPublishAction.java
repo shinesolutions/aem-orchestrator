@@ -49,7 +49,7 @@ public class ScaleDownPreviewPublishAction implements Action {
         String authorAemBaseUrl = aemHelperService.getAemUrlForAuthorElb();
 
         try {
-            replicationAgentManager.deleteReplicationAgent(instanceId, authorAemBaseUrl, AgentRunMode.AUTHOR);
+            replicationAgentManager.deletePreviewReplicationAgent(instanceId, authorAemBaseUrl, AgentRunMode.AUTHOR);
         } catch (ApiException e) {
             logger.warn("Failed to delete replication agent on author for previewPublish id: " + instanceId +
                 ". It may already be deleted.");
@@ -59,7 +59,7 @@ public class ScaleDownPreviewPublishAction implements Action {
         if (reverseReplicationEnabled) {
             logger.debug("Reverse replication is enabled");
             try {
-                replicationAgentManager.deleteReverseReplicationAgent(instanceId, authorAemBaseUrl,
+                replicationAgentManager.deletePreviewReverseReplicationAgent(instanceId, authorAemBaseUrl,
                     AgentRunMode.AUTHOR);
 
             } catch (ApiException e) {

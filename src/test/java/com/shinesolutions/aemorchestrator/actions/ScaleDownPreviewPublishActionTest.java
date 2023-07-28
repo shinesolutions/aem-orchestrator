@@ -50,18 +50,18 @@ public class ScaleDownPreviewPublishActionTest {
     }
 
     @Test
-    public void testTerminatePairedDispatcherAndDeleteReplicationAgent() throws Exception {
+    public void testTerminatePairedPreviewDispatcherAndDeleteReplicationAgent() throws Exception {
         when(aemHelperService.getDispatcherIdForPairedPreviewPublish(instanceId)).thenReturn(pairedDispatcherId);
 
         boolean success = action.execute(instanceId);
 
         verify(awsHelperService, times(1)).terminateInstance(pairedDispatcherId);
 
-        verify(replicationAgentManager, times(1)).deleteReplicationAgent(instanceId, authorAemBaseUrl,
+        verify(replicationAgentManager, times(1)).deletePreviewReplicationAgent(instanceId, authorAemBaseUrl,
             AgentRunMode.AUTHOR);
 
         //Ensure reverse replication queue removal not called unless enabled
-        verify(replicationAgentManager, times(0)).deleteReverseReplicationAgent(instanceId, authorAemBaseUrl,
+        verify(replicationAgentManager, times(0)).deletePreviewReverseReplicationAgent(instanceId, authorAemBaseUrl,
             AgentRunMode.AUTHOR);
 
         assertThat(success, equalTo(true));
@@ -75,7 +75,7 @@ public class ScaleDownPreviewPublishActionTest {
 
         verify(awsHelperService, times(0)).terminateInstance(pairedDispatcherId);
 
-        verify(replicationAgentManager, times(1)).deleteReplicationAgent(instanceId, authorAemBaseUrl,
+        verify(replicationAgentManager, times(1)).deletePreviewReplicationAgent(instanceId, authorAemBaseUrl,
             AgentRunMode.AUTHOR);
 
         assertThat(success, equalTo(true));
@@ -85,7 +85,7 @@ public class ScaleDownPreviewPublishActionTest {
     public void testHandlesExceptionWhenDeletingReplicationAgent() throws Exception {
         when(aemHelperService.getDispatcherIdForPairedPreviewPublish(instanceId)).thenReturn(pairedDispatcherId);
 
-        doThrow(new ApiException()).when(replicationAgentManager).deleteReplicationAgent(instanceId, authorAemBaseUrl,
+        doThrow(new ApiException()).when(replicationAgentManager).deletePreviewReplicationAgent(instanceId, authorAemBaseUrl,
             AgentRunMode.AUTHOR);
 
         boolean success = action.execute(instanceId);
@@ -105,10 +105,10 @@ public class ScaleDownPreviewPublishActionTest {
 
         verify(awsHelperService, times(1)).terminateInstance(pairedDispatcherId);
 
-        verify(replicationAgentManager, times(1)).deleteReplicationAgent(instanceId, authorAemBaseUrl,
+        verify(replicationAgentManager, times(1)).deletePreviewReplicationAgent(instanceId, authorAemBaseUrl,
             AgentRunMode.AUTHOR);
 
-        verify(replicationAgentManager, times(1)).deleteReverseReplicationAgent(instanceId, authorAemBaseUrl,
+        verify(replicationAgentManager, times(1)).deletePreviewReverseReplicationAgent(instanceId, authorAemBaseUrl,
             AgentRunMode.AUTHOR);
 
         assertThat(success, equalTo(true));
@@ -118,7 +118,7 @@ public class ScaleDownPreviewPublishActionTest {
     public void testDeletesReverseReplicationWithException() throws Exception {
         when(aemHelperService.getDispatcherIdForPairedPreviewPublish(instanceId)).thenReturn(pairedDispatcherId);
 
-        doThrow(new ApiException()).when(replicationAgentManager).deleteReverseReplicationAgent(instanceId, authorAemBaseUrl,
+        doThrow(new ApiException()).when(replicationAgentManager).deletePreviewReverseReplicationAgent(instanceId, authorAemBaseUrl,
             AgentRunMode.AUTHOR);
 
         setField(action, "reverseReplicationEnabled", true);
@@ -127,7 +127,7 @@ public class ScaleDownPreviewPublishActionTest {
 
         verify(awsHelperService, times(1)).terminateInstance(pairedDispatcherId);
 
-        verify(replicationAgentManager, times(1)).deleteReplicationAgent(instanceId, authorAemBaseUrl,
+        verify(replicationAgentManager, times(1)).deletePreviewReplicationAgent(instanceId, authorAemBaseUrl,
             AgentRunMode.AUTHOR);
 
         assertThat(success, equalTo(true));

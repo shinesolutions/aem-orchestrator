@@ -17,9 +17,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import com.shinesolutions.aemorchestrator.service.AemInstanceHelperService;
-import com.shinesolutions.aemorchestrator.service.ResourceReadyChecker;
-
 @RunWith(MockitoJUnitRunner.class)
 public class ResourceReadyCheckerTest {
     

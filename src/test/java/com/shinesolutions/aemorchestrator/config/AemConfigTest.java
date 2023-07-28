@@ -56,7 +56,80 @@ public class AemConfigTest {
     }
 
     @Test
-    public void testEnvValue() {
+    public void testEnvValueStandardArchitecture() {
+        AwsHelperService awsHelperService = mock(AwsHelperService.class);
+
+        // Set autoScaleGroupNameForPublishDispatcher
+        String awsPublishDispatcherStackName = "awsPublishDispatcherStackName";
+        String awsPublishDispatcherAutoScaleGroupLogicalId = "awsPublishDispatcherAutoScaleGroupLogicalId";
+        String autoScaleGroupNameForPublishDispatcher = "autoScaleGroupNameForPublishDispatcher";
+        setField(aemConfig, "awsPublishDispatcherStackName", awsPublishDispatcherStackName);
+        setField(aemConfig, "awsPublishDispatcherAutoScaleGroupLogicalId", awsPublishDispatcherAutoScaleGroupLogicalId);
+        when(awsHelperService.getStackPhysicalResourceId(
+                awsPublishDispatcherStackName,
+                awsPublishDispatcherAutoScaleGroupLogicalId))
+                .thenReturn(autoScaleGroupNameForPublishDispatcher);
+
+        // Set autoScaleGroupNameForPublish
+        String awsPublishStackName = "awsPublishStackName";
+        String awsPublishAutoScaleGroupLogicalId = "awsPublishAutoScaleGroupLogicalId";
+        String autoScaleGroupNameForPublish = "autoScaleGroupNameForPublish";
+        setField(aemConfig, "awsPublishStackName", awsPublishStackName);
+        setField(aemConfig, "awsPublishAutoScaleGroupLogicalId", awsPublishAutoScaleGroupLogicalId);
+        when(awsHelperService.getStackPhysicalResourceId(
+                awsPublishStackName,
+                awsPublishAutoScaleGroupLogicalId))
+                .thenReturn(autoScaleGroupNameForPublish);
+
+        // Set autoScaleGroupNameForAuthorDispatcher
+        String awsAuthorDispatcherStackName = "awsAuthorDispatcherStackName";
+        String awsAuthorDispatcherAutoScaleGroupLogicalId = "awsAuthorDispatcherAutoScaleGroupLogicalId";
+        String autoScaleGroupNameForAuthorDispatcher = "autoScaleGroupNameForAuthorDispatcher";
+        setField(aemConfig, "awsAuthorDispatcherStackName", awsAuthorDispatcherStackName);
+        setField(aemConfig, "awsAuthorDispatcherAutoScaleGroupLogicalId", awsAuthorDispatcherAutoScaleGroupLogicalId);
+        when(awsHelperService.getStackPhysicalResourceId(
+                awsAuthorDispatcherStackName,
+                awsAuthorDispatcherAutoScaleGroupLogicalId))
+                .thenReturn(autoScaleGroupNameForAuthorDispatcher);
+        
+        // Set elasticLoadBalancerNameForAuthor
+        String awsAuthorStackName = "awsAuthorStackName";
+        String awsAuthorLoadBalancerLogicalId = "awsAuthorLoadBalancerLogicalId";
+        String elasticLoadBalancerNameForAuthor = "elasticLoadBalancerNameForAuthor";
+        setField(aemConfig, "awsAuthorStackName", awsAuthorStackName);
+        setField(aemConfig, "awsAuthorLoadBalancerLogicalId", awsAuthorLoadBalancerLogicalId);
+        when(awsHelperService.getElbName(
+          awsHelperService.getStackPhysicalResourceId(
+                  awsAuthorStackName,
+                  awsAuthorLoadBalancerLogicalId
+                  ))).thenReturn(elasticLoadBalancerNameForAuthor);
+
+        // Set elasticLoadBalancerAuthorDns
+        String elasticLoadBalancerAuthorDns = "elasticLoadBalancerAuthorDns";
+        when(awsHelperService.getElbDnsName(elasticLoadBalancerNameForAuthor)).thenReturn(elasticLoadBalancerAuthorDns);
+
+        // Set topicArn
+        String awsMessagingStackName = "awsMessagingStackName";
+        String awsSnsTopicLogicalId = "awsSnsTopicLogicalId";
+        String topicArn = "topicArn";
+        setField(aemConfig, "awsMessagingStackName", awsMessagingStackName);
+        setField(aemConfig, "awsSnsTopicLogicalId", awsSnsTopicLogicalId);
+        when(awsHelperService.getStackPhysicalResourceId(awsMessagingStackName, awsSnsTopicLogicalId)).thenReturn(topicArn);
+
+        EnvironmentValues envValues = aemConfig.envValues(awsHelperService);
+
+        assertThat(envValues.getAutoScaleGroupNameForPublishDispatcher(), equalTo(autoScaleGroupNameForPublishDispatcher));
+        assertThat(envValues.getAutoScaleGroupNameForPublish(), equalTo(autoScaleGroupNameForPublish));
+        assertThat(envValues.getAutoScaleGroupNameForPreviewPublishDispatcher(), equalTo(null));
+        assertThat(envValues.getAutoScaleGroupNameForPreviewPublish(), equalTo(null));
+        assertThat(envValues.getAutoScaleGroupNameForAuthorDispatcher(), equalTo(autoScaleGroupNameForAuthorDispatcher));
+        assertThat(envValues.getElasticLoadBalancerNameForAuthor(), equalTo(elasticLoadBalancerNameForAuthor));
+        assertThat(envValues.getElasticLoadBalancerAuthorDns(), equalTo(elasticLoadBalancerAuthorDns));
+        assertThat(envValues.getTopicArn(), equalTo(topicArn));
+    }
+
+    @Test
+    public void testEnvValuePreviewArchitecture() {
         AwsHelperService awsHelperService = mock(AwsHelperService.class);
 
         // Set autoScaleGroupNameForPublishDispatcher
@@ -118,7 +191,6 @@ public class AemConfigTest {
         String awsAuthorStackName = "awsAuthorStackName";
         String awsAuthorLoadBalancerLogicalId = "awsAuthorLoadBalancerLogicalId";
         String elasticLoadBalancerNameForAuthor = "elasticLoadBalancerNameForAuthor";
-        String elasticLoadBalancerArnForAuthor = "arn:aws:elasticloadbalancing:ap-southeast-2:918473058104:loadbalancer/app/bloch-Autho-1GWRY37R2O1GQ/809dd96ac8ee4083";
         setField(aemConfig, "awsAuthorStackName", awsAuthorStackName);
         setField(aemConfig, "awsAuthorLoadBalancerLogicalId", awsAuthorLoadBalancerLogicalId);
         when(awsHelperService.getElbName(

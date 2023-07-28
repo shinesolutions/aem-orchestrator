@@ -136,7 +136,7 @@ public class ScaleUpPreviewPublishAction implements Action {
             }
 
         } catch (Exception e) {
-            logger.error("Error while pausing and attempting to snapshot an active previewPublish instance", e);
+            logger.error("Error while pausing and attempting to snapshot an active preview Publish instance", e);
             success = false;
         } finally {
             // Always need to resume active previewPublish instance replication queue
@@ -157,10 +157,10 @@ public class ScaleUpPreviewPublishAction implements Action {
 
         try {
             // Find unpaired previewPublish dispatcher and pair it with tags
-            logger.debug("Attempting to find unpaired previewPublish dispatcher instance");
+            logger.debug("Attempting to find unpaired Preview Publish dispatcher instance");
             String unpairedDispatcherId = aemHelperService.findUnpairedPreviewPublishDispatcher(instanceId);
 
-            logger.debug("Pairing previewPublish instance (" + instanceId + ") with pubish dispatcher ("
+            logger.debug("Pairing previewPublish instance (" + instanceId + ") with preview publish dispatcher ("
                 + unpairedDispatcherId + ") via tags");
             aemHelperService.pairPreviewPublishWithDispatcher(instanceId, unpairedDispatcherId);
 
@@ -182,7 +182,7 @@ public class ScaleUpPreviewPublishAction implements Action {
             logger.info("Creating content health check alarm");
             aemHelperService.createContentHealthAlarmForPreviewPublisher(instanceId);
         } catch (Exception e) {
-            logger.warn("Failed to create content health check alarm for previewPublish instance " + instanceId, e);
+            logger.warn("Failed to create content health check alarm for Preview Publish instance " + instanceId, e);
         }
     }
 

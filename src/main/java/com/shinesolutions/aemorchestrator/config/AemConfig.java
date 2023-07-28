@@ -118,22 +118,26 @@ public class AemConfig {
         logger.debug("Resolved auto scaling group name for publish dispatcher to: " +
             envValues.getAutoScaleGroupNameForPublishDispatcher());
 
-        envValues.setAutoScaleGroupNameForPreviewPublishDispatcher(
-            awsHelper.getStackPhysicalResourceId(awsPreviewPublishDispatcherStackName, awsPreviewPublishDispatcherAutoScaleGroupLogicalId));
-        logger.debug("Resolved auto scaling group name for previewPublish dispatcher to: " +
-            envValues.getAutoScaleGroupNameForPreviewPublishDispatcher());
+        if (awsPreviewPublishDispatcherStackName != null && !awsPreviewPublishDispatcherStackName.equals("")) {
+            envValues.setAutoScaleGroupNameForPreviewPublishDispatcher(
+                awsHelper.getStackPhysicalResourceId(awsPreviewPublishDispatcherStackName, awsPreviewPublishDispatcherAutoScaleGroupLogicalId)
+            );
+            
+                logger.debug("Resolved auto scaling group name for previewPublish dispatcher to: " +
+                envValues.getAutoScaleGroupNameForPreviewPublishDispatcher());
 
+            envValues.setAutoScaleGroupNameForPreviewPublish(
+                awsHelper.getStackPhysicalResourceId(awsPreviewPublishStackName, awsPreviewPublishAutoScaleGroupLogicalId));
+
+            logger.debug("Resolved auto scaling group name for previewPublish to: " +
+                envValues.getAutoScaleGroupNameForPreviewPublish());
+        }
+        
         envValues.setAutoScaleGroupNameForPublish(
             awsHelper.getStackPhysicalResourceId(awsPublishStackName, awsPublishAutoScaleGroupLogicalId));
 
         logger.debug("Resolved auto scaling group name for publish to: " +
             envValues.getAutoScaleGroupNameForPublish());
-
-        envValues.setAutoScaleGroupNameForPreviewPublish(
-            awsHelper.getStackPhysicalResourceId(awsPreviewPublishStackName, awsPreviewPublishAutoScaleGroupLogicalId));
-
-        logger.debug("Resolved auto scaling group name for previewPublish to: " +
-            envValues.getAutoScaleGroupNameForPreviewPublish());
 
         envValues.setAutoScaleGroupNameForAuthorDispatcher(
             awsHelper.getStackPhysicalResourceId(awsAuthorDispatcherStackName, awsAuthorDispatcherAutoScaleGroupLogicalId));

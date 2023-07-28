@@ -520,7 +520,7 @@ public class AemInstanceHelperServiceTest {
         EC2Instance instance3 = new EC2Instance().withInstanceId("3rd-222983").withAvailabilityZone(previewPublishAZ);
 
         Map<String, String> tagsWithPairName = new HashMap<>();
-        tagsWithPairName.put(PAIR_INSTANCE_ID.getTagName(), "testPair");
+        tagsWithPairName.put(PREVIEW_PAIR_INSTANCE_ID.getTagName(), "testPair");
 
         Map<String, String> tagsWithoutPairName = new HashMap<>();
 
@@ -579,7 +579,7 @@ public class AemInstanceHelperServiceTest {
         EC2Instance instance3 = new EC2Instance().withInstanceId("3rd-222983").withAvailabilityZone(previewPublishAZ);
 
         Map<String, String> tagsWithPairName = new HashMap<>();
-        tagsWithPairName.put(PAIR_INSTANCE_ID.getTagName(), "testPair");
+        tagsWithPairName.put(PREVIEW_PAIR_INSTANCE_ID.getTagName(), "testPair");
 
         Map<String, String> tagsWithoutPairName = new HashMap<>();
 
@@ -639,7 +639,7 @@ public class AemInstanceHelperServiceTest {
         EC2Instance instance3 = new EC2Instance().withInstanceId("3rd-222983").withAvailabilityZone(previewPublishAZ);
 
         Map<String, String> tagsWithPairName = new HashMap<>();
-        tagsWithPairName.put(PAIR_INSTANCE_ID.getTagName(), "testPair");
+        tagsWithPairName.put(PREVIEW_PAIR_INSTANCE_ID.getTagName(), "testPair");
 
         Map<String, String> tagsWithoutPairName = new HashMap<>();
 
@@ -699,7 +699,7 @@ public class AemInstanceHelperServiceTest {
         EC2Instance instance3 = new EC2Instance().withInstanceId("3rd-222983").withAvailabilityZone("B");
 
         Map<String, String> tagsWithPairName = new HashMap<>();
-        tagsWithPairName.put(PAIR_INSTANCE_ID.getTagName(), "testPair");
+        tagsWithPairName.put(PREVIEW_PAIR_INSTANCE_ID.getTagName(), "testPair");
 
         Map<String, String> tagsWithoutPairName = new HashMap<>();
 
@@ -775,7 +775,7 @@ public class AemInstanceHelperServiceTest {
         EC2Instance instance2 = new EC2Instance().withInstanceId("2nd-111982").withAvailabilityZone(previewPublishAZ);
 
         Map<String, String> tagsWithPairName = new HashMap<>();
-        tagsWithPairName.put(PAIR_INSTANCE_ID.getTagName(), "testPair");
+        tagsWithPairName.put(PREVIEW_PAIR_INSTANCE_ID.getTagName(), "testPair");
 
         Map<String, String> tagsWithAlreadyPairedId = new HashMap<>();
         tagsWithAlreadyPairedId.put(PAIR_INSTANCE_ID.getTagName(), instanceId);
@@ -842,10 +842,10 @@ public class AemInstanceHelperServiceTest {
         String dispatcherId = "dis-4385974";
 
         Map<String, String> tagsWithPair = new HashMap<>();
-        tagsWithPair.put(PAIR_INSTANCE_ID.getTagName(), dispatcherId);
+        tagsWithPair.put(PREVIEW_PAIR_INSTANCE_ID.getTagName(), dispatcherId);
 
         Map<String, String> tagsWithoutPair = new HashMap<>();
-        tagsWithoutPair.put(PAIR_INSTANCE_ID.getTagName(), "abc-35734685");
+        tagsWithoutPair.put(PREVIEW_PAIR_INSTANCE_ID.getTagName(), "abc-35734685");
 
         Map<String, String> tagsMissingPair = new HashMap<>();
 
@@ -946,10 +946,10 @@ public class AemInstanceHelperServiceTest {
         String previewPublishId = "dis-4385974";
 
         Map<String, String> tagsWithPair = new HashMap<>();
-        tagsWithPair.put(PAIR_INSTANCE_ID.getTagName(), previewPublishId);
+        tagsWithPair.put(PREVIEW_PAIR_INSTANCE_ID.getTagName(), previewPublishId);
 
         Map<String, String> tagsWithoutPair = new HashMap<>();
-        tagsWithoutPair.put(PAIR_INSTANCE_ID.getTagName(), "abc-35734685");
+        tagsWithoutPair.put(PREVIEW_PAIR_INSTANCE_ID.getTagName(), "abc-35734685");
 
         Map<String, String> tagsMissingPair = new HashMap<>();
 
@@ -1123,14 +1123,14 @@ public class AemInstanceHelperServiceTest {
         Map<String, String> previewPublishTags = mapCaptor.getAllValues().get(0);
 
         //Confirm that the correct tags and their values are set for previewPublish instance
-        assertThat(previewPublishTags.get(AEM_PUBLISH_DISPATCHER_HOST.getTagName()), equalTo(dispatcherHost));
-        assertThat(previewPublishTags.get(PAIR_INSTANCE_ID.getTagName()), equalTo(dispatcherId));
+        assertThat(previewPublishTags.get(AEM_PREVIEW_PUBLISH_DISPATCHER_HOST.getTagName()), equalTo(dispatcherHost));
+        assertThat(previewPublishTags.get(PREVIEW_PAIR_INSTANCE_ID.getTagName()), equalTo(dispatcherId));
 
-        Map<String, String> dispatcherTags = mapCaptor.getAllValues().get(1);
+        Map<String, String> previewDispatcherTags = mapCaptor.getAllValues().get(1);
 
         //Confirm that the correct tags and their values are set for previewPublish dispatcher
-        assertThat(dispatcherTags.get(AEM_PUBLISH_HOST.getTagName()), equalTo(previewPublishHost));
-        assertThat(dispatcherTags.get(PAIR_INSTANCE_ID.getTagName()), equalTo(previewPublishId));
+        assertThat(previewDispatcherTags.get(AEM_PREVIEW_PUBLISH_HOST.getTagName()), equalTo(previewPublishHost));
+        assertThat(previewDispatcherTags.get(PREVIEW_PAIR_INSTANCE_ID.getTagName()), equalTo(previewPublishId));
     }
 
     @Test
