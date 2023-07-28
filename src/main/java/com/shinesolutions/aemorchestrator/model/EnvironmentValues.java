@@ -4,6 +4,8 @@ public class EnvironmentValues {
     private String autoScaleGroupNameForAuthorDispatcher;
     private String autoScaleGroupNameForPublish;
     private String autoScaleGroupNameForPublishDispatcher;
+    private String autoScaleGroupNameForPreviewPublish;
+    private String autoScaleGroupNameForPreviewPublishDispatcher;
     private String elasticLoadBalancerNameForAuthor;
     private String elasticLoadBalancerAuthorDns;
     private String topicArn;
@@ -20,16 +22,32 @@ public class EnvironmentValues {
         return autoScaleGroupNameForPublish;
     }
 
+    public String getAutoScaleGroupNameForPreviewPublish() {
+        return autoScaleGroupNameForPreviewPublish;
+    }
+
     public void setAutoScaleGroupNameForPublish(String autoScaleGroupNameForPublish) {
         this.autoScaleGroupNameForPublish = autoScaleGroupNameForPublish;
+    }
+
+    public void setAutoScaleGroupNameForPreviewPublish(String autoScaleGroupNameForPreviewPublish) {
+        this.autoScaleGroupNameForPreviewPublish = autoScaleGroupNameForPreviewPublish;
     }
 
     public String getAutoScaleGroupNameForPublishDispatcher() {
         return autoScaleGroupNameForPublishDispatcher;
     }
 
+    public String getAutoScaleGroupNameForPreviewPublishDispatcher() {
+        return autoScaleGroupNameForPreviewPublishDispatcher;
+    }
+
     public void setAutoScaleGroupNameForPublishDispatcher(String autoScaleGroupNameForPublishDispatcher) {
         this.autoScaleGroupNameForPublishDispatcher = autoScaleGroupNameForPublishDispatcher;
+    }
+
+    public void setAutoScaleGroupNameForPreviewPublishDispatcher(String autoScaleGroupNameForPreviewPublishDispatcher) {
+        this.autoScaleGroupNameForPreviewPublishDispatcher = autoScaleGroupNameForPreviewPublishDispatcher;
     }
 
     public String getElasticLoadBalancerNameForAuthor() {

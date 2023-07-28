@@ -32,8 +32,14 @@ public class AemInstanceHelperService {
     @Value("${aem.protocol.publishDispatcher}")
     private String aemPublishDispatcherProtocol;
 
+    @Value("${aem.protocol.previewPublishDispatcher}")
+    private String aemPreviewPublishDispatcherProtocol;
+
     @Value("${aem.protocol.publish}")
     private String aemPublishProtocol;
+
+    @Value("${aem.protocol.previewPublish}")
+    private String aemPreviewPublishProtocol;
 
     @Value("${aem.protocol.authorDispatcher}")
     private String aemAuthorDispatcherProtocol;
@@ -44,8 +50,14 @@ public class AemInstanceHelperService {
     @Value("${aem.port.publishDispatcher}")
     private Integer aemPublishDispatcherPort;
 
+    @Value("${aem.port.publishDispatcher}")
+    private Integer aemPreviewPublishDispatcherPort;
+
     @Value("${aem.port.publish}")
     private Integer aemPublishPort;
+
+    @Value("${aem.port.previewPublish}")
+    private Integer aemPreviewPublishPort;
 
     @Value("${aem.port.authorDispatcher}")
     private Integer aemAuthorDispatcherPort;
@@ -58,6 +70,9 @@ public class AemInstanceHelperService {
 
     @Value("${aws.cloudformation.stackName.publishDispatcher}")
     private String awsPublishDispatcherStackName;
+
+    @Value("${aws.cloudformation.stackName.previewPublishDispatcher}")
+    private String awsPreviewPublishDispatcherStackName;
 
     @Resource
     private EnvironmentValues envValues;
@@ -83,6 +98,17 @@ public class AemInstanceHelperService {
     }
 
     /**
+     * Gets the PreviewPublish Dispatcher base AEM URL for a given EC2 instance ID
+     * @param instanceId EC2 instance ID
+     * @return Base AEM URL (includes protocol, IP and port). E.g. http://[ip]:[port]
+     */
+    public String getAemUrlForPreviewPublishDispatcher(String instanceId) {
+        //PreviewPublish dispatcher must be accessed via private IP
+        return String.format(URL_FORMAT, aemPreviewPublishDispatcherProtocol,
+            awsHelperService.getPrivateIp(instanceId), aemPreviewPublishDispatcherPort);
+    }
+
+    /**
      * Gets the Publish instance base AEM URL for a given EC2 instance ID
      * @param instanceId C2 instance ID
      * @return Base AEM URL (includes protocol, IP and port). E.g. http://[ip]:[port]
@@ -91,6 +117,17 @@ public class AemInstanceHelperService {
         //Publish must be accessed via private IP
         return String.format(URL_FORMAT, aemPublishProtocol,
             awsHelperService.getPrivateIp(instanceId), aemPublishPort);
+    }
+
+    /**
+     * Gets the PreviewPublish instance base AEM URL for a given EC2 instance ID
+     * @param instanceId C2 instance ID
+     * @return Base AEM URL (includes protocol, IP and port). E.g. http://[ip]:[port]
+     */
+    public String getAemUrlForPreviewPublish(String instanceId) {
+        //PreviewPublish must be accessed via private IP
+        return String.format(URL_FORMAT, aemPreviewPublishProtocol,
+            awsHelperService.getPrivateIp(instanceId), aemPreviewPublishPort);
     }
 
     /**
@@ -160,7 +197,16 @@ public class AemInstanceHelperService {
      * @param instanceId the publish AWS instance id
      * @return true if the Publish instance is in a healthy state
      */
-    public boolean isPubishHealthy(String instanceId) {
+    public boolean isPublishHealthy(String instanceId) {
+        return getAemComponentInitState(instanceId);
+    }
+
+    /**
+     * Helper method for determining if the given PreviewPublish instance is in a healthy state
+     * @param instanceId the previewPublish AWS instance id
+     * @return true if the PreviewPublish instance is in a healthy state
+     */
+    public boolean isPreviewPublishHealthy(String instanceId) {
         return getAemComponentInitState(instanceId);
     }
 
@@ -174,7 +220,25 @@ public class AemInstanceHelperService {
     @Retryable(maxAttempts=10, value=InstanceNotInHealthyStateException.class, backoff=@Backoff(delay=5000))
     public void waitForPublishToBeHealthy(String instanceId) throws InstanceNotInHealthyStateException {
         try {
-            if(!isPubishHealthy(instanceId)) {
+            if(!isPublishHealthy(instanceId)) {
+                throw new InstanceNotInHealthyStateException(instanceId);
+            }
+        } catch (Exception e) {
+            throw new InstanceNotInHealthyStateException(instanceId, e);
+        }
+    }
+
+    /**
+     * Blocking method that continually checks to see if a given PreviewPublish instance is in a healthy state.
+     * Will stop blocking once the PreviewPublish instance is deemed to be in a healthy state, or will
+     * throw an exception if not
+     * @param instanceId of the PreviewPublish instance
+     * @throws InstanceNotInHealthyStateException thrown if reaches waiting period time out
+     */
+    @Retryable(maxAttempts=10, value=InstanceNotInHealthyStateException.class, backoff=@Backoff(delay=5000))
+    public void waitForPreviewPublishToBeHealthy(String instanceId) throws InstanceNotInHealthyStateException {
+        try {
+            if(!isPreviewPublishHealthy(instanceId)) {
                 throw new InstanceNotInHealthyStateException(instanceId);
             }
         } catch (Exception e) {
@@ -197,6 +261,20 @@ public class AemInstanceHelperService {
     }
 
     /**
+     * Gets the PreviewPublish EC2 instance ID that is paired to the given PreviewPublish Dispatcher.
+     * Uses a tag on the instance to find the pair
+     * @param dispatcherInstanceId EC2 instance ID of PreviewPublish Dispatcher
+     * @return PreviewPublish EC2 instance ID. If no pair found, then returns null
+     */
+    public String getPreviewPublishIdForPairedDispatcher(String dispatcherInstanceId) {
+        List<String> previewPublishIds = awsHelperService.getInstanceIdsForAutoScalingGroup(
+            envValues.getAutoScaleGroupNameForPreviewPublish());
+
+        return previewPublishIds.stream().filter(p -> dispatcherInstanceId.equals(
+            awsHelperService.getTags(p).get(PREVIEW_PAIR_INSTANCE_ID.getTagName()))).findFirst().orElse(null);
+    }
+
+    /**
      * Gets the Publish Dispatcher EC2 instance ID that is paired to the given Publish instance.
      * Uses a tag on the instance to find the pair
      * @param publishInstanceId the Publish EC2 instance ID
@@ -211,11 +289,33 @@ public class AemInstanceHelperService {
     }
 
     /**
+     * Gets the PreviewPublish Dispatcher EC2 instance ID that is paired to the given PreviewPublish instance.
+     * Uses a tag on the instance to find the pair
+     * @param previewPublishInstanceId the PreviewPublish EC2 instance ID
+     * @return PreviewPublish Dispatcher EC2 instance ID. If no pair found, then returns null
+     */
+    public String getDispatcherIdForPairedPreviewPublish(String previewPublishInstanceId) {
+        List<String> dispatcherIds = awsHelperService.getInstanceIdsForAutoScalingGroup(
+            envValues.getAutoScaleGroupNameForPreviewPublishDispatcher());
+
+        return dispatcherIds.stream().filter(d -> previewPublishInstanceId.equals(
+            awsHelperService.getTags(d).get(PREVIEW_PAIR_INSTANCE_ID.getTagName()))).findFirst().orElse(null);
+    }
+
+    /**
      * Gets the desired capacity of the Publish auto scaling group
      * @return Desired capacity for Publish auto scaling group
      */
     public int getAutoScalingGroupDesiredCapacityForPublish() {
         return awsHelperService.getAutoScalingGroupDesiredCapacity(envValues.getAutoScaleGroupNameForPublish());
+    }
+
+    /**
+     * Gets the desired capacity of the PreviewPublish auto scaling group
+     * @return Desired capacity for PreviewPublish auto scaling group
+     */
+    public int getAutoScalingGroupDesiredCapacityForPreviewPublish() {
+        return awsHelperService.getAutoScalingGroupDesiredCapacity(envValues.getAutoScaleGroupNameForPreviewPublish());
     }
 
     /**
@@ -227,12 +327,29 @@ public class AemInstanceHelperService {
     }
 
     /**
+     * Gets the desired capacity of the PreviewPublish Dispatcher auto scaling group
+     * @return Desired capacity for PreviewPublish Dispatcher auto scaling group
+     */
+    public int getAutoScalingGroupDesiredCapacityForPreviewPublishDispatcher() {
+        return awsHelperService.getAutoScalingGroupDesiredCapacity(envValues.getAutoScaleGroupNameForPreviewPublishDispatcher());
+    }
+
+    /**
      * Sets the desired capacity of the Publish auto scaling group.
      * NOTE: Changing the desired capacity will cause the auto scaling group to either add or remove instances
      * @param desiredCapacity the new desired capacity
      */
     public void setAutoScalingGroupDesiredCapacityForPublish(int desiredCapacity) {
         awsHelperService.setAutoScalingGroupDesiredCapacity(envValues.getAutoScaleGroupNameForPublish(), desiredCapacity);
+    }
+
+    /**
+     * Sets the desired capacity of the PreviewPublish auto scaling group.
+     * NOTE: Changing the desired capacity will cause the auto scaling group to either add or remove instances
+     * @param desiredCapacity the new desired capacity
+     */
+    public void setAutoScalingGroupDesiredCapacityForPreviewPublish(int desiredCapacity) {
+        awsHelperService.setAutoScalingGroupDesiredCapacity(envValues.getAutoScaleGroupNameForPreviewPublish(), desiredCapacity);
     }
 
     /**
@@ -264,6 +381,34 @@ public class AemInstanceHelperService {
     }
 
     /**
+     * Finds an active PreviewPublish instance (excluding the given instance ID) suitable for taking a snapshot from
+     * @param excludeInstanceId the previewPublish instance ID to exclude
+     * from the search (generally the new PreviewPublish instance that needs the snapshot)
+     * @return Active previewPublish instance ID to get snapshot from, null if can't be found
+     */
+    public String getPreviewPublishIdToSnapshotFrom(String excludeInstanceId) {
+
+        List<String> previewPublishIds = awsHelperService.getInstanceIdsForAutoScalingGroup(envValues.getAutoScaleGroupNameForPreviewPublish());
+
+        return previewPublishIds.stream().filter(s -> !s.equals(excludeInstanceId))
+                .filter(i -> awsHelperService.getTags(i).get(InstanceTags.SNAPSHOT_ID.getTagName()) != null)
+                .sorted((o1, o2) -> {
+
+                    Date launchTime1 = awsHelperService.getLaunchTime(o1);
+                    Date launchTime2 = awsHelperService.getLaunchTime(o2);
+
+                    final int launchTimeCompareTo = launchTime1.compareTo(launchTime2);
+
+                    if (launchTimeCompareTo == 0) {
+                        return o1.compareTo(o2);
+                    }
+
+                    return launchTimeCompareTo;
+                })
+                .findFirst().orElse(null);
+    }
+
+    /**
      * If no Publish instances have been set up via snapshot, then the first one will not require a snapshot
      * (nothing to snapshot from). The method helps determine if it is the first publish instance to be set up
      * after startup.
@@ -275,6 +420,21 @@ public class AemInstanceHelperService {
 
         //Check if any of the instances on the group have the SnapshotId tag, if not then it's the first
         return publishIds.stream().filter(i -> awsHelperService.getTags(i).get(
+            InstanceTags.SNAPSHOT_ID.getTagName()) != null).findFirst().orElse(null) == null;
+    }
+
+    /**
+     * If no PreviewPublish instances have been set up via snapshot, then the first one will not require a snapshot
+     * (nothing to snapshot from). The method helps determine if it is the first previewPublish instance to be set up
+     * after startup.
+     * @return true if no instance son the PreviewPublish group have the SnapshotId tag, false otherwise
+     */
+    public boolean isFirstPreviewPublishInstance() {
+        List<String> previewPublishIds = awsHelperService.getInstanceIdsForAutoScalingGroup(
+            envValues.getAutoScaleGroupNameForPreviewPublish());
+
+        //Check if any of the instances on the group have the SnapshotId tag, if not then it's the first
+        return previewPublishIds.stream().filter(i -> awsHelperService.getTags(i).get(
             InstanceTags.SNAPSHOT_ID.getTagName()) != null).findFirst().orElse(null) == null;
     }
 
@@ -325,6 +485,31 @@ public class AemInstanceHelperService {
     }
 
     /**
+     * Creates and tags a snapshot resource with select tags taken from the previewPublish instance.
+     * The tags to use are defined via properties (aws.snapshot.tags)
+     * @param instanceId the previewPublish EC2 instance ID from which the snapshot was taken
+     * @param volumeId of where the snapshot will be stored
+     * @return snapshot ID
+     */
+    public String createPreviewPublishSnapshot(String instanceId, String volumeId) {
+        Map<String, String> activePreviewPublishTags = awsHelperService.getTags(instanceId);
+
+        Map<String, String> tagsForSnapshot = activePreviewPublishTags.entrySet().stream()
+            .filter(map -> tagsToApplyToSnapshot.contains(map.getKey()))
+            .collect(Collectors.toMap(p -> p.getKey(), p -> p.getValue()));
+
+        tagsForSnapshot.put(SNAPSHOT_TYPE.getTagName(), "orchestration");
+        tagsForSnapshot.put(NAME.getTagName(), "AEM previewPublish Snapshot " + instanceId);
+
+        String snapshotId = awsHelperService.createSnapshot(volumeId,
+            "Orchestration AEM snapshot of previewPublish instance " + instanceId + " and volume " + volumeId);
+
+        awsHelperService.addTags(snapshotId, tagsForSnapshot);
+
+        return snapshotId;
+    }
+
+    /**
      * Adds pair ID EC2 tags to both the Publish Dispatcher and Publish instance that point to each other.
      * @param publishId the EC2 Publish instance ID
      * @param dispatcherId the Publish Dispatcher EC2 instance ID
@@ -339,6 +524,23 @@ public class AemInstanceHelperService {
         dispatcherTags.put(AEM_PUBLISH_HOST.getTagName(), awsHelperService.getPrivateIp(publishId));
         dispatcherTags.put(PAIR_INSTANCE_ID.getTagName(), publishId);
         awsHelperService.addTags(dispatcherId, dispatcherTags);
+    }
+
+    /**
+     * Adds pair ID EC2 tags to both the PreviewPublish Dispatcher and PreviewPublish instance that point to each other.
+     * @param previewPublishId the EC2 PreviewPublish instance ID
+     * @param dispatcherId the PreviewPublish Dispatcher EC2 instance ID
+     */
+    public void pairPreviewPublishWithDispatcher(String previewPublishId, String dispatcherId) {
+        Map<String, String> previewPublishTags = new HashMap<String, String>();
+        previewPublishTags.put(AEM_PREVIEW_PUBLISH_DISPATCHER_HOST.getTagName(), awsHelperService.getPrivateIp(dispatcherId));
+        previewPublishTags.put(PREVIEW_PAIR_INSTANCE_ID.getTagName(), dispatcherId);
+        awsHelperService.addTags(previewPublishId, previewPublishTags);
+
+        Map<String, String> previewDispatcherTags = new HashMap<String, String>();
+        previewDispatcherTags.put(AEM_PREVIEW_PUBLISH_HOST.getTagName(), awsHelperService.getPrivateIp(previewPublishId));
+        previewDispatcherTags.put(PREVIEW_PAIR_INSTANCE_ID.getTagName(), previewPublishId);
+        awsHelperService.addTags(dispatcherId, previewDispatcherTags);
     }
 
     /**
@@ -373,10 +575,48 @@ public class AemInstanceHelperService {
         return unpairedDispatcher;
     }
 
+    /**
+     * Looks at all PreviewPublish Dispatcher instances on the auto scaling group and retrieves the
+     * first one missing a pair ID tag (unpaired).
+     * @param instanceId the PreviewPublish instance ID
+     * @return PreviewPublish Dispatcher instance ID tag
+     * @throws NoPairFoundException if can't find unpaired PreviewPublish Dispatcher
+     */
+    @Retryable(maxAttempts=10, value=NoPairFoundException.class, backoff=@Backoff(delay=5000))
+    public String findUnpairedPreviewPublishDispatcher(String instanceId) throws NoPairFoundException {
+        String unpairedDispatcher = null;
+
+        List<EC2Instance> dispatcherIds = awsHelperService.getInstancesForAutoScalingGroup(
+            envValues.getAutoScaleGroupNameForPreviewPublishDispatcher());
+        //Filter the list to get all possible eligible candidates
+        dispatcherIds = dispatcherIds.stream().filter(d ->
+            isViablePreviewPair(instanceId, d.getInstanceId())).collect(Collectors.toList());
+
+        if(dispatcherIds.size() > 1) {
+            String previewPublishAZ = awsHelperService.getAvailabilityZone(instanceId);
+
+            //If there are many candidates, then pick the one with the same AZ or else use first
+            unpairedDispatcher = (dispatcherIds.stream().filter(i -> i.getAvailabilityZone().equalsIgnoreCase(previewPublishAZ))
+                .findFirst().orElse(dispatcherIds.get(0))).getInstanceId();
+        } else if (dispatcherIds.size() == 1) {
+            unpairedDispatcher = dispatcherIds.get(0).getInstanceId();
+        } else {
+            throw new NoPairFoundException(instanceId);
+        }
+
+        return unpairedDispatcher;
+    }
+
     private boolean isViablePair(String instanceId, String dispatcherInstanceId) {
         Map<String, String> tags = awsHelperService.getTags(dispatcherInstanceId);
         return !tags.containsKey(PAIR_INSTANCE_ID.getTagName()) || //Either it's missing a pairing tag
             tags.get(PAIR_INSTANCE_ID.getTagName()).equals(instanceId); //Or it's already paired to the instance
+    }
+
+    private boolean isViablePreviewPair(String instanceId, String previewDispatcherInstanceId) {
+        Map<String, String> tags = awsHelperService.getTags(previewDispatcherInstanceId);
+        return !tags.containsKey(PREVIEW_PAIR_INSTANCE_ID.getTagName()) || //Either it's missing a pairing tag
+            tags.get(PREVIEW_PAIR_INSTANCE_ID.getTagName()).equals(instanceId); //Or it's already paired to the instance
     }
 
     /**
@@ -393,10 +633,31 @@ public class AemInstanceHelperService {
     }
 
     /**
+     * Creates a CloudWatch content health alarm for a given previewPublish instance
+     * @param instanceId of the previewPublish instance
+     */
+    public void createContentHealthAlarmForPreviewPublisher(String instanceId) {
+        awsHelperService.createContentHealthCheckAlarm(
+            getContentHealthCheckAlarmName(instanceId),
+            "Content Health Alarm for Preview Publish Instance " + instanceId,
+            instanceId,
+            awsPreviewPublishDispatcherStackName,
+            envValues.getTopicArn());
+    }
+
+    /**
      * Deletes a CloudWatch content health alarm for a given publish instance ID
      * @param instanceId of the publish instance
      */
     public void deleteContentHealthAlarmForPublisher(String instanceId) {
+        awsHelperService.deleteAlarm(getContentHealthCheckAlarmName(instanceId));
+    }
+
+    /**
+     * Deletes a CloudWatch content health alarm for a given previewPublish instance ID
+     * @param instanceId of the previewPublish instance
+     */
+    public void deleteContentHealthAlarmForPreviewPublisher(String instanceId) {
         awsHelperService.deleteAlarm(getContentHealthCheckAlarmName(instanceId));
     }
 

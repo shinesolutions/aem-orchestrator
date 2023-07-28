@@ -95,6 +95,31 @@ public class ReplicationAgentManagerTest {
     }
     
     @Test
+    public void testPreviewCreateReplicationAgent() throws ApiException {
+        PostAgentWithHttpInfoRequest request = new PostAgentWithHttpInfoRequest();
+        when(agentRequestFactory.getCreateReplicationAgentRequest(
+                any(AgentRunMode.class),
+                anyString(),
+                anyString(),
+                anyString(),
+                anyString(),
+                anyString()))
+                .thenReturn(request);
+        
+        replicationAgentManager.createPreviewReplicationAgent(publishId, publishAemBaseUrl, authorAemBaseUrl, runMode);
+        
+        verify(agentRequestFactory).getCreateReplicationAgentRequest(
+                eq(runMode),
+                endsWith(publishId),
+                endsWith(publishId),
+                eq(publishAemBaseUrl),
+                eq(username),
+                eq(password));
+        verify(aemApiFactory).getSlingApi(eq(authorAemBaseUrl), eq(AgentAction.CREATE));
+        verify(aemApiHelper).postAgentWithHttpInfo(slingApi, request);
+    }
+    
+    @Test
     public void testCreateReverseReplicationAgent() throws ApiException {
         PostAgentWithHttpInfoRequest request = new PostAgentWithHttpInfoRequest();
         when(agentRequestFactory.getCreateReverseReplicationAgentRequest(
@@ -120,11 +145,48 @@ public class ReplicationAgentManagerTest {
     }
     
     @Test
+    public void testCreatePreviewReverseReplicationAgent() throws ApiException {
+        PostAgentWithHttpInfoRequest request = new PostAgentWithHttpInfoRequest();
+        when(agentRequestFactory.getCreateReverseReplicationAgentRequest(
+                any(AgentRunMode.class),
+                anyString(),
+                anyString(),
+                anyString(),
+                anyString(),
+                anyString()))
+                .thenReturn(request);
+        
+        replicationAgentManager.createPreviewReverseReplicationAgent(publishId, publishAemBaseUrl, authorAemBaseUrl, runMode);
+        
+        verify(agentRequestFactory).getCreateReverseReplicationAgentRequest(
+                eq(runMode),
+                endsWith(publishId),
+                endsWith(publishId),
+                eq(publishAemBaseUrl),
+                eq(username),
+                eq(password));
+        verify(aemApiFactory).getSlingApi(eq(authorAemBaseUrl), eq(AgentAction.CREATE));
+        verify(aemApiHelper).postAgentWithHttpInfo(slingApi, request);
+    }
+    
+    @Test
     public void testDeleteReplicationAgent() throws ApiException {
         PostAgentWithHttpInfoRequest request = new PostAgentWithHttpInfoRequest();
         when(agentRequestFactory.getDeleteAgentRequest(any(AgentRunMode.class), anyString())).thenReturn(request);
         
         replicationAgentManager.deleteReplicationAgent(publishId, authorAemBaseUrl, runMode);
+        
+        verify(agentRequestFactory).getDeleteAgentRequest(eq(runMode), endsWith(publishId));
+        verify(aemApiFactory).getSlingApi(eq(authorAemBaseUrl), eq(AgentAction.DELETE));
+        verify(aemApiHelper).postAgentWithHttpInfo(slingApi, request);
+    }
+    
+    @Test
+    public void testDeletePreviewReplicationAgent() throws ApiException {
+        PostAgentWithHttpInfoRequest request = new PostAgentWithHttpInfoRequest();
+        when(agentRequestFactory.getDeleteAgentRequest(any(AgentRunMode.class), anyString())).thenReturn(request);
+        
+        replicationAgentManager.deletePreviewReplicationAgent(publishId, authorAemBaseUrl, runMode);
         
         verify(agentRequestFactory).getDeleteAgentRequest(eq(runMode), endsWith(publishId));
         verify(aemApiFactory).getSlingApi(eq(authorAemBaseUrl), eq(AgentAction.DELETE));
@@ -144,11 +206,35 @@ public class ReplicationAgentManagerTest {
     }
     
     @Test
+    public void testDeletePreviewReverseReplicationAgent() throws ApiException {
+        PostAgentWithHttpInfoRequest request = new PostAgentWithHttpInfoRequest();
+        when(agentRequestFactory.getDeleteAgentRequest(any(AgentRunMode.class), anyString())).thenReturn(request);
+        
+        replicationAgentManager.deletePreviewReverseReplicationAgent(publishId, authorAemBaseUrl, runMode);
+        
+        verify(agentRequestFactory).getDeleteAgentRequest(eq(runMode), endsWith(publishId));
+        verify(aemApiFactory).getSlingApi(eq(authorAemBaseUrl), eq(AgentAction.DELETE));
+        verify(aemApiHelper).postAgentWithHttpInfo(slingApi, request);
+    }
+    
+    @Test
     public void testPauseReplicationAgent() throws ApiException {
         PostAgentWithHttpInfoRequest request = new PostAgentWithHttpInfoRequest();
         when(agentRequestFactory.getPauseReplicationAgentRequest(any(AgentRunMode.class), anyString())).thenReturn(request);
         
         replicationAgentManager.pauseReplicationAgent(publishId, authorAemBaseUrl, runMode);
+        
+        verify(agentRequestFactory).getPauseReplicationAgentRequest(eq(runMode), endsWith(publishId));
+        verify(aemApiFactory).getSlingApi(eq(authorAemBaseUrl), eq(AgentAction.PAUSE));
+        verify(aemApiHelper).postAgentWithHttpInfo(slingApi, request);
+    }
+    
+    @Test
+    public void testPausePreviewReplicationAgent() throws ApiException {
+        PostAgentWithHttpInfoRequest request = new PostAgentWithHttpInfoRequest();
+        when(agentRequestFactory.getPauseReplicationAgentRequest(any(AgentRunMode.class), anyString())).thenReturn(request);
+        
+        replicationAgentManager.pausePreviewReplicationAgent(publishId, authorAemBaseUrl, runMode);
         
         verify(agentRequestFactory).getPauseReplicationAgentRequest(eq(runMode), endsWith(publishId));
         verify(aemApiFactory).getSlingApi(eq(authorAemBaseUrl), eq(AgentAction.PAUSE));
@@ -166,6 +252,27 @@ public class ReplicationAgentManagerTest {
                 .thenReturn(request);
         
         replicationAgentManager.resumeReplicationAgent(publishId, authorAemBaseUrl, runMode);
+        
+        verify(agentRequestFactory).getResumeReplicationAgentRequest(
+                eq(runMode),
+                endsWith(publishId),
+                eq(username),
+                eq(password));
+        verify(aemApiFactory).getSlingApi(eq(authorAemBaseUrl), eq(AgentAction.RESTART));
+        verify(aemApiHelper).postAgentWithHttpInfo(slingApi, request);
+    }
+    
+    @Test
+    public void testResumePreviewReplicationAgent() throws ApiException {
+        PostAgentWithHttpInfoRequest request = new PostAgentWithHttpInfoRequest();
+        when(agentRequestFactory.getResumeReplicationAgentRequest(
+                any(AgentRunMode.class),
+                anyString(),
+                anyString(),
+                anyString()))
+                .thenReturn(request);
+        
+        replicationAgentManager.resumePreviewReplicationAgent(publishId, authorAemBaseUrl, runMode);
         
         verify(agentRequestFactory).getResumeReplicationAgentRequest(
                 eq(runMode),

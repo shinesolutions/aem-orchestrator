@@ -160,7 +160,7 @@ public class ScaleUpPublishAction implements Action {
             logger.debug("Attempting to find unpaired publish dispatcher instance");
             String unpairedDispatcherId = aemHelperService.findUnpairedPublishDispatcher(instanceId);
 
-            logger.debug("Pairing publish instance (" + instanceId + ") with pubish dispatcher ("
+            logger.debug("Pairing publish instance (" + instanceId + ") with preview publish dispatcher ("
                 + unpairedDispatcherId + ") via tags");
             aemHelperService.pairPublishWithDispatcher(instanceId, unpairedDispatcherId);
 
