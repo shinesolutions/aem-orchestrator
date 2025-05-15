@@ -98,6 +98,7 @@ public class AemConfigTest {
         String elasticLoadBalancerNameForAuthor = "elasticLoadBalancerNameForAuthor";
         setField(aemConfig, "awsAuthorStackName", awsAuthorStackName);
         setField(aemConfig, "awsAuthorLoadBalancerLogicalId", awsAuthorLoadBalancerLogicalId);
+        when(awsHelperService.getStackPhysicalResourceId("awsAuthorStackName", "awsAuthorLoadBalancerLogicalId")).thenReturn(null);
         when(awsHelperService.getElbName(
           awsHelperService.getStackPhysicalResourceId(
                   awsAuthorStackName,
@@ -193,6 +194,7 @@ public class AemConfigTest {
         String elasticLoadBalancerNameForAuthor = "elasticLoadBalancerNameForAuthor";
         setField(aemConfig, "awsAuthorStackName", awsAuthorStackName);
         setField(aemConfig, "awsAuthorLoadBalancerLogicalId", awsAuthorLoadBalancerLogicalId);
+        when(awsHelperService.getStackPhysicalResourceId("awsAuthorStackName", "awsAuthorLoadBalancerLogicalId")).thenReturn(null);
         when(awsHelperService.getElbName(
           awsHelperService.getStackPhysicalResourceId(
                   awsAuthorStackName,
