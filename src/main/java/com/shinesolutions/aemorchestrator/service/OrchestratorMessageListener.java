@@ -1,10 +1,10 @@
 package com.shinesolutions.aemorchestrator.service;
 
-import javax.annotation.PreDestroy;
-import javax.annotation.Resource;
-import javax.jms.Message;
-import javax.jms.MessageConsumer;
-import javax.jms.MessageListener;
+import jakarta.annotation.PreDestroy;
+import jakarta.annotation.Resource;
+import jakarta.jms.Message;
+import jakarta.jms.MessageConsumer;
+import jakarta.jms.MessageListener;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -3,10 +3,10 @@
 
   <appender name="FILE" class="ch.qos.logback.core.FileAppender">
     <file>orchestrator.log</file>
-    <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+    <append>false</append>
+    <encoder>
       <pattern>%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n</pattern>
     </encoder>
-    <param name="Append" value="false" />
   </appender>
 
   <logger name="com.shinesolutions.aemorchestrator" level="debug" additivity="false">

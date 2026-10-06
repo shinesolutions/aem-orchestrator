@@ -10,14 +10,16 @@ import static org.springframework.test.util.ReflectionTestUtils.setField;
 import java.io.IOException;
 
 import org.apache.http.client.ClientProtocolException;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class ResourceReadyCheckerTest {
     
     @Mock
@@ -26,7 +28,7 @@ public class ResourceReadyCheckerTest {
     @InjectMocks
     private ResourceReadyChecker startupManager;
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
         setFields(1, 1, 1, 1);
     }

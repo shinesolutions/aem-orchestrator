@@ -6,16 +6,18 @@ import com.shinesolutions.aemorchestrator.model.EC2Instance;
 import com.shinesolutions.aemorchestrator.model.EnvironmentValues;
 import com.shinesolutions.aemorchestrator.model.InstanceTags;
 import com.shinesolutions.aemorchestrator.util.HttpUtil;
-import org.joda.time.DateTime;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.util.Date;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-
+import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.*;
 
 import static com.shinesolutions.aemorchestrator.model.InstanceTags.*;
@@ -27,8 +29,10 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.util.ReflectionTestUtils.setField;
+import org.junit.jupiter.api.extension.ExtendWith;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class AemInstanceHelperServiceTest {
 
     private String aemPublishDispatcherProtocol;
@@ -64,7 +68,7 @@ public class AemInstanceHelperServiceTest {
     private String instanceId;
     private String privateIp;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         instanceId = "test-123456789";
         privateIp = "11.22.33.44";
@@ -199,10 +203,10 @@ public class AemInstanceHelperServiceTest {
 
         Date dt = new Date();
 
-        DateTime originalDateTime = new DateTime(dt);
-        Date originalDate = originalDateTime.toDate();
-        DateTime originalPlusOneDateTime = originalDateTime.plusDays(1);
-        Date originalPlusOneDate = originalPlusOneDateTime.toDate();
+ZonedDateTime originalDateTime = dt.toInstant().atZone(ZoneId.systemDefault());
+Date originalDate = Date.from(originalDateTime.toInstant());
+ZonedDateTime originalPlusOneDateTime = originalDateTime.plusDays(1);
+Date originalPlusOneDate = Date.from(originalPlusOneDateTime.toInstant());
 
         when(awsHelperService.getInstanceIdsForAutoScalingGroup(
             envValues.getAutoScaleGroupNameForPublish())).thenReturn(instanceIds);
@@ -230,10 +234,10 @@ public class AemInstanceHelperServiceTest {
 
         Date dt = new Date();
 
-        DateTime originalDateTime = new DateTime(dt);
-        Date originalDate = originalDateTime.toDate();
-        DateTime originalPlusOneDateTime = originalDateTime.plusDays(1);
-        Date originalPlusOneDate = originalPlusOneDateTime.toDate();
+        ZonedDateTime originalDateTime = dt.toInstant().atZone(ZoneId.systemDefault());
+Date originalDate = Date.from(originalDateTime.toInstant());
+ZonedDateTime originalPlusOneDateTime = originalDateTime.plusDays(1);
+Date originalPlusOneDate = Date.from(originalPlusOneDateTime.toInstant());
 
         when(awsHelperService.getInstanceIdsForAutoScalingGroup(
             envValues.getAutoScaleGroupNameForPreviewPublish())).thenReturn(instanceIds);
@@ -721,24 +725,29 @@ public class AemInstanceHelperServiceTest {
         assertThat(resultInstanceId, equalTo(instance2.getInstanceId()));
     }
 
-    @Test(expected=NoPairFoundException.class)
+    @Test
     public void testFindUnpairedPublishFail() throws Exception {
         List<EC2Instance> instanceIds = new ArrayList<>();
 
         when(awsHelperService.getInstancesForAutoScalingGroup(
             envValues.getAutoScaleGroupNameForPublishDispatcher())).thenReturn(instanceIds);
 
-        aemHelperService.findUnpairedPublishDispatcher(instanceId);
+        assertThrows(NoPairFoundException.class, () -> {
+            aemHelperService.findUnpairedPublishDispatcher(instanceId);
+        });
+        
     }
 
-    @Test(expected=NoPairFoundException.class)
+    @Test
     public void testFindUnpairedPreviewPublishFail() throws Exception {
         List<EC2Instance> instanceIds = new ArrayList<>();
 
         when(awsHelperService.getInstancesForAutoScalingGroup(
             envValues.getAutoScaleGroupNameForPreviewPublishDispatcher())).thenReturn(instanceIds);
 
-        aemHelperService.findUnpairedPreviewPublishDispatcher(instanceId);
+        assertThrows(NoPairFoundException.class, () -> {
+            aemHelperService.findUnpairedPreviewPublishDispatcher(instanceId);
+        });
     }
 
     @Test
@@ -1251,44 +1260,52 @@ public class AemInstanceHelperServiceTest {
         aemHelperService.waitForPreviewPublishToBeHealthy(instanceId);
     }
 
-    @Test(expected=InstanceNotInHealthyStateException.class)
+    @Test
     public void testWaitForPublishToBeHealthyNotOk() throws Exception {
         Map<String, String> tagsComponentInitStatusFailed = new HashMap<>();
         tagsComponentInitStatusFailed.put(COMPONENT_INIT_STATUS.getTagName(), "Failed");
 
         when(awsHelperService.getTags(instanceId)).thenReturn(tagsComponentInitStatusFailed);
 
-        aemHelperService.waitForPublishToBeHealthy(instanceId);
+        assertThrows(InstanceNotInHealthyStateException.class, () -> {
+            aemHelperService.waitForPublishToBeHealthy(instanceId);
+        }); 
     }
 
-    @Test(expected=InstanceNotInHealthyStateException.class)
+    @Test
     public void testWaitForPreviewPublishToBeHealthyNotOk() throws Exception {
         Map<String, String> tagsComponentInitStatusFailed = new HashMap<>();
         tagsComponentInitStatusFailed.put(COMPONENT_INIT_STATUS.getTagName(), "Failed");
 
         when(awsHelperService.getTags(instanceId)).thenReturn(tagsComponentInitStatusFailed);
 
-        aemHelperService.waitForPreviewPublishToBeHealthy(instanceId);
+        assertThrows(InstanceNotInHealthyStateException.class, () -> {
+            aemHelperService.waitForPreviewPublishToBeHealthy(instanceId);
+        });  
     }
 
-    @Test(expected=InstanceNotInHealthyStateException.class)
+    @Test
     public void testWaitForPublishToBeHealthyWithIOException() throws Exception {
         Map<String, String> tagsComponentInitStatusFailed = new HashMap<>();
         tagsComponentInitStatusFailed.put(COMPONENT_INIT_STATUS.getTagName(), "Failed");
 
         when(awsHelperService.getTags(instanceId)).thenReturn(tagsComponentInitStatusFailed);
 
-        aemHelperService.waitForPublishToBeHealthy(instanceId);
+        assertThrows(InstanceNotInHealthyStateException.class, () -> {
+            aemHelperService.waitForPublishToBeHealthy(instanceId);
+        });  
     }
 
-    @Test(expected=InstanceNotInHealthyStateException.class)
+    @Test
     public void testWaitForPreviewPublishToBeHealthyWithIOException() throws Exception {
         Map<String, String> tagsComponentInitStatusFailed = new HashMap<>();
         tagsComponentInitStatusFailed.put(COMPONENT_INIT_STATUS.getTagName(), "Failed");
 
         when(awsHelperService.getTags(instanceId)).thenReturn(tagsComponentInitStatusFailed);
 
-        aemHelperService.waitForPreviewPublishToBeHealthy(instanceId);
+        assertThrows(InstanceNotInHealthyStateException.class, () -> {
+            aemHelperService.waitForPreviewPublishToBeHealthy(instanceId);
+        }); 
     }
 
     @Test

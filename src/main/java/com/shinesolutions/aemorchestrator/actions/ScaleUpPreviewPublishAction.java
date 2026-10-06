@@ -2,7 +2,7 @@ package com.shinesolutions.aemorchestrator.actions;
 
 import java.util.NoSuchElementException;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

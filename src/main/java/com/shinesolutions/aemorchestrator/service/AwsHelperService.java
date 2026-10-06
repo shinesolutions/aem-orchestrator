@@ -1,43 +1,65 @@
 package com.shinesolutions.aemorchestrator.service;
 
-import com.amazonaws.AmazonServiceException;
-import com.amazonaws.services.autoscaling.AmazonAutoScaling;
-import com.amazonaws.services.autoscaling.model.*;
-import com.amazonaws.services.autoscaling.model.Instance;
-import com.amazonaws.services.cloudformation.AmazonCloudFormation;
-import com.amazonaws.services.cloudformation.model.DescribeStackResourcesRequest;
-import com.amazonaws.services.cloudformation.model.DescribeStackResourcesResult;
-import com.amazonaws.services.cloudwatch.AmazonCloudWatch;
-import com.amazonaws.services.cloudwatch.model.*;
-import com.amazonaws.services.ec2.AmazonEC2;
-import com.amazonaws.services.ec2.model.*;
-import com.amazonaws.services.ec2.model.DescribeTagsRequest;
-import com.amazonaws.services.ec2.model.DescribeTagsResult;
-import com.amazonaws.services.ec2.model.Filter;
-import com.amazonaws.services.ec2.model.Tag;
-import com.amazonaws.services.ec2.model.TagDescription;
-import com.amazonaws.services.elasticloadbalancingv2.AmazonElasticLoadBalancing;
-import com.amazonaws.services.elasticloadbalancingv2.model.DescribeLoadBalancersRequest;
-import com.amazonaws.services.elasticloadbalancingv2.model.DescribeLoadBalancersResult;
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3URI;
-import com.amazonaws.services.s3.model.GetObjectRequest;
-import com.amazonaws.services.s3.model.S3Object;
-import com.amazonaws.util.IOUtils;
-import com.shinesolutions.aemorchestrator.model.EC2Instance;
-import com.shinesolutions.aemorchestrator.model.InstanceTags;
-import org.springframework.retry.annotation.Backoff;
-import org.springframework.retry.annotation.Retryable;
-import org.springframework.stereotype.Component;
-
-import javax.annotation.Resource;
 import java.io.IOException;
-import java.util.Arrays;
+import java.net.URI;
+import java.time.Instant;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import jakarta.annotation.Resource;
+
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
+import org.springframework.stereotype.Component;
+
+import com.shinesolutions.aemorchestrator.model.EC2Instance;
+import com.shinesolutions.aemorchestrator.model.InstanceTags;
+
+import software.amazon.awssdk.awscore.exception.AwsServiceException;
+import software.amazon.awssdk.core.ResponseInputStream;
+import software.amazon.awssdk.services.autoscaling.AutoScalingClient;
+import software.amazon.awssdk.services.autoscaling.model.AutoScalingGroup;
+import software.amazon.awssdk.services.autoscaling.model.DescribeAutoScalingGroupsRequest;
+import software.amazon.awssdk.services.autoscaling.model.DescribeAutoScalingGroupsResponse;
+import software.amazon.awssdk.services.autoscaling.model.Instance;
+import software.amazon.awssdk.services.autoscaling.model.SetDesiredCapacityRequest;
+import software.amazon.awssdk.services.cloudformation.CloudFormationClient;
+import software.amazon.awssdk.services.cloudformation.model.DescribeStackResourcesRequest;
+import software.amazon.awssdk.services.cloudformation.model.DescribeStackResourcesResponse;
+import software.amazon.awssdk.services.cloudwatch.CloudWatchClient;
+import software.amazon.awssdk.services.cloudwatch.model.ComparisonOperator;
+import software.amazon.awssdk.services.cloudwatch.model.DeleteAlarmsRequest;
+import software.amazon.awssdk.services.cloudwatch.model.Dimension;
+import software.amazon.awssdk.services.cloudwatch.model.PutMetricAlarmRequest;
+import software.amazon.awssdk.services.cloudwatch.model.Statistic;
+import software.amazon.awssdk.services.ec2.Ec2Client;
+import software.amazon.awssdk.services.ec2.model.CreateSnapshotRequest;
+import software.amazon.awssdk.services.ec2.model.CreateSnapshotResponse;
+import software.amazon.awssdk.services.ec2.model.CreateTagsRequest;
+import software.amazon.awssdk.services.ec2.model.DescribeInstanceAttributeRequest;
+import software.amazon.awssdk.services.ec2.model.DescribeInstanceAttributeResponse;
+import software.amazon.awssdk.services.ec2.model.DescribeInstancesRequest;
+import software.amazon.awssdk.services.ec2.model.DescribeInstancesResponse;
+import software.amazon.awssdk.services.ec2.model.DescribeTagsRequest;
+import software.amazon.awssdk.services.ec2.model.DescribeTagsResponse;
+import software.amazon.awssdk.services.ec2.model.EbsInstanceBlockDevice;
+import software.amazon.awssdk.services.ec2.model.Filter;
+import software.amazon.awssdk.services.ec2.model.InstanceAttributeName;
+import software.amazon.awssdk.services.ec2.model.InstanceBlockDeviceMapping;
+import software.amazon.awssdk.services.ec2.model.InstanceStateName;
+import software.amazon.awssdk.services.ec2.model.Tag;
+import software.amazon.awssdk.services.ec2.model.TagDescription;
+import software.amazon.awssdk.services.ec2.model.TerminateInstancesRequest;
+import software.amazon.awssdk.services.elasticloadbalancingv2.ElasticLoadBalancingV2Client;
+import software.amazon.awssdk.services.elasticloadbalancingv2.model.DescribeLoadBalancersRequest;
+import software.amazon.awssdk.services.elasticloadbalancingv2.model.DescribeLoadBalancersResponse;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.S3Uri;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.model.GetObjectResponse;
+import software.amazon.awssdk.utils.IoUtils;
 
 /**
  * Helper class for performing a range of AWS functions
@@ -46,22 +68,22 @@ import java.util.stream.Collectors;
 public class AwsHelperService {
     
     @Resource
-    public AmazonEC2 amazonEC2Client;
+    public Ec2Client amazonEC2Client;
     
     @Resource
-    public AmazonElasticLoadBalancing amazonElbClient;
+    public ElasticLoadBalancingV2Client amazonElbClient;
     
     @Resource
-    public AmazonAutoScaling amazonAutoScalingClient;
+    public AutoScalingClient amazonAutoScalingClient;
     
     @Resource
-    public AmazonCloudFormation amazonCloudFormationClient;
+    public CloudFormationClient amazonCloudFormationClient;
     
     @Resource
-    public AmazonS3 amazonS3Client;
+    public S3Client amazonS3Client;
     
     @Resource
-    public AmazonCloudWatch amazonCloudWatchClient;
+    public CloudWatchClient amazonCloudWatchClient;
 
     
     /**
@@ -70,9 +92,9 @@ public class AwsHelperService {
      * @return String DNS name
      */
     public String getElbDnsName(String elbName) {
-        DescribeLoadBalancersResult result = amazonElbClient.describeLoadBalancers(new DescribeLoadBalancersRequest()
-            .withNames(elbName));
-        return result.getLoadBalancers().get(0).getDNSName();
+        DescribeLoadBalancersResponse result = amazonElbClient.describeLoadBalancers(
+            DescribeLoadBalancersRequest.builder().names(elbName).build());
+        return result.loadBalancers().get(0).dnsName();
     }
 
     /**
@@ -81,26 +103,29 @@ public class AwsHelperService {
      * @return String ELB name
      */
     public String getElbName(String elbArn) {
-        DescribeLoadBalancersResult result = amazonElbClient.describeLoadBalancers(new DescribeLoadBalancersRequest()
-            .withLoadBalancerArns(elbArn));
-        return result.getLoadBalancers().get(0).getLoadBalancerName();
+        DescribeLoadBalancersResponse result = amazonElbClient.describeLoadBalancers(
+            DescribeLoadBalancersRequest.builder().loadBalancerArns(elbArn).build());
+        return result.loadBalancers().get(0).loadBalancerName();
     }
+
     /**
      * Gets the private IP of a given AWS EC2 instance
      * Will automatically retry 10 times every 10 seconds if no instance is found
      * @param instanceId the EC2 instance ID
      * @return String private IP
      */
-    @Retryable(maxAttempts=10, value=AmazonServiceException.class, backoff=@Backoff(delay=5000))
+    @Retryable(maxAttempts=10, value=AwsServiceException.class, backoff=@Backoff(delay=5000))
     public String getPrivateIp(String instanceId) {
-        DescribeInstancesResult result = amazonEC2Client.describeInstances(
-            new DescribeInstancesRequest().withInstanceIds(instanceId));
+        DescribeInstancesResponse result = amazonEC2Client.describeInstances(
+            DescribeInstancesRequest.builder().instanceIds(instanceId).build());
         
         try {
-            return result.getReservations().get(0).getInstances().get(0).getPrivateIpAddress();
+            return result.reservations().get(0).instances().get(0).privateIpAddress();
         } catch (Exception e) {
-            throw new AmazonServiceException("Failed to get IP for instance ID: " + 
-                instanceId + ". Instance may not be active", e);
+            throw AwsServiceException.builder()
+                .message("Failed to get IP for instance ID: " + instanceId + ". Instance may not be active")
+                .cause(e)
+                .build();
         }
     }
 
@@ -110,19 +135,21 @@ public class AwsHelperService {
      * @param instanceId the EC2 instance ID
      * @return Date launchTime
      */
-    @Retryable(maxAttempts=10, value=AmazonServiceException.class, backoff=@Backoff(delay=5000))
+    @Retryable(maxAttempts=10, value=AwsServiceException.class, backoff=@Backoff(delay=5000))
     public Date getLaunchTime(String instanceId) {
-        DescribeInstancesResult result = amazonEC2Client.describeInstances(
-                new DescribeInstancesRequest().withInstanceIds(instanceId));
+        DescribeInstancesResponse result = amazonEC2Client.describeInstances(
+            DescribeInstancesRequest.builder().instanceIds(instanceId).build());
 
         try {
-            return result.getReservations().get(0).getInstances().get(0).getLaunchTime();
+            Instant launchTime = result.reservations().get(0).instances().get(0).launchTime();
+            return Date.from(launchTime);
         } catch (Exception e) {
-            throw new AmazonServiceException("Failed to get Launch Date for instance ID: " +
-                    instanceId + ". Instance may not be active", e);
+            throw AwsServiceException.builder()
+                .message("Failed to get Launch Date for instance ID: " + instanceId + ". Instance may not be active")
+                .cause(e)
+                .build();
         }
     }
-
 
     /**
      * Gets the availability zone of a given instance
@@ -130,10 +157,10 @@ public class AwsHelperService {
      * @return The Availability Zone of the instance.
      */
     public String getAvailabilityZone(String instanceId) {
-        DescribeInstancesResult result = amazonEC2Client.describeInstances(
-            new DescribeInstancesRequest().withInstanceIds(instanceId));
+        DescribeInstancesResponse result = amazonEC2Client.describeInstances(
+            DescribeInstancesRequest.builder().instanceIds(instanceId).build());
         
-        return result.getReservations().get(0).getInstances().get(0).getPlacement().getAvailabilityZone();
+        return result.reservations().get(0).instances().get(0).placement().availabilityZone();
     }
     
     /**
@@ -144,12 +171,12 @@ public class AwsHelperService {
      */
     public boolean isInstanceRunning(String instanceId) {
         boolean isInstanceRunning = false;
-        DescribeInstancesResult result = amazonEC2Client.describeInstances(
-            new DescribeInstancesRequest().withInstanceIds(instanceId));
+        DescribeInstancesResponse result = amazonEC2Client.describeInstances(
+            DescribeInstancesRequest.builder().instanceIds(instanceId).build());
         
         try {
-            InstanceState state = result.getReservations().get(0).getInstances().get(0).getState();
-            isInstanceRunning = InstanceStateName.fromValue(state.getName()) == InstanceStateName.Running;
+            InstanceStateName stateName = result.reservations().get(0).instances().get(0).state().name();
+            isInstanceRunning = (stateName == InstanceStateName.RUNNING);
         }
         catch (IndexOutOfBoundsException e) {} //Instance is long gone
 
@@ -161,7 +188,8 @@ public class AwsHelperService {
      * @param instanceId the EC2 instance ID
      */
     public void terminateInstance(String instanceId) {
-        amazonEC2Client.terminateInstances(new TerminateInstancesRequest().withInstanceIds(instanceId));
+        amazonEC2Client.terminateInstances(
+            TerminateInstancesRequest.builder().instanceIds(instanceId).build());
     }
     
     /**
@@ -170,9 +198,10 @@ public class AwsHelperService {
      * @return Map of AWS tags
      */
     public Map<String, String> getTags(String instanceId) {
-        Filter filter = new Filter("resource-id", Arrays.asList(instanceId));
-        DescribeTagsResult result = amazonEC2Client.describeTags(new DescribeTagsRequest().withFilters(filter));
-        return result.getTags().stream().collect(Collectors.toMap(TagDescription::getKey, TagDescription::getValue));
+        Filter filter = Filter.builder().name("resource-id").values(instanceId).build();
+        DescribeTagsResponse result = amazonEC2Client.describeTags(
+            DescribeTagsRequest.builder().filters(filter).build());
+        return result.tags().stream().collect(Collectors.toMap(TagDescription::key, TagDescription::value));
     }
     
     /**
@@ -181,9 +210,11 @@ public class AwsHelperService {
      * @param tags the Map of tags to add
      */
     public void addTags(String instanceId, Map<String, String> tags) {
-        List <Tag> ec2Tags = tags.entrySet().stream().map(e -> 
-            new Tag(e.getKey(), e.getValue())).collect(Collectors.toList());
-        amazonEC2Client.createTags(new CreateTagsRequest().withResources(instanceId).withTags(ec2Tags));
+        List<Tag> ec2Tags = tags.entrySet().stream()
+            .map(e -> Tag.builder().key(e.getKey()).value(e.getValue()).build())
+            .collect(Collectors.toList());
+        amazonEC2Client.createTags(
+            CreateTagsRequest.builder().resources(instanceId).tags(ec2Tags).build());
     }
     
     /**
@@ -192,10 +223,9 @@ public class AwsHelperService {
      * @return List of strings containing instance IDs
      */
     public List<String> getInstanceIdsForAutoScalingGroup(String groupName) {
-        List<Instance> instanceList = getAutoScalingGroup(groupName).getInstances();
-        return instanceList.stream().map(i -> i.getInstanceId()).collect(Collectors.toList());
+        List<Instance> instanceList = getAutoScalingGroup(groupName).instances();
+        return instanceList.stream().map(Instance::instanceId).collect(Collectors.toList());
     }
-    
     
     /**
      * Gets a list of EC2 Instance objects for a given auto scaling group name
@@ -203,10 +233,11 @@ public class AwsHelperService {
      * @return List of Instances containing instance IDs and availability zones
      */
     public List<EC2Instance> getInstancesForAutoScalingGroup(String groupName) {
-        List<Instance> instanceList = getAutoScalingGroup(groupName).getInstances();
+        List<Instance> instanceList = getAutoScalingGroup(groupName).instances();
         
-        return instanceList.stream().map(i -> new EC2Instance().withInstanceId(i.getInstanceId())
-            .withAvailabilityZone(i.getAvailabilityZone()) ).collect(Collectors.toList());
+        return instanceList.stream().map(i -> new EC2Instance()
+            .withInstanceId(i.instanceId())
+            .withAvailabilityZone(i.availabilityZone())).collect(Collectors.toList());
     }
     
     /**
@@ -215,7 +246,7 @@ public class AwsHelperService {
      * @return int the desired capacity of the group
      */
     public int getAutoScalingGroupDesiredCapacity(String groupName) {
-        return getAutoScalingGroup(groupName).getDesiredCapacity();
+        return getAutoScalingGroup(groupName).desiredCapacity();
     }
     
     /**
@@ -224,8 +255,10 @@ public class AwsHelperService {
      * @param desiredCapacity the desired capacity of the group to set
      */
     public void setAutoScalingGroupDesiredCapacity(String groupName, int desiredCapacity) {
-        SetDesiredCapacityRequest request = new SetDesiredCapacityRequest().
-            withAutoScalingGroupName(groupName).withDesiredCapacity(desiredCapacity);
+        SetDesiredCapacityRequest request = SetDesiredCapacityRequest.builder()
+            .autoScalingGroupName(groupName)
+            .desiredCapacity(desiredCapacity)
+            .build();
         amazonAutoScalingClient.setDesiredCapacity(request);
     }
     
@@ -236,16 +269,19 @@ public class AwsHelperService {
      * @return Volume Id of the EBS block device
      */
     public String getVolumeId(String instanceId, String deviceName) {
-        DescribeInstanceAttributeResult result = amazonEC2Client.describeInstanceAttribute(
-            new DescribeInstanceAttributeRequest().withInstanceId(instanceId).withAttribute("blockDeviceMapping"));
+        DescribeInstanceAttributeResponse result = amazonEC2Client.describeInstanceAttribute(
+            DescribeInstanceAttributeRequest.builder()
+                .instanceId(instanceId)
+                .attribute(InstanceAttributeName.BLOCK_DEVICE_MAPPING)
+                .build());
         
-        List<InstanceBlockDeviceMapping> instanceBlockDeviceMappings = 
-            result.getInstanceAttribute().getBlockDeviceMappings();
+        List<InstanceBlockDeviceMapping> instanceBlockDeviceMappings = result.blockDeviceMappings();
         
-        EbsInstanceBlockDevice ebsInstanceBlockDevice = instanceBlockDeviceMappings.stream().filter(
-            m -> m.getDeviceName().equals(deviceName)).findFirst().get().getEbs();
+        EbsInstanceBlockDevice ebsInstanceBlockDevice = instanceBlockDeviceMappings.stream()
+            .filter(m -> m.deviceName().equals(deviceName))
+            .findFirst().orElseThrow().ebs();
         
-        return ebsInstanceBlockDevice.getVolumeId();
+        return ebsInstanceBlockDevice.volumeId();
     }
     
     /**
@@ -255,9 +291,9 @@ public class AwsHelperService {
      * @return Snapshot ID of the newly created snapshot
      */
     public String createSnapshot(String volumeId, String description) {
-        CreateSnapshotResult result = amazonEC2Client.createSnapshot(
-            new CreateSnapshotRequest().withVolumeId(volumeId).withDescription(description));
-        return result.getSnapshot().getSnapshotId();
+        CreateSnapshotResponse result = amazonEC2Client.createSnapshot(
+            CreateSnapshotRequest.builder().volumeId(volumeId).description(description).build());
+        return result.snapshotId();
     }
     
     /**
@@ -269,11 +305,12 @@ public class AwsHelperService {
     public String getStackPhysicalResourceId(String stackName, String logicalResourceId) {
         // describeStackResources takes either name or stack ID
         // See: https://docs.aws.amazon.com/AWSCloudFormation/latest/APIReference/API_DescribeStackResources.html
-        DescribeStackResourcesResult result = amazonCloudFormationClient.describeStackResources(
-            new DescribeStackResourcesRequest().withStackName(stackName));
+        DescribeStackResourcesResponse result = amazonCloudFormationClient.describeStackResources(
+            DescribeStackResourcesRequest.builder().stackName(stackName).build());
         
-        return result.getStackResources().stream().filter(s -> s.getLogicalResourceId().equals(logicalResourceId))
-            .findFirst().get().getPhysicalResourceId();
+        return result.stackResources().stream()
+            .filter(s -> s.logicalResourceId().equals(logicalResourceId))
+            .findFirst().orElseThrow().physicalResourceId();
     }
     
     /**
@@ -283,10 +320,18 @@ public class AwsHelperService {
      * @throws IOException if error reading file
      */
     public String readFileFromS3(String s3Uri) throws IOException {
-        AmazonS3URI s3FileUri = new AmazonS3URI(s3Uri);
-        S3Object s3object = amazonS3Client.getObject(new GetObjectRequest(s3FileUri.getBucket(), s3FileUri.getKey()));
-        
-        return IOUtils.toString(s3object.getObjectContent());
+        S3Uri s3FileUri = amazonS3Client.utilities().parseUri(URI.create(s3Uri));
+        String bucket = s3FileUri.bucket().orElseThrow(() -> new IllegalArgumentException("Invalid S3 bucket in URI: " + s3Uri));
+        String key = s3FileUri.key().orElseThrow(() -> new IllegalArgumentException("Invalid S3 key in URI: " + s3Uri));
+
+        GetObjectRequest getObjectRequest = GetObjectRequest.builder()
+            .bucket(bucket)
+            .key(key)
+            .build();
+
+        try (ResponseInputStream<GetObjectResponse> s3object = amazonS3Client.getObject(getObjectRequest)) {
+            return IoUtils.toUtf8String(s3object);
+        }
     }
     
     /**
@@ -300,21 +345,23 @@ public class AwsHelperService {
      */
     public void createContentHealthCheckAlarm(String alarmName, String alarmDescription,  
         String publishInstanceId, String namespace, String topicArn) {
-        amazonCloudWatchClient.putMetricAlarm(new PutMetricAlarmRequest()
-            .withAlarmName(alarmName)
-            .withAlarmDescription(alarmDescription)
-            .withDimensions(new Dimension()
-                .withName(InstanceTags.PAIR_INSTANCE_ID.getTagName())
-                .withValue(publishInstanceId))
-            .withMetricName("contentHealthCheck")
-            .withNamespace(namespace)
-            .withPeriod(60)
-            .withThreshold(1D)
-            .withEvaluationPeriods(5)
-            .withStatistic(Statistic.Maximum)
-            .withComparisonOperator(ComparisonOperator.LessThanThreshold)
-            .withAlarmActions(topicArn)
-            .withActionsEnabled(true));
+        amazonCloudWatchClient.putMetricAlarm(PutMetricAlarmRequest.builder()
+            .alarmName(alarmName)
+            .alarmDescription(alarmDescription)
+            .dimensions(Dimension.builder()
+                .name(InstanceTags.PAIR_INSTANCE_ID.getTagName())
+                .value(publishInstanceId)
+                .build())
+            .metricName("contentHealthCheck")
+            .namespace(namespace)
+            .period(60)
+            .threshold(1D)
+            .evaluationPeriods(5)
+            .statistic(Statistic.MAXIMUM)
+            .comparisonOperator(ComparisonOperator.LESS_THAN_THRESHOLD)
+            .alarmActions(topicArn)
+            .actionsEnabled(true)
+            .build());
     }
     
     /**
@@ -322,14 +369,14 @@ public class AwsHelperService {
      * @param alarmName the name of the alarm
      */
     public void deleteAlarm(String alarmName) {
-        amazonCloudWatchClient.deleteAlarms(new DeleteAlarmsRequest().withAlarmNames(alarmName));
+        amazonCloudWatchClient.deleteAlarms(DeleteAlarmsRequest.builder().alarmNames(alarmName).build());
     }
     
     
     private AutoScalingGroup getAutoScalingGroup(String groupName) {
-        DescribeAutoScalingGroupsResult result = amazonAutoScalingClient.describeAutoScalingGroups(
-            new DescribeAutoScalingGroupsRequest().withAutoScalingGroupNames(groupName));
-        return result.getAutoScalingGroups().get(0);
+        DescribeAutoScalingGroupsResponse result = amazonAutoScalingClient.describeAutoScalingGroups(
+            DescribeAutoScalingGroupsRequest.builder().autoScalingGroupNames(groupName).build());
+        return result.autoScalingGroups().get(0);
     }
 
 }

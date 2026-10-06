@@ -6,17 +6,18 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.shinesolutions.aemorchestrator.service.AemInstanceHelperService;
 import com.shinesolutions.aemorchestrator.service.AwsHelperService;
+import org.junit.jupiter.api.extension.ExtendWith;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class ScaleDownPreviewPublishDispatcherActionTest {
 
     @Mock
@@ -34,7 +35,7 @@ public class ScaleDownPreviewPublishDispatcherActionTest {
     private int currentPreviewPublishDesiredCapacity;
 
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
         instanceId = "instanceId";
         pairedPreviewPublishId = "pairedPreviewPublishId";

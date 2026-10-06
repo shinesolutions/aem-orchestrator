@@ -1,24 +1,28 @@
 package com.shinesolutions.aemorchestrator.util;
 
-import org.apache.http.HttpStatus;
-import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.conn.ssl.NoopHostnameVerifier;
-import org.apache.http.conn.ssl.TrustAllStrategy;
-import org.apache.http.conn.ssl.SSLContextBuilder;
-import javax.net.ssl.SSLContext;
+import java.io.IOException;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
+import javax.net.ssl.SSLContext;
+
+import org.apache.hc.client5.http.ClientProtocolException;
+import org.apache.hc.client5.http.classic.methods.HttpGet;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
+import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
+import org.apache.hc.client5.http.io.HttpClientConnectionManager;
+import org.apache.hc.client5.http.ssl.NoopHostnameVerifier;
+import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory;
+import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactoryBuilder;
+import org.apache.hc.client5.http.ssl.TrustAllStrategy;
+import org.apache.hc.core5.http.HttpStatus;
+import org.apache.hc.core5.ssl.SSLContextBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-
-import java.io.IOException;
 
 /**
  * Simple utilities class for performing common HTTP requests
@@ -43,7 +47,8 @@ public class HttpUtil {
      * @throws KeyManagementException if there's an error with the SSL Keymanagement
      * @throws NoSuchAlgorithmException if there's an error with the SSL Algorithm
      */
-    public boolean isHttpGetResponseOk(String url) throws ClientProtocolException, IOException, KeyStoreException, KeyManagementException, NoSuchAlgorithmException {
+    public boolean isHttpGetResponseOk(String url) 
+            throws ClientProtocolException, IOException, KeyStoreException, KeyManagementException, NoSuchAlgorithmException {
 
         int statusCode;
 
@@ -52,7 +57,7 @@ public class HttpUtil {
             HttpGet request = new HttpGet(url);
 
             try (CloseableHttpResponse response = client.execute(request)) {
-                statusCode = response.getStatusLine().getStatusCode();
+                statusCode = response.getCode();
             }
 
         }
@@ -60,20 +65,29 @@ public class HttpUtil {
         return statusCode == HttpStatus.SC_OK;
     }
 
-    private CloseableHttpClient buildCloseableHttpClient() throws KeyStoreException, KeyManagementException, NoSuchAlgorithmException{
+    private CloseableHttpClient buildCloseableHttpClient() 
+            throws KeyStoreException, KeyManagementException, NoSuchAlgorithmException {
 
         CloseableHttpClient client;
 
         if (enableRelaxedSslHttpClient) {
 
             // Need to also trust self-signed certificates besides CA signed ones
-            SSLContext sslContext = new SSLContextBuilder()
-              .loadTrustMaterial(null, TrustAllStrategy.INSTANCE)
-              .build();
+            SSLContext sslContext = SSLContextBuilder.create()
+                    .loadTrustMaterial(null, TrustAllStrategy.INSTANCE)
+                    .build();
+
+            SSLConnectionSocketFactory sslSocketFactory = SSLConnectionSocketFactoryBuilder.create()
+                    .setSslContext(sslContext)
+                    .setHostnameVerifier(NoopHostnameVerifier.INSTANCE)
+                    .build();
+
+            HttpClientConnectionManager connectionManager = PoolingHttpClientConnectionManagerBuilder.create()
+                    .setSSLSocketFactory(sslSocketFactory)
+                    .build();
 
             client = HttpClientBuilder.create()
-                    .setSSLContext(sslContext)
-                    .setSSLHostnameVerifier(NoopHostnameVerifier.INSTANCE)
+                    .setConnectionManager(connectionManager)
                     .build();
 
         } else {

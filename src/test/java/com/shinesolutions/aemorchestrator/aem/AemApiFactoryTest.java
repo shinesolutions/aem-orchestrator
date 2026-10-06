@@ -4,9 +4,9 @@ import com.shinesolutions.aemorchestrator.model.AemCredentials;
 import com.shinesolutions.aemorchestrator.model.UserPasswordCredentials;
 import com.shinesolutions.swaggeraem4j.api.SlingApi;
 import com.shinesolutions.swaggeraem4j.auth.HttpBasicAuth;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
@@ -16,8 +16,10 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.util.ReflectionTestUtils.setField;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.junit.jupiter.api.extension.ExtendWith;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class AemApiFactoryTest {
     
     @InjectMocks
@@ -34,7 +36,7 @@ public class AemApiFactoryTest {
     
     private Boolean verifySsl;
 
-    @Before
+    @BeforeEach
     public void setup() {
         basePath = "testBasePath";
         useDebug = false;

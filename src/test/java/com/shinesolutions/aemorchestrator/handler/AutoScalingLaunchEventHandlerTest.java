@@ -2,7 +2,7 @@ package com.shinesolutions.aemorchestrator.handler;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
-import static org.mockito.Matchers.anyString;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -11,19 +11,21 @@ import static org.mockito.Mockito.when;
 
 import java.util.Map;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-
+import org.mockito.junit.jupiter.MockitoExtension;
+import static org.mockito.Mockito.lenient;
 import com.shinesolutions.aemorchestrator.actions.Action;
 import com.shinesolutions.aemorchestrator.model.EventMessage;
 import com.shinesolutions.aemorchestrator.service.AwsHelperService;
 import com.shinesolutions.aemorchestrator.util.EventMessageExtractor;
+import org.junit.jupiter.api.extension.ExtendWith;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class AutoScalingLaunchEventHandlerTest {
     
     @Mock
@@ -43,7 +45,7 @@ public class AutoScalingLaunchEventHandlerTest {
     private EventMessage message;
     
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
         action = mock(Action.class);
         messageContent = "testMessage";
@@ -52,7 +54,7 @@ public class AutoScalingLaunchEventHandlerTest {
         message.setAutoScalingGroupName("testGroup");
         message.setEC2InstanceId("test-instance");
         
-        when(eventMessageExtractor.extractMessage(messageContent)).thenReturn(message);
+        lenient().when(eventMessageExtractor.extractMessage(messageContent)).thenReturn(message);
     }
 
     @Test

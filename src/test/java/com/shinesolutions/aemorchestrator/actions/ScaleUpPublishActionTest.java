@@ -10,12 +10,12 @@ import static org.springframework.test.util.ReflectionTestUtils.setField;
 
 import java.util.NoSuchElementException;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.shinesolutions.aemorchestrator.aem.AgentRunMode;
 import com.shinesolutions.aemorchestrator.aem.ReplicationAgentManager;
@@ -23,8 +23,10 @@ import com.shinesolutions.aemorchestrator.exception.InstanceNotInHealthyStateExc
 import com.shinesolutions.aemorchestrator.service.AemInstanceHelperService;
 import com.shinesolutions.aemorchestrator.service.AwsHelperService;
 import com.shinesolutions.swaggeraem4j.ApiException;
+import org.junit.jupiter.api.extension.ExtendWith;
+import static org.mockito.Mockito.lenient;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class ScaleUpPublishActionTest {
     
     @Mock
@@ -48,7 +50,7 @@ public class ScaleUpPublishActionTest {
     private String snapshotId;
     private String unpairedDispatcherId;
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
         instanceId = "i-0347568433";
         awsDeviceName = "testDeviceName";
@@ -61,13 +63,13 @@ public class ScaleUpPublishActionTest {
         
         setField(action, "awsDeviceName", awsDeviceName);
         
-        when(aemHelperService.getAemUrlForAuthorElb()).thenReturn(authorAemBaseUrl);
-        when(aemHelperService.getAemUrlForPublish(instanceId)).thenReturn(publishAemBaseUrl);
-        when(aemHelperService.getPublishIdToSnapshotFrom(instanceId)).thenReturn(activePublishId);
-        when(awsHelperService.getVolumeId(activePublishId, awsDeviceName)).thenReturn(volumeId);
-        when(aemHelperService.createPublishSnapshot(activePublishId, volumeId)).thenReturn(snapshotId);
-        when(aemHelperService.findUnpairedPublishDispatcher(instanceId)).thenReturn(unpairedDispatcherId);
-        when(aemHelperService.isFirstPublishInstance()).thenReturn(false);
+        lenient().when(aemHelperService.getAemUrlForAuthorElb()).thenReturn(authorAemBaseUrl);
+        lenient().when(aemHelperService.getAemUrlForPublish(instanceId)).thenReturn(publishAemBaseUrl);
+        lenient().when(aemHelperService.getPublishIdToSnapshotFrom(instanceId)).thenReturn(activePublishId);
+        lenient().when(awsHelperService.getVolumeId(activePublishId, awsDeviceName)).thenReturn(volumeId);
+        lenient().when(aemHelperService.createPublishSnapshot(activePublishId, volumeId)).thenReturn(snapshotId);
+        lenient().when(aemHelperService.findUnpairedPublishDispatcher(instanceId)).thenReturn(unpairedDispatcherId);
+        lenient().when(aemHelperService.isFirstPublishInstance()).thenReturn(false);
     }
 
     @Test

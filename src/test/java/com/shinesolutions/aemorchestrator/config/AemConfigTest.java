@@ -3,8 +3,8 @@ package com.shinesolutions.aemorchestrator.config;
 import com.shinesolutions.aemorchestrator.model.AemCredentials;
 import com.shinesolutions.aemorchestrator.model.EnvironmentValues;
 import com.shinesolutions.aemorchestrator.service.AwsHelperService;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 
@@ -13,12 +13,13 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.util.ReflectionTestUtils.setField;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class AemConfigTest {
 
     private AemConfig aemConfig;
 
-    @Before
+    @BeforeEach
     public void setup() {
         aemConfig = new AemConfig();
     }
@@ -44,16 +45,19 @@ public class AemConfigTest {
         assertThat(aemCredentials.getReplicatorCredentials().getPassword(), equalTo(replicatorPassword));
     }
 
-    @Test(expected = IOException.class)
-    public void testAemCredentials_ReadingThrowsException() throws Exception {
-        String s3CredentialFileUri = "s3CredentialFileUri";
-        setField(aemConfig, "s3CredentialFileUri", s3CredentialFileUri);
-        setField(aemConfig, "readCredentialsFromS3", true);
+@Test
+public void testAemCredentials_ReadingThrowsException() throws Exception {
+    String s3CredentialFileUri = "s3CredentialFileUri";
+    setField(aemConfig, "s3CredentialFileUri", s3CredentialFileUri);
+    setField(aemConfig, "readCredentialsFromS3", true);
 
-        AwsHelperService awsHelperService = mock(AwsHelperService.class);
-        when(awsHelperService.readFileFromS3(s3CredentialFileUri)).thenThrow(new IOException());
+    AwsHelperService awsHelperService = mock(AwsHelperService.class);
+    when(awsHelperService.readFileFromS3(s3CredentialFileUri)).thenThrow(new IOException());
+
+    assertThrows(IOException.class, () -> {
         aemConfig.aemCredentials(awsHelperService);
-    }
+    });
+}
 
     @Test
     public void testEnvValueStandardArchitecture() {

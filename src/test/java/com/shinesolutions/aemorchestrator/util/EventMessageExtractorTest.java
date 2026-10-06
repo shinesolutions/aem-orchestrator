@@ -6,19 +6,20 @@ import static org.hamcrest.Matchers.equalTo;
 import java.io.File;
 import java.util.Scanner;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.shinesolutions.aemorchestrator.model.EventMessage;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class EventMessageExtractorTest {
     
     private EventMessageExtractor eventMessageExtractor;
     
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
         eventMessageExtractor = new EventMessageExtractor();
     }
@@ -60,8 +61,10 @@ public class EventMessageExtractorTest {
         assertThat(eventMsg.getEvent(), equalTo(root.path("Event").asText()));
     }
     
-    @Test(expected=JsonParseException.class)
+    @Test
     public void testExtractEventMessageParseFail() throws Exception {
-        eventMessageExtractor.extractMessage("Invalid string");
+        assertThrows(JsonParseException.class, () -> {
+            eventMessageExtractor.extractMessage("Invalid string");
+        });
     }
 }

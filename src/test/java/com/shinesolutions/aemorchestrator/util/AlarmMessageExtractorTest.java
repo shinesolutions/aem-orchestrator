@@ -7,20 +7,21 @@ import java.io.File;
 import java.util.List;
 import java.util.Scanner;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.shinesolutions.aemorchestrator.model.AlarmMessage;
 import com.shinesolutions.aemorchestrator.model.Dimension;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class AlarmMessageExtractorTest {
     
     private AlarmMessageExtractor alarmMessageExtractor;
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
         alarmMessageExtractor = new AlarmMessageExtractor();
     }
@@ -73,9 +74,11 @@ public class AlarmMessageExtractorTest {
         assertThat(dimensionList.get(2).getValue(), equalTo(dimensions.get(2).path("value").asText()));
     }
     
-    @Test(expected=JsonParseException.class)
+    @Test
     public void testExtractEventMessageParseFail() throws Exception {
-        alarmMessageExtractor.extractMessage("Invalid string");
+        assertThrows(JsonParseException.class, () -> {
+            alarmMessageExtractor.extractMessage("Invalid string");
+        });
     }
 
 }

@@ -6,8 +6,8 @@ import static org.hamcrest.Matchers.equalTo;
 import java.io.File;
 import java.util.Scanner;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -17,7 +17,7 @@ public class SnsMessageExtractorTest {
     
     private SnsMessageExtractor extractor;
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
         extractor = new SnsMessageExtractor();
     }

@@ -6,7 +6,7 @@ import static org.hamcrest.Matchers.equalTo;
 import java.io.File;
 import java.util.Scanner;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;

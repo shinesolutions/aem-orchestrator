@@ -6,12 +6,13 @@ import static org.mockito.Mockito.when;
 
 import java.util.Arrays;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import static org.mockito.Mockito.lenient;
 
 import com.shinesolutions.aemorchestrator.actions.AlarmContentHealthCheckAction;
 import com.shinesolutions.aemorchestrator.model.AlarmMessage;
@@ -20,7 +21,7 @@ import com.shinesolutions.aemorchestrator.model.InstanceTags;
 import com.shinesolutions.aemorchestrator.model.Trigger;
 import com.shinesolutions.aemorchestrator.util.AlarmMessageExtractor;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class AlarmMessageHandlerTest {
     
     @Mock
@@ -36,7 +37,7 @@ public class AlarmMessageHandlerTest {
     private String pairInstanceId;
     private AlarmMessage message;
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
         messageContent = "testMessage";
         pairInstanceId = "pairInstanceId";
@@ -49,8 +50,9 @@ public class AlarmMessageHandlerTest {
         trigger.setDimensions(Arrays.asList(dimension));
         message.setTrigger(trigger);
         
+        // This is called across all test cases
         when(alarmMessageExtractor.extractMessage(messageContent)).thenReturn(message);
-        when(alarmContentHealthCheckAction.execute(pairInstanceId)).thenReturn(true);
+        lenient().when(alarmContentHealthCheckAction.execute(pairInstanceId)).thenReturn(true);
     }
 
     @Test
@@ -71,7 +73,7 @@ public class AlarmMessageHandlerTest {
     
     @Test
     public void testWithException() {
-        message.getTrigger().setDimensions(null); //Will throw null pointer exception
+        message.getTrigger().setDimensions(null); // Will throw NullPointerException
         
         boolean result = alarmMessageHandler.handleEvent(messageContent);
         

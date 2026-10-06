@@ -4,8 +4,8 @@ import com.shinesolutions.aemorchestrator.actions.*;
 import com.shinesolutions.aemorchestrator.handler.*;
 import com.shinesolutions.aemorchestrator.model.EnvironmentValues;
 import com.shinesolutions.aemorchestrator.model.EventType;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.Map;
 
@@ -18,7 +18,7 @@ public class MappingConfigTest {
 
     private MappingConfig mappingConfig;
 
-    @Before
+    @BeforeEach
     public void setup() {
         mappingConfig = new MappingConfig();
     }

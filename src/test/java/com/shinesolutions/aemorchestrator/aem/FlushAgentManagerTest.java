@@ -3,18 +3,20 @@ package com.shinesolutions.aemorchestrator.aem;
 import com.shinesolutions.swaggeraem4j.ApiException;
 import com.shinesolutions.swaggeraem4j.ApiResponse;
 import com.shinesolutions.swaggeraem4j.api.SlingApi;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import static org.mockito.Matchers.endsWith;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.endsWith;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class FlushAgentManagerTest {
     
     @Mock
@@ -31,7 +33,7 @@ public class FlushAgentManagerTest {
     
     private SlingApi slingApi;
     
-    @Before
+    @BeforeEach
     public void setup() throws ApiException {
         slingApi = new SlingApi();
         when(aemApiFactory.getSlingApi(anyString(), any(AgentAction.class))).thenReturn(slingApi);

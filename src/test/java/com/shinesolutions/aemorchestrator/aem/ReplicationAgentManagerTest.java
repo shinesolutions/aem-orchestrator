@@ -5,18 +5,21 @@ import com.shinesolutions.aemorchestrator.model.UserPasswordCredentials;
 import com.shinesolutions.swaggeraem4j.ApiException;
 import com.shinesolutions.swaggeraem4j.ApiResponse;
 import com.shinesolutions.swaggeraem4j.api.SlingApi;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import static org.mockito.Matchers.endsWith;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.endsWith;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
+import static org.mockito.Mockito.lenient;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class ReplicationAgentManagerTest {
     
     @Mock
@@ -48,7 +51,7 @@ public class ReplicationAgentManagerTest {
     
     private String username;
     
-    @Before
+    @BeforeEach
     public void setup() throws ApiException {
         publishId = "testPublishId";
         publishAemBaseUrl = "testPublishAemBaseUrl";
@@ -60,7 +63,7 @@ public class ReplicationAgentManagerTest {
         UserPasswordCredentials replicatorCredentials = new UserPasswordCredentials();
         replicatorCredentials.setUserName(username);
         replicatorCredentials.setPassword(password);
-        when(aemCredentials.getReplicatorCredentials()).thenReturn(replicatorCredentials);
+        lenient().when(aemCredentials.getReplicatorCredentials()).thenReturn(replicatorCredentials);
         
         slingApi = new SlingApi();
         when(aemApiFactory.getSlingApi(anyString(), any(AgentAction.class))).thenReturn(slingApi);
