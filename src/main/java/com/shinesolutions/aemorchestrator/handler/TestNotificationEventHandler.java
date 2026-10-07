@@ -6,15 +6,14 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class TestNotificationEventHandler implements MessageHandler {
-    
-    private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
-    @Override
-    public boolean handleEvent(String message) {
-        logger.debug("Raw message: " + message);
+  private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
-        logger.info("Test notification received, ignoring");
-        return true;
-    }
+  @Override
+  public boolean handleEvent(String message) {
+    logger.debug("Raw message: " + message);
 
+    logger.info("Test notification received, ignoring");
+    return true;
+  }
 }

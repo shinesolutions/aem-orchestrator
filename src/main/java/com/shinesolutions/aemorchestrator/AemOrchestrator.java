@@ -16,6 +16,8 @@
 
 package com.shinesolutions.aemorchestrator;
 
+import com.shinesolutions.aemorchestrator.service.OrchestratorMessageListener;
+import com.shinesolutions.aemorchestrator.service.ResourceReadyChecker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
@@ -24,41 +26,39 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.retry.annotation.EnableRetry;
 
-import com.shinesolutions.aemorchestrator.service.OrchestratorMessageListener;
-import com.shinesolutions.aemorchestrator.service.ResourceReadyChecker;
-
 @SpringBootApplication
 @ComponentScan
 @EnableRetry
 public class AemOrchestrator {
 
-    private final static Logger logger = LoggerFactory.getLogger(AemOrchestrator.class);
+  private static final Logger logger = LoggerFactory.getLogger(AemOrchestrator.class);
 
-    public static void main(String[] args) throws Exception {
-        ConfigurableApplicationContext context = SpringApplication.run(AemOrchestrator.class, args);
-        
-        //Need to wait for Author ELB is be in a healthy state before reading messages from the SQS queue
-        ResourceReadyChecker resourceReadyChecker = context.getBean(ResourceReadyChecker.class);
-        
-        boolean isStartupOk = false;
-        
-        if(resourceReadyChecker.isResourcesReady()) {
-            OrchestratorMessageListener messageReceiver = context.getBean(OrchestratorMessageListener.class);
-            
-            try {
-                messageReceiver.start();
-                isStartupOk = true;
-            } catch (Exception e) {
-                logger.error("Failed to start message receiver", e);
-            }
-        }
-        
-        if(isStartupOk) {
-            logger.info("AEM Orchestrator started");
-        } else {
-            logger.info("Failed to start AEM Orchestrator");
-            context.close(); //Exit the application
-        }
+  public static void main(String[] args) throws Exception {
+    ConfigurableApplicationContext context = SpringApplication.run(AemOrchestrator.class, args);
+
+    // Need to wait for Author ELB is be in a healthy state before reading messages from the SQS
+    // queue
+    ResourceReadyChecker resourceReadyChecker = context.getBean(ResourceReadyChecker.class);
+
+    boolean isStartupOk = false;
+
+    if (resourceReadyChecker.isResourcesReady()) {
+      OrchestratorMessageListener messageReceiver =
+          context.getBean(OrchestratorMessageListener.class);
+
+      try {
+        messageReceiver.start();
+        isStartupOk = true;
+      } catch (Exception e) {
+        logger.error("Failed to start message receiver", e);
+      }
     }
 
+    if (isStartupOk) {
+      logger.info("AEM Orchestrator started");
+    } else {
+      logger.info("Failed to start AEM Orchestrator");
+      context.close(); // Exit the application
+    }
+  }
 }

@@ -8,130 +8,129 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.util.ReflectionTestUtils.setField;
 
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-
 import com.shinesolutions.aemorchestrator.aem.AgentRunMode;
 import com.shinesolutions.aemorchestrator.aem.ReplicationAgentManager;
 import com.shinesolutions.aemorchestrator.service.AemInstanceHelperService;
 import com.shinesolutions.aemorchestrator.service.AwsHelperService;
 import com.shinesolutions.swaggeraem4j.ApiException;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 public class ScaleDownPublishActionTest {
-    
-    @Mock
-    private AemInstanceHelperService aemHelperService;
 
-    @Mock
-    private AwsHelperService awsHelperService;
-    
-    @Mock
-    private ReplicationAgentManager replicationAgentManager;
-    
-    @InjectMocks
-    private ScaleDownPublishAction action;
-    
-    private String instanceId;
-    private String authorAemBaseUrl;
-    private String pairedDispatcherId;
+  @Mock private AemInstanceHelperService aemHelperService;
 
-    @BeforeEach
-    public void setUp() throws Exception {
-        authorAemBaseUrl = "authorAemBaseUrl";
-        instanceId = "instanceId";
-        pairedDispatcherId = "pairedDispatcherId";
-        
-        when(aemHelperService.getAemUrlForAuthorElb()).thenReturn(authorAemBaseUrl);
-    }
+  @Mock private AwsHelperService awsHelperService;
 
-    @Test
-    public void testTerminatePairedDispatcherAndDeleteReplicationAgent() throws Exception {
-        when(aemHelperService.getDispatcherIdForPairedPublish(instanceId)).thenReturn(pairedDispatcherId);
-        
-        boolean success = action.execute(instanceId);
-        
-        verify(awsHelperService, times(1)).terminateInstance(pairedDispatcherId);
-        
-        verify(replicationAgentManager, times(1)).deleteReplicationAgent(instanceId, authorAemBaseUrl, 
-            AgentRunMode.AUTHOR);
-        
-        //Ensure reverse replication queue removal not called unless enabled
-        verify(replicationAgentManager, times(0)).deleteReverseReplicationAgent(instanceId, authorAemBaseUrl, 
-            AgentRunMode.AUTHOR);
-        
-        assertThat(success, equalTo(true));
-    }
-    
-    @Test
-    public void testCantFindPairedDispatcher() throws Exception {
-        when(aemHelperService.getDispatcherIdForPairedPublish(instanceId)).thenReturn(null);
-        
-        boolean success = action.execute(instanceId);
-        
-        verify(awsHelperService, times(0)).terminateInstance(pairedDispatcherId);
-        
-        verify(replicationAgentManager, times(1)).deleteReplicationAgent(instanceId, authorAemBaseUrl, 
-            AgentRunMode.AUTHOR);
-        
-        assertThat(success, equalTo(true));
-    }
-    
-    @Test
-    public void testHandlesExceptionWhenDeletingReplicationAgent() throws Exception {
-        when(aemHelperService.getDispatcherIdForPairedPublish(instanceId)).thenReturn(pairedDispatcherId);
-        
-        doThrow(new ApiException()).when(replicationAgentManager).deleteReplicationAgent(instanceId, authorAemBaseUrl, 
-            AgentRunMode.AUTHOR);
-        
-        boolean success = action.execute(instanceId);
-        
-        verify(awsHelperService, times(1)).terminateInstance(pairedDispatcherId);
-        
-        assertThat(success, equalTo(true));
-    }
-    
-    @Test
-    public void testDeletesReverseReplicationQueueIfEnabled() throws Exception {
-        when(aemHelperService.getDispatcherIdForPairedPublish(instanceId)).thenReturn(pairedDispatcherId);
-        
-        setField(action, "reverseReplicationEnabled", true);
-        
-        boolean success = action.execute(instanceId);
-        
-        verify(awsHelperService, times(1)).terminateInstance(pairedDispatcherId);
-        
-        verify(replicationAgentManager, times(1)).deleteReplicationAgent(instanceId, authorAemBaseUrl, 
-            AgentRunMode.AUTHOR);
-        
-        verify(replicationAgentManager, times(1)).deleteReverseReplicationAgent(instanceId, authorAemBaseUrl, 
-            AgentRunMode.AUTHOR);
-        
-        assertThat(success, equalTo(true));
-    }
-    
-    @Test
-    public void testDeletesReverseReplicationWithException() throws Exception {
-        when(aemHelperService.getDispatcherIdForPairedPublish(instanceId)).thenReturn(pairedDispatcherId);
-        
-        doThrow(new ApiException()).when(replicationAgentManager).deleteReverseReplicationAgent(instanceId, authorAemBaseUrl, 
-            AgentRunMode.AUTHOR);
-        
-        setField(action, "reverseReplicationEnabled", true);
-        
-        boolean success = action.execute(instanceId);
-        
-        verify(awsHelperService, times(1)).terminateInstance(pairedDispatcherId);
-        
-        verify(replicationAgentManager, times(1)).deleteReplicationAgent(instanceId, authorAemBaseUrl, 
-            AgentRunMode.AUTHOR);
-        
-        assertThat(success, equalTo(true));
-    }
+  @Mock private ReplicationAgentManager replicationAgentManager;
 
+  @InjectMocks private ScaleDownPublishAction action;
+
+  private String instanceId;
+  private String authorAemBaseUrl;
+  private String pairedDispatcherId;
+
+  @BeforeEach
+  public void setUp() throws Exception {
+    authorAemBaseUrl = "authorAemBaseUrl";
+    instanceId = "instanceId";
+    pairedDispatcherId = "pairedDispatcherId";
+
+    when(aemHelperService.getAemUrlForAuthorElb()).thenReturn(authorAemBaseUrl);
+  }
+
+  @Test
+  public void testTerminatePairedDispatcherAndDeleteReplicationAgent() throws Exception {
+    when(aemHelperService.getDispatcherIdForPairedPublish(instanceId))
+        .thenReturn(pairedDispatcherId);
+
+    boolean success = action.execute(instanceId);
+
+    verify(awsHelperService, times(1)).terminateInstance(pairedDispatcherId);
+
+    verify(replicationAgentManager, times(1))
+        .deleteReplicationAgent(instanceId, authorAemBaseUrl, AgentRunMode.AUTHOR);
+
+    // Ensure reverse replication queue removal not called unless enabled
+    verify(replicationAgentManager, times(0))
+        .deleteReverseReplicationAgent(instanceId, authorAemBaseUrl, AgentRunMode.AUTHOR);
+
+    assertThat(success, equalTo(true));
+  }
+
+  @Test
+  public void testCantFindPairedDispatcher() throws Exception {
+    when(aemHelperService.getDispatcherIdForPairedPublish(instanceId)).thenReturn(null);
+
+    boolean success = action.execute(instanceId);
+
+    verify(awsHelperService, times(0)).terminateInstance(pairedDispatcherId);
+
+    verify(replicationAgentManager, times(1))
+        .deleteReplicationAgent(instanceId, authorAemBaseUrl, AgentRunMode.AUTHOR);
+
+    assertThat(success, equalTo(true));
+  }
+
+  @Test
+  public void testHandlesExceptionWhenDeletingReplicationAgent() throws Exception {
+    when(aemHelperService.getDispatcherIdForPairedPublish(instanceId))
+        .thenReturn(pairedDispatcherId);
+
+    doThrow(new ApiException())
+        .when(replicationAgentManager)
+        .deleteReplicationAgent(instanceId, authorAemBaseUrl, AgentRunMode.AUTHOR);
+
+    boolean success = action.execute(instanceId);
+
+    verify(awsHelperService, times(1)).terminateInstance(pairedDispatcherId);
+
+    assertThat(success, equalTo(true));
+  }
+
+  @Test
+  public void testDeletesReverseReplicationQueueIfEnabled() throws Exception {
+    when(aemHelperService.getDispatcherIdForPairedPublish(instanceId))
+        .thenReturn(pairedDispatcherId);
+
+    setField(action, "reverseReplicationEnabled", true);
+
+    boolean success = action.execute(instanceId);
+
+    verify(awsHelperService, times(1)).terminateInstance(pairedDispatcherId);
+
+    verify(replicationAgentManager, times(1))
+        .deleteReplicationAgent(instanceId, authorAemBaseUrl, AgentRunMode.AUTHOR);
+
+    verify(replicationAgentManager, times(1))
+        .deleteReverseReplicationAgent(instanceId, authorAemBaseUrl, AgentRunMode.AUTHOR);
+
+    assertThat(success, equalTo(true));
+  }
+
+  @Test
+  public void testDeletesReverseReplicationWithException() throws Exception {
+    when(aemHelperService.getDispatcherIdForPairedPublish(instanceId))
+        .thenReturn(pairedDispatcherId);
+
+    doThrow(new ApiException())
+        .when(replicationAgentManager)
+        .deleteReverseReplicationAgent(instanceId, authorAemBaseUrl, AgentRunMode.AUTHOR);
+
+    setField(action, "reverseReplicationEnabled", true);
+
+    boolean success = action.execute(instanceId);
+
+    verify(awsHelperService, times(1)).terminateInstance(pairedDispatcherId);
+
+    verify(replicationAgentManager, times(1))
+        .deleteReplicationAgent(instanceId, authorAemBaseUrl, AgentRunMode.AUTHOR);
+
+    assertThat(success, equalTo(true));
+  }
 }

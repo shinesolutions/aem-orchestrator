@@ -7,64 +7,59 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.springframework.test.util.ReflectionTestUtils.setField;
 
+import com.shinesolutions.aemorchestrator.service.AwsHelperService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.shinesolutions.aemorchestrator.service.AwsHelperService;
-import org.junit.jupiter.api.extension.ExtendWith;
-
 @ExtendWith(MockitoExtension.class)
 public class AlarmContentHealthCheckActionTest {
-    
-    @Mock
-    private AwsHelperService awsHelperService;
-    
-    @InjectMocks
-    private AlarmContentHealthCheckAction alarmContentHealthCheckAction;
 
-    private String instanceId;
-    
-    @BeforeEach
-    public void setUp() throws Exception {
-        instanceId = "i-704262407";
-    }
+  @Mock private AwsHelperService awsHelperService;
 
-    @Test
-    public void testTerminateSuccess() {
-        setField(alarmContentHealthCheckAction,"terminateInstanceEnable",true);
+  @InjectMocks private AlarmContentHealthCheckAction alarmContentHealthCheckAction;
 
-        boolean result = alarmContentHealthCheckAction.execute(instanceId);
-        
-        //Insure it terminates the publish instance
-        verify(awsHelperService, times(1)).terminateInstance(instanceId);
-        
-        assertThat(result, equalTo(true));
-    }
+  private String instanceId;
 
-    @Test
-    public void testNotifySuccess() {
-        setField(alarmContentHealthCheckAction,"terminateInstanceEnable",false);
+  @BeforeEach
+  public void setUp() throws Exception {
+    instanceId = "i-704262407";
+  }
 
-        boolean result = alarmContentHealthCheckAction.execute(instanceId);
+  @Test
+  public void testTerminateSuccess() {
+    setField(alarmContentHealthCheckAction, "terminateInstanceEnable", true);
 
-        //Insure it terminates the publish instance
-        verify(awsHelperService, times(0)).terminateInstance(instanceId);
+    boolean result = alarmContentHealthCheckAction.execute(instanceId);
 
-        assertThat(result, equalTo(true));
-    }
-    
-    @Test
-    public void testTerminateWithException() {
-        setField(alarmContentHealthCheckAction,"terminateInstanceEnable",true);
-        doThrow(new RuntimeException()).when(awsHelperService).terminateInstance(instanceId);
-        
-        boolean result = alarmContentHealthCheckAction.execute(instanceId);
-        
-        assertThat(result, equalTo(true));
-    }
+    // Insure it terminates the publish instance
+    verify(awsHelperService, times(1)).terminateInstance(instanceId);
 
+    assertThat(result, equalTo(true));
+  }
+
+  @Test
+  public void testNotifySuccess() {
+    setField(alarmContentHealthCheckAction, "terminateInstanceEnable", false);
+
+    boolean result = alarmContentHealthCheckAction.execute(instanceId);
+
+    // Insure it terminates the publish instance
+    verify(awsHelperService, times(0)).terminateInstance(instanceId);
+
+    assertThat(result, equalTo(true));
+  }
+
+  @Test
+  public void testTerminateWithException() {
+    setField(alarmContentHealthCheckAction, "terminateInstanceEnable", true);
+    doThrow(new RuntimeException()).when(awsHelperService).terminateInstance(instanceId);
+
+    boolean result = alarmContentHealthCheckAction.execute(instanceId);
+
+    assertThat(result, equalTo(true));
+  }
 }

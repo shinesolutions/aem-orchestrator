@@ -5,114 +5,114 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class SnsMessage {
-    
-    @JsonProperty("Type")
-    private String type;
-    
-    @JsonProperty("MessageId")
-    private String messageId;
-    
-    @JsonProperty("TopicArn")
-    private String topicArn;
-    
-    @JsonProperty("Subject")
-    private String subject;
-    
-    @JsonProperty("Message")
-    private String message;
-    
-    @JsonProperty("Timestamp")
-    private String timestamp;
-    
-    @JsonProperty("SignatureVersion")
-    private String signatureVersion;
-    
-    @JsonProperty("Signature")
-    private String signature;
-    
-    @JsonProperty("SigningCertURL")
-    private String signingCertURL;
-    
-    @JsonProperty("UnsubscribeURL")
-    private String unsubscribeURL;
 
-    public String getType() {
-        return type;
-    }
+  @JsonProperty("Type")
+  private String type;
 
-    public void setType(String type) {
-        this.type = type;
-    }
+  @JsonProperty("MessageId")
+  private String messageId;
 
-    public String getMessageId() {
-        return messageId;
-    }
+  @JsonProperty("TopicArn")
+  private String topicArn;
 
-    public void setMessageId(String messageId) {
-        this.messageId = messageId;
-    }
+  @JsonProperty("Subject")
+  private String subject;
 
-    public String getTopicArn() {
-        return topicArn;
-    }
+  @JsonProperty("Message")
+  private String message;
 
-    public void setTopicArn(String topicArn) {
-        this.topicArn = topicArn;
-    }
+  @JsonProperty("Timestamp")
+  private String timestamp;
 
-    public String getSubject() {
-        return subject;
-    }
+  @JsonProperty("SignatureVersion")
+  private String signatureVersion;
 
-    public void setSubject(String subject) {
-        this.subject = subject;
-    }
+  @JsonProperty("Signature")
+  private String signature;
 
-    public String getMessage() {
-        return message;
-    }
+  @JsonProperty("SigningCertURL")
+  private String signingCertURL;
 
-    public void setMessage(String message) {
-        this.message = message;
-    }
+  @JsonProperty("UnsubscribeURL")
+  private String unsubscribeURL;
 
-    public String getTimestamp() {
-        return timestamp;
-    }
+  public String getType() {
+    return type;
+  }
 
-    public void setTimestamp(String timestamp) {
-        this.timestamp = timestamp;
-    }
+  public void setType(String type) {
+    this.type = type;
+  }
 
-    public String getSignatureVersion() {
-        return signatureVersion;
-    }
+  public String getMessageId() {
+    return messageId;
+  }
 
-    public void setSignatureVersion(String signatureVersion) {
-        this.signatureVersion = signatureVersion;
-    }
+  public void setMessageId(String messageId) {
+    this.messageId = messageId;
+  }
 
-    public String getSignature() {
-        return signature;
-    }
+  public String getTopicArn() {
+    return topicArn;
+  }
 
-    public void setSignature(String signature) {
-        this.signature = signature;
-    }
+  public void setTopicArn(String topicArn) {
+    this.topicArn = topicArn;
+  }
 
-    public String getSigningCertURL() {
-        return signingCertURL;
-    }
+  public String getSubject() {
+    return subject;
+  }
 
-    public void setSigningCertURL(String signingCertURL) {
-        this.signingCertURL = signingCertURL;
-    }
+  public void setSubject(String subject) {
+    this.subject = subject;
+  }
 
-    public String getUnsubscribeURL() {
-        return unsubscribeURL;
-    }
+  public String getMessage() {
+    return message;
+  }
 
-    public void setUnsubscribeURL(String unsubscribeURL) {
-        this.unsubscribeURL = unsubscribeURL;
-    }
+  public void setMessage(String message) {
+    this.message = message;
+  }
+
+  public String getTimestamp() {
+    return timestamp;
+  }
+
+  public void setTimestamp(String timestamp) {
+    this.timestamp = timestamp;
+  }
+
+  public String getSignatureVersion() {
+    return signatureVersion;
+  }
+
+  public void setSignatureVersion(String signatureVersion) {
+    this.signatureVersion = signatureVersion;
+  }
+
+  public String getSignature() {
+    return signature;
+  }
+
+  public void setSignature(String signature) {
+    this.signature = signature;
+  }
+
+  public String getSigningCertURL() {
+    return signingCertURL;
+  }
+
+  public void setSigningCertURL(String signingCertURL) {
+    this.signingCertURL = signingCertURL;
+  }
+
+  public String getUnsubscribeURL() {
+    return unsubscribeURL;
+  }
+
+  public void setUnsubscribeURL(String unsubscribeURL) {
+    this.unsubscribeURL = unsubscribeURL;
+  }
 }

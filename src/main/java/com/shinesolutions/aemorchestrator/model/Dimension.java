@@ -3,25 +3,25 @@ package com.shinesolutions.aemorchestrator.model;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class Dimension {
-    @JsonProperty("name")
-    private String name;
-    
-    @JsonProperty("value")
-    private String value;
+  @JsonProperty("name")
+  private String name;
 
-    public String getName() {
-        return name;
-    }
+  @JsonProperty("value")
+  private String value;
 
-    public void setName(String name) {
-        this.name = name;
-    }
+  public String getName() {
+    return name;
+  }
 
-    public String getValue() {
-        return value;
-    }
+  public void setName(String name) {
+    this.name = name;
+  }
 
-    public void setValue(String value) {
-        this.value = value;
-    }
+  public String getValue() {
+    return value;
+  }
+
+  public void setValue(String value) {
+    this.value = value;
+  }
 }

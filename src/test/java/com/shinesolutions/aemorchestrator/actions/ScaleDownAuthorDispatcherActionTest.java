@@ -7,60 +7,56 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-
 import com.shinesolutions.aemorchestrator.aem.AgentRunMode;
 import com.shinesolutions.aemorchestrator.aem.FlushAgentManager;
 import com.shinesolutions.aemorchestrator.service.AemInstanceHelperService;
 import com.shinesolutions.swaggeraem4j.ApiException;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 public class ScaleDownAuthorDispatcherActionTest {
 
-    @Mock
-    private FlushAgentManager flushAgentManager;
-    
-    @Mock
-    private AemInstanceHelperService aemHelperService;
-    
-    @InjectMocks
-    private ScaleDownAuthorDispatcherAction action;
-    
-    private String aemBasePath;
-    private String instanceId;
-    
-    @BeforeEach
-    public void setUp() throws Exception {
-        instanceId = "instanceId";
-        aemBasePath = "aemBasePath";
-        
-        when(aemHelperService.getAemUrlForAuthorElb()).thenReturn(aemBasePath);
-    }
-    
-    @Test
-    public void testDeleteFlushAgentSuccess() throws Exception {
-        boolean success = action.execute(instanceId);
-        
-        verify(flushAgentManager, times(1)).deleteFlushAgent(instanceId, aemBasePath, AgentRunMode.AUTHOR);
-        
-        assertThat(success, equalTo(true));
-    }
-    
-    @Test
-    public void testHandlesException()  throws Exception {
-        doThrow(new ApiException()).when(flushAgentManager).deleteFlushAgent(instanceId, aemBasePath, AgentRunMode.AUTHOR);
-        
-        boolean success = action.execute(instanceId);
-        
-        //Needs to pass, even when with exception
-        assertThat(success, equalTo(true));
-    }
-    
-    
+  @Mock private FlushAgentManager flushAgentManager;
+
+  @Mock private AemInstanceHelperService aemHelperService;
+
+  @InjectMocks private ScaleDownAuthorDispatcherAction action;
+
+  private String aemBasePath;
+  private String instanceId;
+
+  @BeforeEach
+  public void setUp() throws Exception {
+    instanceId = "instanceId";
+    aemBasePath = "aemBasePath";
+
+    when(aemHelperService.getAemUrlForAuthorElb()).thenReturn(aemBasePath);
+  }
+
+  @Test
+  public void testDeleteFlushAgentSuccess() throws Exception {
+    boolean success = action.execute(instanceId);
+
+    verify(flushAgentManager, times(1))
+        .deleteFlushAgent(instanceId, aemBasePath, AgentRunMode.AUTHOR);
+
+    assertThat(success, equalTo(true));
+  }
+
+  @Test
+  public void testHandlesException() throws Exception {
+    doThrow(new ApiException())
+        .when(flushAgentManager)
+        .deleteFlushAgent(instanceId, aemBasePath, AgentRunMode.AUTHOR);
+
+    boolean success = action.execute(instanceId);
+
+    // Needs to pass, even when with exception
+    assertThat(success, equalTo(true));
+  }
 }

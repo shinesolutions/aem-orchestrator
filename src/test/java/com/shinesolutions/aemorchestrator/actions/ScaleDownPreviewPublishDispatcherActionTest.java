@@ -6,109 +6,103 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.shinesolutions.aemorchestrator.service.AemInstanceHelperService;
+import com.shinesolutions.aemorchestrator.service.AwsHelperService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.shinesolutions.aemorchestrator.service.AemInstanceHelperService;
-import com.shinesolutions.aemorchestrator.service.AwsHelperService;
-import org.junit.jupiter.api.extension.ExtendWith;
-
 @ExtendWith(MockitoExtension.class)
 public class ScaleDownPreviewPublishDispatcherActionTest {
 
-    @Mock
-    private AemInstanceHelperService aemHelperService;
+  @Mock private AemInstanceHelperService aemHelperService;
 
-    @Mock
-    private AwsHelperService awsHelperService;
+  @Mock private AwsHelperService awsHelperService;
 
-    @InjectMocks
-    private ScaleDownPreviewPublishDispatcherAction action;
+  @InjectMocks private ScaleDownPreviewPublishDispatcherAction action;
 
-    private String instanceId;
-    private String pairedPreviewPublishId;
-    private int currentDispatcherDesiredCapacity;
-    private int currentPreviewPublishDesiredCapacity;
+  private String instanceId;
+  private String pairedPreviewPublishId;
+  private int currentDispatcherDesiredCapacity;
+  private int currentPreviewPublishDesiredCapacity;
 
+  @BeforeEach
+  public void setUp() throws Exception {
+    instanceId = "instanceId";
+    pairedPreviewPublishId = "pairedPreviewPublishId";
+  }
 
-    @BeforeEach
-    public void setUp() throws Exception {
-        instanceId = "instanceId";
-        pairedPreviewPublishId = "pairedPreviewPublishId";
-    }
+  @Test
+  public void testTerminatePairedPreviewPublishAndMatchDesiredCapacity() {
+    currentDispatcherDesiredCapacity = 2;
+    currentPreviewPublishDesiredCapacity = 3;
 
-    @Test
-    public void testTerminatePairedPreviewPublishAndMatchDesiredCapacity() {
-        currentDispatcherDesiredCapacity = 2;
-        currentPreviewPublishDesiredCapacity = 3;
+    when(aemHelperService.getPreviewPublishIdForPairedDispatcher(instanceId))
+        .thenReturn(pairedPreviewPublishId);
 
-        when(aemHelperService.getPreviewPublishIdForPairedDispatcher(instanceId)).thenReturn(pairedPreviewPublishId);
+    when(aemHelperService.getAutoScalingGroupDesiredCapacityForPreviewPublishDispatcher())
+        .thenReturn(currentDispatcherDesiredCapacity);
 
-        when(aemHelperService.getAutoScalingGroupDesiredCapacityForPreviewPublishDispatcher())
-            .thenReturn(currentDispatcherDesiredCapacity);
+    when(aemHelperService.getAutoScalingGroupDesiredCapacityForPreviewPublish())
+        .thenReturn(currentPreviewPublishDesiredCapacity);
 
-        when(aemHelperService.getAutoScalingGroupDesiredCapacityForPreviewPublish())
-            .thenReturn(currentPreviewPublishDesiredCapacity);
+    boolean success = action.execute(instanceId);
 
-        boolean success = action.execute(instanceId);
+    verify(awsHelperService, times(1)).terminateInstance(pairedPreviewPublishId);
 
-        verify(awsHelperService, times(1)).terminateInstance(pairedPreviewPublishId);
+    verify(aemHelperService, times(1))
+        .setAutoScalingGroupDesiredCapacityForPreviewPublish(currentDispatcherDesiredCapacity);
 
-        verify(aemHelperService, times(1))
-            .setAutoScalingGroupDesiredCapacityForPreviewPublish(currentDispatcherDesiredCapacity);
+    assertThat(success, equalTo(true));
+  }
 
-        assertThat(success, equalTo(true));
-    }
+  @Test
+  public void testTerminatePairedPreviewPublishAndDesiredCapacityAlreadyMatching() {
+    currentDispatcherDesiredCapacity = 3;
+    currentPreviewPublishDesiredCapacity = 3;
 
-    @Test
-    public void testTerminatePairedPreviewPublishAndDesiredCapacityAlreadyMatching() {
-        currentDispatcherDesiredCapacity = 3;
-        currentPreviewPublishDesiredCapacity = 3;
+    when(aemHelperService.getPreviewPublishIdForPairedDispatcher(instanceId))
+        .thenReturn(pairedPreviewPublishId);
 
-        when(aemHelperService.getPreviewPublishIdForPairedDispatcher(instanceId)).thenReturn(pairedPreviewPublishId);
+    when(aemHelperService.getAutoScalingGroupDesiredCapacityForPreviewPublishDispatcher())
+        .thenReturn(currentDispatcherDesiredCapacity);
 
-        when(aemHelperService.getAutoScalingGroupDesiredCapacityForPreviewPublishDispatcher())
-            .thenReturn(currentDispatcherDesiredCapacity);
+    when(aemHelperService.getAutoScalingGroupDesiredCapacityForPreviewPublish())
+        .thenReturn(currentPreviewPublishDesiredCapacity);
 
-        when(aemHelperService.getAutoScalingGroupDesiredCapacityForPreviewPublish())
-            .thenReturn(currentPreviewPublishDesiredCapacity);
+    boolean success = action.execute(instanceId);
 
-        boolean success = action.execute(instanceId);
+    verify(awsHelperService, times(1)).terminateInstance(pairedPreviewPublishId);
 
-        verify(awsHelperService, times(1)).terminateInstance(pairedPreviewPublishId);
+    verify(aemHelperService, times(0))
+        .setAutoScalingGroupDesiredCapacityForPreviewPublish(currentDispatcherDesiredCapacity);
 
-        verify(aemHelperService, times(0))
-            .setAutoScalingGroupDesiredCapacityForPreviewPublish(currentDispatcherDesiredCapacity);
+    assertThat(success, equalTo(true));
+  }
 
-        assertThat(success, equalTo(true));
-    }
+  @Test
+  public void testCantFindPairedPreviewPublisher() {
+    currentDispatcherDesiredCapacity = 1;
+    currentPreviewPublishDesiredCapacity = 3;
 
+    when(aemHelperService.getPreviewPublishIdForPairedDispatcher(instanceId)).thenReturn(null);
 
-    @Test
-    public void testCantFindPairedPreviewPublisher() {
-        currentDispatcherDesiredCapacity = 1;
-        currentPreviewPublishDesiredCapacity = 3;
+    when(aemHelperService.getAutoScalingGroupDesiredCapacityForPreviewPublishDispatcher())
+        .thenReturn(currentDispatcherDesiredCapacity);
 
-        when(aemHelperService.getPreviewPublishIdForPairedDispatcher(instanceId)).thenReturn(null);
+    when(aemHelperService.getAutoScalingGroupDesiredCapacityForPreviewPublish())
+        .thenReturn(currentPreviewPublishDesiredCapacity);
 
-        when(aemHelperService.getAutoScalingGroupDesiredCapacityForPreviewPublishDispatcher())
-            .thenReturn(currentDispatcherDesiredCapacity);
+    boolean success = action.execute(instanceId);
 
-        when(aemHelperService.getAutoScalingGroupDesiredCapacityForPreviewPublish())
-            .thenReturn(currentPreviewPublishDesiredCapacity);
+    verify(awsHelperService, times(0)).terminateInstance(pairedPreviewPublishId);
 
-        boolean success = action.execute(instanceId);
+    verify(aemHelperService, times(1))
+        .setAutoScalingGroupDesiredCapacityForPreviewPublish(currentDispatcherDesiredCapacity);
 
-        verify(awsHelperService, times(0)).terminateInstance(pairedPreviewPublishId);
-
-        verify(aemHelperService, times(1))
-            .setAutoScalingGroupDesiredCapacityForPreviewPublish(currentDispatcherDesiredCapacity);
-
-        assertThat(success, equalTo(true));
-    }
-
+    assertThat(success, equalTo(true));
+  }
 }

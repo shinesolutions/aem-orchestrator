@@ -2,69 +2,74 @@ package com.shinesolutions.aemorchestrator.util;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
-
-import java.io.File;
-import java.util.Scanner;
-
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.shinesolutions.aemorchestrator.model.EventMessage;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import java.io.File;
+import java.util.Scanner;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class EventMessageExtractorTest {
-    
-    private EventMessageExtractor eventMessageExtractor;
-    
-    @BeforeEach
-    public void setUp() throws Exception {
-        eventMessageExtractor = new EventMessageExtractor();
-    }
 
-    @Test
-    @SuppressWarnings("resource")
-    public void testExtractEventMessageSuccess() throws Exception {
+  private EventMessageExtractor eventMessageExtractor;
 
-        File sampleFileMessageOnly = new File(getClass().getResource("/sample-sqs-event-message-1.json").getFile());
-        String sampleFileContent = new Scanner(sampleFileMessageOnly).useDelimiter("\\Z").next();
+  @BeforeEach
+  public void setUp() throws Exception {
+    eventMessageExtractor = new EventMessageExtractor();
+  }
 
-        ObjectMapper mapper = new ObjectMapper();
-        JsonNode root = mapper.readTree(sampleFileMessageOnly);
+  @Test
+  @SuppressWarnings("resource")
+  public void testExtractEventMessageSuccess() throws Exception {
 
-        EventMessage eventMsg = eventMessageExtractor.extractMessage(sampleFileContent);
+    File sampleFileMessageOnly =
+        new File(getClass().getResource("/sample-sqs-event-message-1.json").getFile());
+    String sampleFileContent = new Scanner(sampleFileMessageOnly).useDelimiter("\\Z").next();
 
-        assertThat(eventMsg.getProgress(), equalTo(root.path("Progress").asInt()));
-        assertThat(eventMsg.getAccountId(), equalTo(root.path("AccountId").asText()));
-        assertThat(eventMsg.getDescription(), equalTo(root.path("Description").asText()));
-        assertThat(eventMsg.getRequestId(), equalTo(root.path("RequestId").asText()));
-        assertThat(eventMsg.getEndTime(), equalTo(root.path("EndTime").asText()));
-        assertThat(eventMsg.getAutoScalingGroupARN(), equalTo(root.path("AutoScalingGroupARN").asText()));
+    ObjectMapper mapper = new ObjectMapper();
+    JsonNode root = mapper.readTree(sampleFileMessageOnly);
 
-        assertThat(eventMsg.getActivityId(), equalTo(root.path("ActivityId").asText()));
-        assertThat(eventMsg.getStartTime(), equalTo(root.path("StartTime").asText()));
-        assertThat(eventMsg.getService(), equalTo(root.path("Service").asText()));
+    EventMessage eventMsg = eventMessageExtractor.extractMessage(sampleFileContent);
 
-        assertThat(eventMsg.getTime(), equalTo(root.path("Time").asText()));
-        assertThat(eventMsg.getEC2InstanceId(), equalTo(root.path("EC2InstanceId").asText()));
-        assertThat(eventMsg.getStatusCode(), equalTo(root.path("StatusCode").asText()));
+    assertThat(eventMsg.getProgress(), equalTo(root.path("Progress").asInt()));
+    assertThat(eventMsg.getAccountId(), equalTo(root.path("AccountId").asText()));
+    assertThat(eventMsg.getDescription(), equalTo(root.path("Description").asText()));
+    assertThat(eventMsg.getRequestId(), equalTo(root.path("RequestId").asText()));
+    assertThat(eventMsg.getEndTime(), equalTo(root.path("EndTime").asText()));
+    assertThat(
+        eventMsg.getAutoScalingGroupARN(), equalTo(root.path("AutoScalingGroupARN").asText()));
 
-        JsonNode details = root.path("Details");
-        assertThat(eventMsg.getDetails().getSubnetID(), equalTo(details.path("Subnet ID").asText()));
-        assertThat(eventMsg.getDetails().getAvailabilityZone(), equalTo(details.path("Availability Zone").asText()));
+    assertThat(eventMsg.getActivityId(), equalTo(root.path("ActivityId").asText()));
+    assertThat(eventMsg.getStartTime(), equalTo(root.path("StartTime").asText()));
+    assertThat(eventMsg.getService(), equalTo(root.path("Service").asText()));
 
-        assertThat(eventMsg.getStatusMessage(), equalTo(root.path("StatusMessage").asText()));
-        assertThat(eventMsg.getAutoScalingGroupName(), equalTo(root.path("AutoScalingGroupName").asText()));
-        assertThat(eventMsg.getCause(), equalTo(root.path("Cause").asText()));
-        assertThat(eventMsg.getEvent(), equalTo(root.path("Event").asText()));
-    }
-    
-    @Test
-    public void testExtractEventMessageParseFail() throws Exception {
-        assertThrows(JsonParseException.class, () -> {
-            eventMessageExtractor.extractMessage("Invalid string");
+    assertThat(eventMsg.getTime(), equalTo(root.path("Time").asText()));
+    assertThat(eventMsg.getEC2InstanceId(), equalTo(root.path("EC2InstanceId").asText()));
+    assertThat(eventMsg.getStatusCode(), equalTo(root.path("StatusCode").asText()));
+
+    JsonNode details = root.path("Details");
+    assertThat(eventMsg.getDetails().getSubnetID(), equalTo(details.path("Subnet ID").asText()));
+    assertThat(
+        eventMsg.getDetails().getAvailabilityZone(),
+        equalTo(details.path("Availability Zone").asText()));
+
+    assertThat(eventMsg.getStatusMessage(), equalTo(root.path("StatusMessage").asText()));
+    assertThat(
+        eventMsg.getAutoScalingGroupName(), equalTo(root.path("AutoScalingGroupName").asText()));
+    assertThat(eventMsg.getCause(), equalTo(root.path("Cause").asText()));
+    assertThat(eventMsg.getEvent(), equalTo(root.path("Event").asText()));
+  }
+
+  @Test
+  public void testExtractEventMessageParseFail() throws Exception {
+    assertThrows(
+        JsonParseException.class,
+        () -> {
+          eventMessageExtractor.extractMessage("Invalid string");
         });
-    }
+  }
 }

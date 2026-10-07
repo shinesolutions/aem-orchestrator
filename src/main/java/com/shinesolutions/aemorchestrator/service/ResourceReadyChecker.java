@@ -1,7 +1,7 @@
 package com.shinesolutions.aemorchestrator.service;
 
+import com.shinesolutions.aemorchestrator.AemOrchestrator;
 import jakarta.annotation.Resource;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -10,72 +10,70 @@ import org.springframework.retry.policy.SimpleRetryPolicy;
 import org.springframework.retry.support.RetryTemplate;
 import org.springframework.stereotype.Component;
 
-import com.shinesolutions.aemorchestrator.AemOrchestrator;
-
 @Component
 public class ResourceReadyChecker {
-    
-    private final static Logger logger = LoggerFactory.getLogger(AemOrchestrator.class);
-    
-    @Value("${startup.waitForAuthorElb.maxAttempts}")
-    private int waitForAuthorElbMaxAttempts;
-    
-    @Value("${startup.waitForAuthorElb.backOffPeriod}")
-    private long waitForAuthorBackOffPeriod;
 
-    @Value("${startup.waitForAuthorElb.maxBackOffPeriod}")
-    private long waitForAuthorMaxBackOffPeriod;
+  private static final Logger logger = LoggerFactory.getLogger(AemOrchestrator.class);
 
-    @Value("${startup.waitForAuthorElb.backOffPeriodMultiplier}")
-    private double waitForAuthorBackOffPeriodMultiplier;
+  @Value("${startup.waitForAuthorElb.maxAttempts}")
+  private int waitForAuthorElbMaxAttempts;
 
-    @Resource
-    private AemInstanceHelperService aemInstanceHelperService;
-    
-    /**
-     * Ensures external dependencies are available before starting to read messages from the queue
-     * @return true if startup successful, false if not
-     */
-    public boolean isResourcesReady() {
-        boolean isStartupOk = false;
+  @Value("${startup.waitForAuthorElb.backOffPeriod}")
+  private long waitForAuthorBackOffPeriod;
 
-        ExponentialBackOffPolicy exponentialBackOffPolicy = getExponentialBackOffPolicy();
-        SimpleRetryPolicy retryPolicy = getSimpleRetryPolicy();
+  @Value("${startup.waitForAuthorElb.maxBackOffPeriod}")
+  private long waitForAuthorMaxBackOffPeriod;
 
-        RetryTemplate retryTemplate = new RetryTemplate();
-        retryTemplate.setRetryPolicy(retryPolicy);
-        retryTemplate.setBackOffPolicy(exponentialBackOffPolicy);
-        retryTemplate.setThrowLastExceptionOnExhausted(true);
+  @Value("${startup.waitForAuthorElb.backOffPeriodMultiplier}")
+  private double waitForAuthorBackOffPeriodMultiplier;
 
-        logger.info("Waiting for Author ELB to be in healthy state");
-        
-        try {
-            isStartupOk = retryTemplate.execute(c -> {
+  @Resource private AemInstanceHelperService aemInstanceHelperService;
+
+  /**
+   * Ensures external dependencies are available before starting to read messages from the queue
+   *
+   * @return true if startup successful, false if not
+   */
+  public boolean isResourcesReady() {
+    boolean isStartupOk = false;
+
+    ExponentialBackOffPolicy exponentialBackOffPolicy = getExponentialBackOffPolicy();
+    SimpleRetryPolicy retryPolicy = getSimpleRetryPolicy();
+
+    RetryTemplate retryTemplate = new RetryTemplate();
+    retryTemplate.setRetryPolicy(retryPolicy);
+    retryTemplate.setBackOffPolicy(exponentialBackOffPolicy);
+    retryTemplate.setThrowLastExceptionOnExhausted(true);
+
+    logger.info("Waiting for Author ELB to be in healthy state");
+
+    try {
+      isStartupOk =
+          retryTemplate.execute(
+              c -> {
                 boolean result = aemInstanceHelperService.isAuthorElbHealthy();
-                if(!result) //Needs to be healthy
-                    throw new Exception("Author ELB does not appear to be in a healthy state");
+                if (!result) // Needs to be healthy
+                throw new Exception("Author ELB does not appear to be in a healthy state");
                 return result;
-            });
-        } catch (Exception e) {
-            logger.error("Failed to receive healthy state from Author ELB", e);
-        }
-        
-        return isStartupOk;
+              });
+    } catch (Exception e) {
+      logger.error("Failed to receive healthy state from Author ELB", e);
     }
 
-    private SimpleRetryPolicy getSimpleRetryPolicy() {
-        SimpleRetryPolicy retryPolicy = new SimpleRetryPolicy();
-        retryPolicy.setMaxAttempts(waitForAuthorElbMaxAttempts);
-        return retryPolicy;
-    }
+    return isStartupOk;
+  }
 
-    private ExponentialBackOffPolicy getExponentialBackOffPolicy() {
-        ExponentialBackOffPolicy exponentialBackOffPolicy = new ExponentialBackOffPolicy();
-        exponentialBackOffPolicy.setInitialInterval(waitForAuthorBackOffPeriod);
-        exponentialBackOffPolicy.setMaxInterval(waitForAuthorMaxBackOffPeriod);
-        exponentialBackOffPolicy.setMultiplier(waitForAuthorBackOffPeriodMultiplier);
-        return exponentialBackOffPolicy;
-    }
+  private SimpleRetryPolicy getSimpleRetryPolicy() {
+    SimpleRetryPolicy retryPolicy = new SimpleRetryPolicy();
+    retryPolicy.setMaxAttempts(waitForAuthorElbMaxAttempts);
+    return retryPolicy;
+  }
 
-
+  private ExponentialBackOffPolicy getExponentialBackOffPolicy() {
+    ExponentialBackOffPolicy exponentialBackOffPolicy = new ExponentialBackOffPolicy();
+    exponentialBackOffPolicy.setInitialInterval(waitForAuthorBackOffPeriod);
+    exponentialBackOffPolicy.setMaxInterval(waitForAuthorMaxBackOffPeriod);
+    exponentialBackOffPolicy.setMultiplier(waitForAuthorBackOffPeriodMultiplier);
+    return exponentialBackOffPolicy;
+  }
 }
