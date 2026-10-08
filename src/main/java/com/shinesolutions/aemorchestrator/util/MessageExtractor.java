@@ -1,9 +1,9 @@
 package com.shinesolutions.aemorchestrator.util;
 
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.DatabindException;
+import tools.jackson.databind.ObjectMapper;
 
 public class MessageExtractor<T> {
 
@@ -14,11 +14,9 @@ public class MessageExtractor<T> {
   }
 
   public T extractMessage(String sqsMessageBody)
-      throws JsonParseException, JsonMappingException, IOException {
+      throws JacksonException, DatabindException, IOException {
 
     ObjectMapper eventMapper = new ObjectMapper();
-    T message = eventMapper.readValue(sqsMessageBody, typeParameterClass);
-
-    return message;
+    return eventMapper.readValue(sqsMessageBody, typeParameterClass);
   }
 }

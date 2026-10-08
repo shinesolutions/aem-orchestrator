@@ -4,9 +4,6 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.shinesolutions.aemorchestrator.model.AlarmMessage;
 import com.shinesolutions.aemorchestrator.model.Dimension;
 import java.io.File;
@@ -14,6 +11,9 @@ import java.util.List;
 import java.util.Scanner;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 
 public class AlarmMessageExtractorTest {
 
@@ -84,7 +84,7 @@ public class AlarmMessageExtractorTest {
   @Test
   public void testExtractEventMessageParseFail() throws Exception {
     assertThrows(
-        JsonParseException.class,
+        JacksonException.class,
         () -> {
           alarmMessageExtractor.extractMessage("Invalid string");
         });

@@ -1,11 +1,11 @@
 package com.shinesolutions.aemorchestrator.util;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.shinesolutions.aemorchestrator.model.AemCredentials;
 import com.shinesolutions.aemorchestrator.model.UserPasswordCredentials;
 import java.io.IOException;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 
 public class CredentialsExtractor {
 
@@ -13,7 +13,7 @@ public class CredentialsExtractor {
   public static final String ORCHESTRATOR_USER = "orchestrator";
 
   public static AemCredentials extractAemCredentials(String fileContents)
-      throws JsonProcessingException, IOException {
+      throws JacksonException, IOException {
 
     ObjectMapper mapper = new ObjectMapper();
     JsonNode root = mapper.readTree(fileContents);
