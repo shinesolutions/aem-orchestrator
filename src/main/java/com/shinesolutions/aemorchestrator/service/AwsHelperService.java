@@ -108,7 +108,10 @@ public class AwsHelperService {
    * @param instanceId the EC2 instance ID
    * @return String private IP
    */
-  @Retryable(maxAttempts = 10, value = AwsServiceException.class, backoff = @Backoff(delay = 5000))
+  @Retryable(
+      maxAttempts = 10,
+      retryFor = AwsServiceException.class,
+      backoff = @Backoff(delay = 5000))
   public String getPrivateIp(String instanceId) {
     DescribeInstancesResponse result =
         amazonEC2Client.describeInstances(
@@ -132,7 +135,10 @@ public class AwsHelperService {
    * @param instanceId the EC2 instance ID
    * @return Date launchTime
    */
-  @Retryable(maxAttempts = 10, value = AwsServiceException.class, backoff = @Backoff(delay = 5000))
+  @Retryable(
+      maxAttempts = 10,
+      retryFor = AwsServiceException.class,
+      backoff = @Backoff(delay = 5000))
   public Date getLaunchTime(String instanceId) {
     DescribeInstancesResponse result =
         amazonEC2Client.describeInstances(

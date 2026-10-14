@@ -8,13 +8,13 @@ import javax.net.ssl.SSLContext;
 import org.apache.hc.client5.http.ClientProtocolException;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
-import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
 import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
 import org.apache.hc.client5.http.io.HttpClientConnectionManager;
+import org.apache.hc.client5.http.ssl.ClientTlsStrategyBuilder;
+import org.apache.hc.client5.http.ssl.HostnameVerificationPolicy;
 import org.apache.hc.client5.http.ssl.NoopHostnameVerifier;
-import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory;
-import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactoryBuilder;
+import org.apache.hc.client5.http.ssl.TlsSocketStrategy;
 import org.apache.hc.client5.http.ssl.TrustAllStrategy;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.ssl.SSLContextBuilder;
@@ -57,9 +57,7 @@ public class HttpUtil {
 
       HttpGet request = new HttpGet(url);
 
-      try (CloseableHttpResponse response = client.execute(request)) {
-        statusCode = response.getCode();
-      }
+      statusCode = client.execute(request, response -> response.getCode());
     }
 
     return statusCode == HttpStatus.SC_OK;
@@ -76,15 +74,17 @@ public class HttpUtil {
       SSLContext sslContext =
           SSLContextBuilder.create().loadTrustMaterial(null, TrustAllStrategy.INSTANCE).build();
 
-      SSLConnectionSocketFactory sslSocketFactory =
-          SSLConnectionSocketFactoryBuilder.create()
+      TlsSocketStrategy tlsSocketStrategy =
+          ClientTlsStrategyBuilder.create()
               .setSslContext(sslContext)
               .setHostnameVerifier(NoopHostnameVerifier.INSTANCE)
-              .build();
+              // Only the no-op verifier; the default also applies JSSE's built-in host check
+              .setHostVerificationPolicy(HostnameVerificationPolicy.CLIENT)
+              .buildClassic();
 
       HttpClientConnectionManager connectionManager =
           PoolingHttpClientConnectionManagerBuilder.create()
-              .setSSLSocketFactory(sslSocketFactory)
+              .setTlsSocketStrategy(tlsSocketStrategy)
               .build();
 
       client = HttpClientBuilder.create().setConnectionManager(connectionManager).build();

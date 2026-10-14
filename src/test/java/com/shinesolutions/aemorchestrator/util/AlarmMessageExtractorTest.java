@@ -36,31 +36,33 @@ public class AlarmMessageExtractorTest {
 
     AlarmMessage alarmMsg = alarmMessageExtractor.extractMessage(sampleFileContent);
 
-    assertThat(alarmMsg.getAlarmName(), equalTo(root.path("AlarmName").asText()));
-    assertThat(alarmMsg.getAlarmDescription(), equalTo(root.path("AlarmDescription").asText()));
-    assertThat(alarmMsg.getAwsAccountId(), equalTo(root.path("AWSAccountId").asText()));
-    assertThat(alarmMsg.getNewStateValue(), equalTo(root.path("NewStateValue").asText()));
-    assertThat(alarmMsg.getNewStateReason(), equalTo(root.path("NewStateReason").asText()));
-    assertThat(alarmMsg.getStateChangeTime(), equalTo(root.path("StateChangeTime").asText()));
-    assertThat(alarmMsg.getRegion(), equalTo(root.path("Region").asText()));
-    assertThat(alarmMsg.getOldStateValue(), equalTo(root.path("OldStateValue").asText()));
+    assertThat(alarmMsg.getAlarmName(), equalTo(root.path("AlarmName").asString()));
+    assertThat(alarmMsg.getAlarmDescription(), equalTo(root.path("AlarmDescription").asString()));
+    assertThat(alarmMsg.getAwsAccountId(), equalTo(root.path("AWSAccountId").asString()));
+    assertThat(alarmMsg.getNewStateValue(), equalTo(root.path("NewStateValue").asString()));
+    assertThat(alarmMsg.getNewStateReason(), equalTo(root.path("NewStateReason").asString()));
+    assertThat(alarmMsg.getStateChangeTime(), equalTo(root.path("StateChangeTime").asString()));
+    assertThat(alarmMsg.getRegion(), equalTo(root.path("Region").asString()));
+    assertThat(alarmMsg.getOldStateValue(), equalTo(root.path("OldStateValue").asString()));
 
     JsonNode trigger = root.path("Trigger");
-    assertThat(alarmMsg.getTrigger().getMetricName(), equalTo(trigger.path("MetricName").asText()));
-    assertThat(alarmMsg.getTrigger().getNamespace(), equalTo(trigger.path("Namespace").asText()));
     assertThat(
-        alarmMsg.getTrigger().getStatisticType(), equalTo(trigger.path("StatisticType").asText()));
-    assertThat(alarmMsg.getTrigger().getStatistic(), equalTo(trigger.path("Statistic").asText()));
-    assertThat(alarmMsg.getTrigger().getUnit(), equalTo(trigger.path("Unit").asText()));
+        alarmMsg.getTrigger().getMetricName(), equalTo(trigger.path("MetricName").asString()));
+    assertThat(alarmMsg.getTrigger().getNamespace(), equalTo(trigger.path("Namespace").asString()));
+    assertThat(
+        alarmMsg.getTrigger().getStatisticType(),
+        equalTo(trigger.path("StatisticType").asString()));
+    assertThat(alarmMsg.getTrigger().getStatistic(), equalTo(trigger.path("Statistic").asString()));
+    assertThat(alarmMsg.getTrigger().getUnit(), equalTo(trigger.path("Unit").asString()));
     assertThat(
         alarmMsg.getTrigger().getComparisonOperator(),
-        equalTo(trigger.path("ComparisonOperator").asText()));
+        equalTo(trigger.path("ComparisonOperator").asString()));
     assertThat(
         alarmMsg.getTrigger().getTreatMissingData(),
-        equalTo(trigger.path("TreatMissingData").asText()));
+        equalTo(trigger.path("TreatMissingData").asString()));
     assertThat(
         alarmMsg.getTrigger().getEvaluateLowSampleCountPercentile(),
-        equalTo(trigger.path("EvaluateLowSampleCountPercentile").asText()));
+        equalTo(trigger.path("EvaluateLowSampleCountPercentile").asString()));
     assertThat(alarmMsg.getTrigger().getPeriod(), equalTo(trigger.path("Period").asInt()));
     assertThat(
         alarmMsg.getTrigger().getEvaluationPeriods(),
@@ -71,14 +73,17 @@ public class AlarmMessageExtractorTest {
     List<Dimension> dimensionList = alarmMsg.getTrigger().getDimensions();
     assertThat(dimensionList.size(), equalTo(3));
 
-    assertThat(dimensionList.get(0).getName(), equalTo(dimensions.get(0).path("name").asText()));
-    assertThat(dimensionList.get(0).getValue(), equalTo(dimensions.get(0).path("value").asText()));
+    assertThat(dimensionList.get(0).getName(), equalTo(dimensions.get(0).path("name").asString()));
+    assertThat(
+        dimensionList.get(0).getValue(), equalTo(dimensions.get(0).path("value").asString()));
 
-    assertThat(dimensionList.get(1).getName(), equalTo(dimensions.get(1).path("name").asText()));
-    assertThat(dimensionList.get(1).getValue(), equalTo(dimensions.get(1).path("value").asText()));
+    assertThat(dimensionList.get(1).getName(), equalTo(dimensions.get(1).path("name").asString()));
+    assertThat(
+        dimensionList.get(1).getValue(), equalTo(dimensions.get(1).path("value").asString()));
 
-    assertThat(dimensionList.get(2).getName(), equalTo(dimensions.get(2).path("name").asText()));
-    assertThat(dimensionList.get(2).getValue(), equalTo(dimensions.get(2).path("value").asText()));
+    assertThat(dimensionList.get(2).getName(), equalTo(dimensions.get(2).path("name").asString()));
+    assertThat(
+        dimensionList.get(2).getValue(), equalTo(dimensions.get(2).path("value").asString()));
   }
 
   @Test

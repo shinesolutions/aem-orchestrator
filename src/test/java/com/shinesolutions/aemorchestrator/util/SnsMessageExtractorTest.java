@@ -32,15 +32,15 @@ public class SnsMessageExtractorTest {
 
     SnsMessage message = extractor.extractMessage(sampleFileContent);
 
-    assertThat(message.getType(), equalTo(root.path("Type").asText()));
-    assertThat(message.getMessageId(), equalTo(root.path("MessageId").asText()));
-    assertThat(message.getTopicArn(), equalTo(root.path("TopicArn").asText()));
-    assertThat(message.getSubject(), equalTo(root.path("Subject").asText()));
-    assertThat(message.getMessage(), equalTo(root.path("Message").asText()));
-    assertThat(message.getTimestamp(), equalTo(root.path("Timestamp").asText()));
-    assertThat(message.getSignatureVersion(), equalTo(root.path("SignatureVersion").asText()));
-    assertThat(message.getSignature(), equalTo(root.path("Signature").asText()));
-    assertThat(message.getSigningCertURL(), equalTo(root.path("SigningCertURL").asText()));
-    assertThat(message.getUnsubscribeURL(), equalTo(root.path("UnsubscribeURL").asText()));
+    assertThat(message.getType(), equalTo(root.path("Type").asString()));
+    assertThat(message.getMessageId(), equalTo(root.path("MessageId").asString()));
+    assertThat(message.getTopicArn(), equalTo(root.path("TopicArn").asString()));
+    assertThat(message.getSubject(), equalTo(root.path("Subject").asString()));
+    assertThat(message.getMessage(), equalTo(root.path("Message").asString()));
+    assertThat(message.getTimestamp(), equalTo(root.path("Timestamp").asString()));
+    assertThat(message.getSignatureVersion(), equalTo(root.path("SignatureVersion").asString()));
+    assertThat(message.getSignature(), equalTo(root.path("Signature").asString()));
+    assertThat(message.getSigningCertURL(), equalTo(root.path("SigningCertURL").asString()));
+    assertThat(message.getUnsubscribeURL(), equalTo(root.path("UnsubscribeURL").asString()));
   }
 }

@@ -36,32 +36,32 @@ public class EventMessageExtractorTest {
     EventMessage eventMsg = eventMessageExtractor.extractMessage(sampleFileContent);
 
     assertThat(eventMsg.getProgress(), equalTo(root.path("Progress").asInt()));
-    assertThat(eventMsg.getAccountId(), equalTo(root.path("AccountId").asText()));
-    assertThat(eventMsg.getDescription(), equalTo(root.path("Description").asText()));
-    assertThat(eventMsg.getRequestId(), equalTo(root.path("RequestId").asText()));
-    assertThat(eventMsg.getEndTime(), equalTo(root.path("EndTime").asText()));
+    assertThat(eventMsg.getAccountId(), equalTo(root.path("AccountId").asString()));
+    assertThat(eventMsg.getDescription(), equalTo(root.path("Description").asString()));
+    assertThat(eventMsg.getRequestId(), equalTo(root.path("RequestId").asString()));
+    assertThat(eventMsg.getEndTime(), equalTo(root.path("EndTime").asString()));
     assertThat(
-        eventMsg.getAutoScalingGroupARN(), equalTo(root.path("AutoScalingGroupARN").asText()));
+        eventMsg.getAutoScalingGroupARN(), equalTo(root.path("AutoScalingGroupARN").asString()));
 
-    assertThat(eventMsg.getActivityId(), equalTo(root.path("ActivityId").asText()));
-    assertThat(eventMsg.getStartTime(), equalTo(root.path("StartTime").asText()));
-    assertThat(eventMsg.getService(), equalTo(root.path("Service").asText()));
+    assertThat(eventMsg.getActivityId(), equalTo(root.path("ActivityId").asString()));
+    assertThat(eventMsg.getStartTime(), equalTo(root.path("StartTime").asString()));
+    assertThat(eventMsg.getService(), equalTo(root.path("Service").asString()));
 
-    assertThat(eventMsg.getTime(), equalTo(root.path("Time").asText()));
-    assertThat(eventMsg.getEC2InstanceId(), equalTo(root.path("EC2InstanceId").asText()));
-    assertThat(eventMsg.getStatusCode(), equalTo(root.path("StatusCode").asText()));
+    assertThat(eventMsg.getTime(), equalTo(root.path("Time").asString()));
+    assertThat(eventMsg.getEC2InstanceId(), equalTo(root.path("EC2InstanceId").asString()));
+    assertThat(eventMsg.getStatusCode(), equalTo(root.path("StatusCode").asString()));
 
     JsonNode details = root.path("Details");
-    assertThat(eventMsg.getDetails().getSubnetID(), equalTo(details.path("Subnet ID").asText()));
+    assertThat(eventMsg.getDetails().getSubnetID(), equalTo(details.path("Subnet ID").asString()));
     assertThat(
         eventMsg.getDetails().getAvailabilityZone(),
-        equalTo(details.path("Availability Zone").asText()));
+        equalTo(details.path("Availability Zone").asString()));
 
-    assertThat(eventMsg.getStatusMessage(), equalTo(root.path("StatusMessage").asText()));
+    assertThat(eventMsg.getStatusMessage(), equalTo(root.path("StatusMessage").asString()));
     assertThat(
-        eventMsg.getAutoScalingGroupName(), equalTo(root.path("AutoScalingGroupName").asText()));
-    assertThat(eventMsg.getCause(), equalTo(root.path("Cause").asText()));
-    assertThat(eventMsg.getEvent(), equalTo(root.path("Event").asText()));
+        eventMsg.getAutoScalingGroupName(), equalTo(root.path("AutoScalingGroupName").asString()));
+    assertThat(eventMsg.getCause(), equalTo(root.path("Cause").asString()));
+    assertThat(eventMsg.getEvent(), equalTo(root.path("Event").asString()));
   }
 
   @Test

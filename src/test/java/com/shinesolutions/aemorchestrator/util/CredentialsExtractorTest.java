@@ -29,13 +29,13 @@ public class CredentialsExtractorTest {
         equalTo(CredentialsExtractor.ORCHESTRATOR_USER));
     assertThat(
         aemCredentials.getOrchestratorCredentials().getPassword(),
-        equalTo(root.path(CredentialsExtractor.ORCHESTRATOR_USER).asText()));
+        equalTo(root.path(CredentialsExtractor.ORCHESTRATOR_USER).asString()));
 
     assertThat(
         aemCredentials.getReplicatorCredentials().getUserName(),
         equalTo(CredentialsExtractor.REPLICATOR_USER));
     assertThat(
         aemCredentials.getReplicatorCredentials().getPassword(),
-        equalTo(root.path(CredentialsExtractor.REPLICATOR_USER).asText()));
+        equalTo(root.path(CredentialsExtractor.REPLICATOR_USER).asString()));
   }
 }

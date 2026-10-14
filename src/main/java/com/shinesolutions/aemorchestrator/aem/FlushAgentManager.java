@@ -43,7 +43,7 @@ public class FlushAgentManager {
     logger.debug("ApiResponse status code: " + response.getStatusCode());
   }
 
-  @Retryable(maxAttempts = 5, value = ApiException.class, backoff = @Backoff(delay = 5000))
+  @Retryable(maxAttempts = 5, retryFor = ApiException.class, backoff = @Backoff(delay = 5000))
   public void createFlushAgent(
       String dispatcherInstanceId,
       String aemBaseUrl,

@@ -188,7 +188,7 @@ public class ReplicationAgentManager {
     performPostAgentAction(request, authorAemBaseUrl, AgentAction.DELETE);
   }
 
-  @Retryable(maxAttempts = 5, value = ApiException.class, backoff = @Backoff(delay = 5000))
+  @Retryable(maxAttempts = 5, retryFor = ApiException.class, backoff = @Backoff(delay = 5000))
   private void performPostAgentAction(
       PostAgentWithHttpInfoRequest request, String authorAemBaseUrl, AgentAction action)
       throws ApiException {

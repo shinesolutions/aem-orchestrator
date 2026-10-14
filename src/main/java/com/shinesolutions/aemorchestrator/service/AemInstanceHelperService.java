@@ -240,7 +240,7 @@ public class AemInstanceHelperService {
    */
   @Retryable(
       maxAttempts = 10,
-      value = InstanceNotInHealthyStateException.class,
+      retryFor = InstanceNotInHealthyStateException.class,
       backoff = @Backoff(delay = 5000))
   public void waitForPublishToBeHealthy(String instanceId)
       throws InstanceNotInHealthyStateException {
@@ -263,7 +263,7 @@ public class AemInstanceHelperService {
    */
   @Retryable(
       maxAttempts = 10,
-      value = InstanceNotInHealthyStateException.class,
+      retryFor = InstanceNotInHealthyStateException.class,
       backoff = @Backoff(delay = 5000))
   public void waitForPreviewPublishToBeHealthy(String instanceId)
       throws InstanceNotInHealthyStateException {
@@ -672,7 +672,10 @@ public class AemInstanceHelperService {
    * @return Publish Dispatcher instance ID tag
    * @throws NoPairFoundException if can't find unpaired Publish Dispatcher
    */
-  @Retryable(maxAttempts = 10, value = NoPairFoundException.class, backoff = @Backoff(delay = 5000))
+  @Retryable(
+      maxAttempts = 10,
+      retryFor = NoPairFoundException.class,
+      backoff = @Backoff(delay = 5000))
   public String findUnpairedPublishDispatcher(String instanceId) throws NoPairFoundException {
     String unpairedDispatcher = null;
 
@@ -712,7 +715,10 @@ public class AemInstanceHelperService {
    * @return PreviewPublish Dispatcher instance ID tag
    * @throws NoPairFoundException if can't find unpaired PreviewPublish Dispatcher
    */
-  @Retryable(maxAttempts = 10, value = NoPairFoundException.class, backoff = @Backoff(delay = 5000))
+  @Retryable(
+      maxAttempts = 10,
+      retryFor = NoPairFoundException.class,
+      backoff = @Backoff(delay = 5000))
   public String findUnpairedPreviewPublishDispatcher(String instanceId)
       throws NoPairFoundException {
     String unpairedDispatcher = null;

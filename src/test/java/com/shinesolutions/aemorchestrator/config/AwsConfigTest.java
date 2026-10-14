@@ -53,8 +53,9 @@ public class AwsConfigTest {
     verify(httpClientBuilder, never()).proxyConfiguration(any(ProxyConfiguration.class));
     verify(httpClientBuilder).connectionTimeout(Duration.ofMillis(clientConnectionTimeout));
     verify(httpClientBuilder).socketTimeout(Duration.ofSeconds(50));
-    assertThat(overrideConfig.retryPolicy().isPresent(), equalTo(true));
-    assertThat(overrideConfig.retryPolicy().get().numRetries(), equalTo(clientMaxErrorRetry));
+    assertThat(overrideConfig.retryStrategy().isPresent(), equalTo(true));
+    assertThat(
+        overrideConfig.retryStrategy().get().maxAttempts(), equalTo(clientMaxErrorRetry + 1));
   }
 
   @Test
@@ -74,8 +75,9 @@ public class AwsConfigTest {
     verify(httpClientBuilder, never()).proxyConfiguration(any(ProxyConfiguration.class));
     verify(httpClientBuilder).connectionTimeout(Duration.ofMillis(clientConnectionTimeout));
     verify(httpClientBuilder).socketTimeout(Duration.ofSeconds(50));
-    assertThat(overrideConfig.retryPolicy().isPresent(), equalTo(true));
-    assertThat(overrideConfig.retryPolicy().get().numRetries(), equalTo(clientMaxErrorRetry));
+    assertThat(overrideConfig.retryStrategy().isPresent(), equalTo(true));
+    assertThat(
+        overrideConfig.retryStrategy().get().maxAttempts(), equalTo(clientMaxErrorRetry + 1));
   }
 
   @Test
@@ -114,8 +116,9 @@ public class AwsConfigTest {
     assertThat(configuredProxy(httpClientBuilder).scheme(), equalTo("http"));
     verify(httpClientBuilder).connectionTimeout(Duration.ofMillis(clientConnectionTimeout));
     verify(httpClientBuilder).socketTimeout(Duration.ofSeconds(50));
-    assertThat(overrideConfig.retryPolicy().isPresent(), equalTo(true));
-    assertThat(overrideConfig.retryPolicy().get().numRetries(), equalTo(clientMaxErrorRetry));
+    assertThat(overrideConfig.retryStrategy().isPresent(), equalTo(true));
+    assertThat(
+        overrideConfig.retryStrategy().get().maxAttempts(), equalTo(clientMaxErrorRetry + 1));
 
     // 2. Assert HTTP Proxy branch
     setField(awsConfig, "useProxy", false);
@@ -133,8 +136,9 @@ public class AwsConfigTest {
     assertThat(configuredProxy(httpClientBuilder).scheme(), equalTo("http"));
     verify(httpClientBuilder).connectionTimeout(Duration.ofMillis(clientConnectionTimeout));
     verify(httpClientBuilder).socketTimeout(Duration.ofSeconds(50));
-    assertThat(overrideConfig.retryPolicy().isPresent(), equalTo(true));
-    assertThat(overrideConfig.retryPolicy().get().numRetries(), equalTo(clientMaxErrorRetry));
+    assertThat(overrideConfig.retryStrategy().isPresent(), equalTo(true));
+    assertThat(
+        overrideConfig.retryStrategy().get().maxAttempts(), equalTo(clientMaxErrorRetry + 1));
   }
 
   @Test

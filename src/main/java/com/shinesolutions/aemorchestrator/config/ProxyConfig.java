@@ -2,6 +2,8 @@ package com.shinesolutions.aemorchestrator.config;
 
 import com.shinesolutions.aemorchestrator.model.ProxyDetails;
 import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,12 +26,12 @@ public class ProxyConfig {
     if (httpsProxyEnvironmentVar != null && !httpsProxyEnvironmentVar.isEmpty()) {
       logger.debug(ENV_HTTPS_PROXY + " environment variable detected: " + httpsProxyEnvironmentVar);
       try {
-        URL httpProxyUrl = new URL(httpsProxyEnvironmentVar);
+        URL httpProxyUrl = new URI(httpsProxyEnvironmentVar).toURL();
         details =
             new ProxyDetails().withHost(httpProxyUrl.getHost()).withPort(httpProxyUrl.getPort());
         logger.debug(
             "Proxy details set to host: " + details.getHost() + ", port: " + details.getPort());
-      } catch (MalformedURLException e) {
+      } catch (URISyntaxException | MalformedURLException | IllegalArgumentException e) {
         logger.warn("Unable to parse " + ENV_HTTPS_PROXY + " environment variable", e);
       }
     } else {

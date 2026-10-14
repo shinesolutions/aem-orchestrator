@@ -18,8 +18,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.InstanceProfileCredentialsProvider;
+import software.amazon.awssdk.awscore.retry.AwsRetryStrategy;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
-import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.apache5.Apache5HttpClient;
 import software.amazon.awssdk.http.apache5.ProxyConfiguration;
@@ -133,7 +133,11 @@ public class AwsConfig {
   public ClientOverrideConfiguration clientOverrideConfiguration() {
     ClientOverrideConfiguration.Builder builder = ClientOverrideConfiguration.builder();
 
-    builder.retryPolicy(RetryPolicy.builder().numRetries(clientMaxErrorRetry).build());
+    // Legacy retry mode matches SDK v1 backoff; maxAttempts counts the first attempt
+    builder.retryStrategy(
+        AwsRetryStrategy.legacyRetryStrategy().toBuilder()
+            .maxAttempts(clientMaxErrorRetry + 1)
+            .build());
 
     return builder.build();
   }
