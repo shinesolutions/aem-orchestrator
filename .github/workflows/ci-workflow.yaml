@@ -5,5 +5,11 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v7
+      with:
+        # Full history so pull requests can compare CHANGELOG.md with the base branch
+        fetch-depth: 0
     - uses: ./.github/actions/ci-action
+      env:
+        # Pull requests must add an entry under ## [Unreleased] in CHANGELOG.md
+        CHANGELOG_BASE: ${{ github.event_name == 'pull_request' && format('origin/{0}', github.base_ref) || '' }}

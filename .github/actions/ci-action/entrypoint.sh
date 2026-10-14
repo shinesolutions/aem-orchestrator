@@ -1,3 +1,5 @@
 #!/bin/bash
+set -o errexit
+
 mvn --version
-mvn clean verify
+make ci

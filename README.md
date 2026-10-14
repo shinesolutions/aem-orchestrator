@@ -6,11 +6,23 @@ AEM Orchestrator is a stateless Java application for orchestrating AEM infrastru
 
 ## Build
 
-This project requires Java 8 to compile and run the source code. Apache Maven 3.3 was used as the build tool.
+This project requires Java 21 and Apache Maven 3.10+. Run the targets below inside the
+[aem-platform-buildenv](https://github.com/shinesolutions/aem-platform-buildenv) Docker image, as CI does.
+
+| Target | Description |
+|---|---|
+| `make ci` | Clean, download dependencies, check the changelog, then checkstyle, unit tests, integration tests, SpotBugs and packaging (`mvn verify`) |
+| `make deps` | Download all dependencies and plugins |
+| `make build` | Package the JAR without running tests |
+| `make test` | Checkstyle and unit tests (`src/test/java`) |
+| `make integration-test` | Integration tests only (`src/integration-test/java`) |
+| `make changelog-check` | Check CHANGELOG.md follows Keep a Changelog, with an `## [Unreleased]` section first. With `CHANGELOG_BASE=origin/master` (set by CI for pull requests) it also requires a new `## [Unreleased]` entry, so every pull request must describe its change |
+| `make release-check` | Offline release dry run: GPG-sign and bundle the committed `HEAD` for Maven Central at its release version, check the bundle and every signature, upload nothing. Signs with `MAVEN_GPG_KEY` (armored secret key) and `MAVEN_GPG_PASSPHRASE` from the environment, or your GPG keyring; bundle kept at `target/release-check/central-bundle.zip` |
+| `make release` | Minor release with maven-release-plugin; also `release-major` and `release-patch`. Dates the `## [Unreleased]` CHANGELOG.md entries as the release, then commits and tags `aem-orchestrator-<version>` locally; push with `git push --follow-tags` |
 
 ### Create JAR file
 ```
-$ mvn clean package
+$ make build
 ```
 This will create a JAR file in the '\target' directory called aem-orchestrator-x.x.x.jar. 
 By default the generated JAR file will contain all of the required dependencies
@@ -36,18 +48,14 @@ aws.sqs.queueName = example-aem-asg-event-queue
 The aem-aws-stack-builder will generate these names for you, they just need to be added to this Orchestrator application.properties file. See [here](docs/configuration.md) for more information on configuration properties. You can also view the base [application.properties](src/main/resources/application.properties) file.
 
 ### Running the JAR
-The JAR file is created as a 'fully executable' jar. See Spring Boot [deployment and install](http://docs.spring.io/spring-boot/docs/current/reference/html/deployment-install.html).
-There are two ways to run the JAR:
+Run the JAR with Java 21:
 
 ```
 $ java -jar aem-orchestrator-x.x.x.jar
 ```
 
-or as a 'fully executable' direct application (only works on Unix/Linux based systems):
-
-```
-$ ./aem-orchestrator-x.x.x.jar
-```
+Since the upgrade to Spring Boot 4 the JAR is no longer a 'fully executable' jar, so it can't be run directly as `./aem-orchestrator-x.x.x.jar`.
+To run it as a systemd service, use `ExecStart=/usr/bin/java -jar /path/to/aem-orchestrator.jar`, as [puppet-aem-orchestrator](https://github.com/shinesolutions/puppet-aem-orchestrator) does.
 
 ### Logging
 By default the Orchestrator will log to a file called *orchestrator.log* in the root directory. It uses [logback](https://logback.qos.ch/) and here is the default [configuration file](src/main/resources/logback.xml). Note that debug is enabled by default. To override the default logging, place your custom logback.xml file in the same directory as the JAR file.

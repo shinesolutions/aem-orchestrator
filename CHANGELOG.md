@@ -4,6 +4,31 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+### Added
+- Added an end-to-end integration test that runs the orchestrator against mocked AWS and AEM
+- Added Makefile targets for ci, deps, build, test, integration-test, changelog-check, release-check and release
+- Added `make release-check` to sign and bundle a release for Maven Central without uploading it
+
+### Changed
+- Upgraded Java from 8 to 21 and requires Maven 3.10 or later
+- Upgraded Spring Boot from 2.1 to 4.1
+- Upgraded AWS SDK for Java from v1 to v2 and Amazon SQS Java Messaging Library to 2.1.4
+- Upgraded Jackson to 3, keeping the previous JSON parsing behaviour
+- Replaced Apache HttpClient 4 with HttpClient 5
+- Migrated unit tests to JUnit 5 and Mockito 5
+- The JAR is no longer a fully executable script, start it with `java -jar`
+- Replaced the obsolete `endpoints.*` properties with `management.endpoints.web.exposure.include=health,info`
+- `aws.client.protocol` no longer has an effect, AWS SDK v2 always calls AWS over HTTPS
+- CI now runs `make ci` in aem-platform-buildenv 6.2.1, including a changelog check, integration tests and SpotBugs
+- Pull requests must now add an entry under `## [Unreleased]` in CHANGELOG.md
+- Artifact signing now only runs in the `release` Maven profile
+- Formatted the code with Google Java Style and fixed all Checkstyle warnings
+
+### Fixed
+- Fixed pausing a replication agent reusing a request shared between calls
+- Fixed log messages that showed a null or wrong instance ID during scale-down and content health alarms
+
 ## [4.0.0] - 2023-07-28
 ### Added
 - Add Preview-Publish & Preview-Publish-Dispatcher orchestration logic #RS-161

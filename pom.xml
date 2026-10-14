@@ -44,6 +44,7 @@
 
     <!-- Plugin Versions (not managed by Spring Boot) -->
     <maven-gpg-plugin.version>3.2.8</maven-gpg-plugin.version>
+    <maven-release-plugin.version>3.3.1</maven-release-plugin.version>
     <maven-checkstyle-plugin.version>3.6.0</maven-checkstyle-plugin.version>
     <checkstyle.version>14.3.0</checkstyle.version>
     <spotless-maven-plugin.version>3.10.4</spotless-maven-plugin.version>
@@ -417,6 +418,13 @@
             </configuration>
           </execution>
         </executions>
+      </plugin>
+
+      <!-- Release Plugin (make release-major|minor|patch; tags aem-orchestrator-<version>) -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-release-plugin</artifactId>
+        <version>${maven-release-plugin.version}</version>
       </plugin>
     </plugins>
   </build>
