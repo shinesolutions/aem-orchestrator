@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - CI now runs `make ci` in aem-platform-buildenv 6.2.1, including a changelog check, integration tests and SpotBugs
 - Pull requests must now add an entry under `## [Unreleased]` in CHANGELOG.md
 - Artifact signing now only runs in the `release` Maven profile
+- Maven Central deployments now wait for a manual Publish or Drop in the Central Portal, use `-DautoPublish=true` to publish automatically
 - Formatted the code with Google Java Style and fixed all Checkstyle warnings
 
 ### Fixed

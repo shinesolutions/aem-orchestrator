@@ -81,13 +81,17 @@ $ docker run --rm -it -v "$(pwd)":/workspace -w /workspace/aem-orchestrator \
    ```
    $ git push --follow-tags
    ```
-5. Publish the tagged version to Maven Central. Deployments are published automatically once Maven
-   Central validates them, and a published version can't be changed or removed:
+5. Upload the tagged version to Maven Central:
    ```
    $ git checkout aem-orchestrator-<version>
    $ mvn -Prelease deploy -DskipTests -DskipITs -Dgpg.signer=bc
    $ git checkout master
    ```
+   Maven Central validates the upload (signatures, checksums, POM, sources and javadoc) and the build
+   waits until it is validated. The deployment then waits at
+   [central.sonatype.com](https://central.sonatype.com) → Publishing → Deployments: click **Publish**
+   to release it, or **Drop** to discard it without publishing. A published version can't be changed
+   or removed. To publish automatically once validated, add `-DautoPublish=true` to `mvn`.
 6. Unset the secrets when you are done:
    `unset MAVEN_GPG_KEY MAVEN_GPG_PASSPHRASE MAVEN_CENTRAL_USERNAME MAVEN_CENTRAL_PASSWORD`
 
