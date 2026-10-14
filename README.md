@@ -28,6 +28,70 @@ This will create a JAR file in the '\target' directory called aem-orchestrator-x
 By default the generated JAR file will contain all of the required dependencies
   
 
+## Release
+
+Releases are published to [Maven Central](https://central.sonatype.com/namespace/com.shinesolutions)
+under `com.shinesolutions:aem-orchestrator` and tagged `aem-orchestrator-<version>` in git.
+Versions follow [Semantic Versioning](https://semver.org/): use a major release for breaking changes
+(e.g. a new Java runtime or changed properties), minor for new features and patch for fixes.
+
+### Requirements
+- A GPG key for signing, with its public key on a keyserver such as `keyserver.ubuntu.com`
+  (Maven Central verifies signatures against it)
+- A Maven Central Portal user token for the `com.shinesolutions` namespace
+- Both are read from environment variables only, never from files. Set them in your shell,
+  `read -rs` keeps the values out of your shell history:
+
+  ```
+  $ export MAVEN_GPG_KEY="$(gpg --export-secret-keys --armor <key-id>)"
+  $ read -rs MAVEN_GPG_PASSPHRASE; export MAVEN_GPG_PASSPHRASE
+  $ read -rs MAVEN_CENTRAL_USERNAME; export MAVEN_CENTRAL_USERNAME
+  $ read -rs MAVEN_CENTRAL_PASSWORD; export MAVEN_CENTRAL_PASSWORD
+  ```
+
+Run the `make`, `mvn` and `git` commands below in aem-platform-buildenv, started from the directory
+above this repository. It passes the variables through by name, your git identity for the release
+commits, and marks the mounted repository as safe for git (it is owned by your user, not root):
+
+```
+$ docker run --rm -it -v "$(pwd)":/workspace -w /workspace/aem-orchestrator \
+    -v ~/.gitconfig:/root/.gitconfig:ro \
+    -e GIT_CONFIG_COUNT=1 -e GIT_CONFIG_KEY_0=safe.directory \
+    -e GIT_CONFIG_VALUE_0=/workspace/aem-orchestrator \
+    -e MAVEN_GPG_KEY -e MAVEN_GPG_PASSPHRASE -e MAVEN_CENTRAL_USERNAME -e MAVEN_CENTRAL_PASSWORD \
+    shinesolutions/aem-platform-buildenv:6.2.1 bash
+```
+
+### Steps
+1. Start from an up-to-date `master` with a green CI build and a clean working tree. Check that the
+   `## [Unreleased]` entries in CHANGELOG.md describe everything in this release.
+2. Check signing and the Maven Central bundle without uploading anything:
+   ```
+   $ make release-check
+   ```
+3. Create the release, choosing `release-major`, `release-minor` or `release-patch`:
+   ```
+   $ make release-major
+   ```
+   This dates the `## [Unreleased]` entries as the new version in CHANGELOG.md, commits the release
+   version, tags it `aem-orchestrator-<version>` and commits the next `-SNAPSHOT` version. Nothing is
+   pushed. Review the result with `git log -3` and `git show aem-orchestrator-<version>:CHANGELOG.md`.
+4. Push the commits and the tag from your machine, outside the container, where your GitHub
+   credentials are:
+   ```
+   $ git push --follow-tags
+   ```
+5. Publish the tagged version to Maven Central. Deployments are published automatically once Maven
+   Central validates them, and a published version can't be changed or removed:
+   ```
+   $ git checkout aem-orchestrator-<version>
+   $ mvn -Prelease deploy -DskipTests -DskipITs -Dgpg.signer=bc
+   $ git checkout master
+   ```
+6. Unset the secrets when you are done:
+   `unset MAVEN_GPG_KEY MAVEN_GPG_PASSPHRASE MAVEN_CENTRAL_USERNAME MAVEN_CENTRAL_PASSWORD`
+
+
 ## Usage
 ### Requirements
 The AEM Orchestrator requires [aem-aws-stack-builder](https://github.com/shinesolutions/aem-aws-stack-builder) to have created a stack in order to work. You'll need to get this running before attempting to run AEM Orchestrator. If using puppet then you should also take a look at [puppet-aem-orchestrator](https://github.com/shinesolutions/puppet-aem-orchestrator).
