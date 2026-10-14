@@ -2,6 +2,7 @@ package com.shinesolutions.aemorchestrator.config;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.core.IsNull.notNullValue;
 import static org.hamcrest.core.IsNull.nullValue;
 import static org.springframework.test.util.ReflectionTestUtils.setField;
@@ -10,6 +11,7 @@ import com.shinesolutions.aemorchestrator.model.ProxyDetails;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.InstanceProfileCredentialsProvider;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.http.apache5.ProxyConfiguration;
 
@@ -29,10 +31,8 @@ public class AwsConfigTest {
     ProxyDetails proxyDetails = new ProxyDetails();
     proxyDetails.setHost(httpProxyHost);
 
-    String clientProtocol = "http";
     int clientConnectionTimeout = 10;
     int clientMaxErrorRetry = 20;
-    setField(awsConfig, "clientProtocol", clientProtocol);
     setField(awsConfig, "clientConnectionTimeout", clientConnectionTimeout);
     setField(awsConfig, "clientMaxErrorRetry", clientMaxErrorRetry);
 
@@ -47,10 +47,8 @@ public class AwsConfigTest {
 
   @Test
   public void testAwsClientConfig_NoProxy() {
-    String clientProtocol = "http";
     int clientConnectionTimeout = 10;
     int clientMaxErrorRetry = 20;
-    setField(awsConfig, "clientProtocol", clientProtocol);
     setField(awsConfig, "clientConnectionTimeout", clientConnectionTimeout);
     setField(awsConfig, "clientMaxErrorRetry", clientMaxErrorRetry);
 
@@ -65,10 +63,8 @@ public class AwsConfigTest {
 
   @Test
   public void testAwsClientConfig_UseProxy() {
-    String clientProtocol = "http";
     int clientConnectionTimeout = 10;
     int clientMaxErrorRetry = 20;
-    setField(awsConfig, "clientProtocol", clientProtocol);
     setField(awsConfig, "clientConnectionTimeout", clientConnectionTimeout);
     setField(awsConfig, "clientMaxErrorRetry", clientMaxErrorRetry);
 
@@ -93,7 +89,7 @@ public class AwsConfigTest {
     assertThat(proxyConfig, notNullValue());
     assertThat(proxyConfig.host(), equalTo(clientProxyHost));
     assertThat(proxyConfig.port(), equalTo(clientProxyPort));
-    assertThat(proxyConfig.scheme(), equalTo(clientProtocol));
+    assertThat(proxyConfig.scheme(), equalTo("http"));
     assertThat(overrideConfig.retryPolicy().isPresent(), equalTo(true));
     assertThat(overrideConfig.retryPolicy().get().numRetries(), equalTo(clientMaxErrorRetry));
 
@@ -105,7 +101,7 @@ public class AwsConfigTest {
     assertThat(proxyConfig, notNullValue());
     assertThat(proxyConfig.host(), equalTo(httpProxyHost));
     assertThat(proxyConfig.port(), equalTo(httpProxyPort));
-    assertThat(proxyConfig.scheme(), equalTo(clientProtocol));
+    assertThat(proxyConfig.scheme(), equalTo("http"));
     assertThat(overrideConfig.retryPolicy().isPresent(), equalTo(true));
     assertThat(overrideConfig.retryPolicy().get().numRetries(), equalTo(clientMaxErrorRetry));
   }
@@ -114,6 +110,6 @@ public class AwsConfigTest {
   public void testAwsCredentialsProvider() {
     AwsCredentialsProvider awsCredentialsProvider = awsConfig.awsCredentialsProvider();
 
-    assertThat(awsCredentialsProvider, notNullValue());
+    assertThat(awsCredentialsProvider, instanceOf(InstanceProfileCredentialsProvider.class));
   }
 }

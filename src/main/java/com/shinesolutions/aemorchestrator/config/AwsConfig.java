@@ -17,7 +17,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
-import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.InstanceProfileCredentialsProvider;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.http.SdkHttpClient;
@@ -43,36 +43,39 @@ public class AwsConfig {
   @Value("${aws.sqs.queueName}")
   private String queueName;
 
-  @Value("${aws.client.useProxy:false}")
+  @Value("${aws.client.useProxy}")
   private Boolean useProxy;
 
-  @Value("${aws.client.protocol:http}")
-  private String clientProtocol;
-
-  @Value("${aws.client.proxy.host:#{null}}")
+  @Value("${aws.client.proxy.host}")
   private String clientProxyHost;
 
-  @Value("${aws.client.proxy.port:#{null}}")
+  @Value("${aws.client.proxy.port}")
   private Integer clientProxyPort;
 
-  @Value("${aws.client.connection.timeout:#{null}}")
+  @Value("${aws.client.connection.timeout}")
   private Integer clientConnectionTimeout;
 
-  @Value("${aws.client.max.errorRetry:#{null}}")
+  @Value("${aws.client.max.errorRetry}")
   private Integer clientMaxErrorRetry;
+
+  // SDK v1 ClientConfiguration default; SDK v2's Apache client defaults to 30 seconds
+  private static final Duration SOCKET_TIMEOUT = Duration.ofSeconds(50);
 
   @Bean
   public AwsCredentialsProvider awsCredentialsProvider() {
-    return DefaultCredentialsProvider.create();
+    return InstanceProfileCredentialsProvider.create();
   }
 
   @Bean
   public Region awsRegion() {
     Region region;
-    if (regionString != null
-        && !regionString.isEmpty()
-        && !"@null".equalsIgnoreCase(regionString)) {
-      region = Region.of(regionString);
+    if (regionString != null && !regionString.isEmpty()) {
+      // Unknown region names resolve to null, as RegionUtils.getRegion did in SDK v1
+      region =
+          Region.regions().stream()
+              .filter(r -> r.id().equals(regionString))
+              .findFirst()
+              .orElse(null);
     } else {
       region = DefaultAwsRegionProviderChain.builder().build().getRegion();
     }
@@ -88,7 +91,7 @@ public class AwsConfig {
     String host = null;
     Integer port = null;
 
-    if (Boolean.TRUE.equals(useProxy)) {
+    if (useProxy) {
       host = clientProxyHost;
       port = clientProxyPort;
     } else if (proxyDetails != null
@@ -98,10 +101,11 @@ public class AwsConfig {
       port = proxyDetails.getPort();
     }
 
-    if (host != null && port != null) {
-      String protocol = (clientProtocol != null) ? clientProtocol.toLowerCase() : "http";
+    if (host != null && !host.isEmpty()) {
+      // Proxies are reached over plain HTTP; aws.client.protocol only applied to AWS endpoints in
+      // SDK v1, and SDK v2 always calls AWS over HTTPS
       return ProxyConfiguration.builder()
-          .endpoint(URI.create(protocol + "://" + host + ":" + port))
+          .endpoint(URI.create("http://" + host + ":" + port.intValue()))
           .build();
     }
     return null;
@@ -116,9 +120,8 @@ public class AwsConfig {
       builder.proxyConfiguration(proxyConfig);
     }
 
-    if (clientConnectionTimeout != null) {
-      builder.connectionTimeout(Duration.ofMillis(clientConnectionTimeout));
-    }
+    builder.connectionTimeout(Duration.ofMillis(clientConnectionTimeout));
+    builder.socketTimeout(SOCKET_TIMEOUT);
 
     return builder.build();
   }
@@ -127,9 +130,7 @@ public class AwsConfig {
   public ClientOverrideConfiguration clientOverrideConfiguration() {
     ClientOverrideConfiguration.Builder builder = ClientOverrideConfiguration.builder();
 
-    if (clientMaxErrorRetry != null) {
-      builder.retryPolicy(RetryPolicy.builder().numRetries(clientMaxErrorRetry).build());
-    }
+    builder.retryPolicy(RetryPolicy.builder().numRetries(clientMaxErrorRetry).build());
 
     return builder.build();
   }

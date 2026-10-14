@@ -15,20 +15,31 @@ public class CredentialsExtractor {
   public static AemCredentials extractAemCredentials(String fileContents)
       throws JacksonException, IOException {
 
-    ObjectMapper mapper = new ObjectMapper();
+    ObjectMapper mapper = MessageExtractor.newObjectMapper();
     JsonNode root = mapper.readTree(fileContents);
 
     AemCredentials aemCredentials = new AemCredentials();
     aemCredentials.setOrchestratorCredentials(
         new UserPasswordCredentials()
             .withUserName(ORCHESTRATOR_USER)
-            .withPassword(root.path(ORCHESTRATOR_USER).asText()));
+            .withPassword(asText(root.path(ORCHESTRATOR_USER))));
 
     aemCredentials.setReplicatorCredentials(
         new UserPasswordCredentials()
             .withUserName(REPLICATOR_USER)
-            .withPassword(root.path(REPLICATOR_USER).asText()));
+            .withPassword(asText(root.path(REPLICATOR_USER))));
 
     return aemCredentials;
+  }
+
+  /** Jackson 2 JsonNode.asText(): "null" for a JSON null, "" for missing nodes and containers. */
+  private static String asText(JsonNode node) {
+    if (node.isNull()) {
+      return "null";
+    }
+    if (node.isMissingNode() || node.isContainer()) {
+      return "";
+    }
+    return node.asString();
   }
 }

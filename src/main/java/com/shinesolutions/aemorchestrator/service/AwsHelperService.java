@@ -5,6 +5,8 @@ import com.shinesolutions.aemorchestrator.model.InstanceTags;
 import jakarta.annotation.Resource;
 import java.io.IOException;
 import java.net.URI;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.Date;
 import java.util.List;
@@ -350,7 +352,13 @@ public class AwsHelperService {
    * @throws IOException if error reading file
    */
   public String readFileFromS3(String s3Uri) throws IOException {
-    S3Uri s3FileUri = amazonS3Client.utilities().parseUri(URI.create(s3Uri));
+    // Encode as SDK v1's AmazonS3URI did, so spaces, '%', '#' and '?' stay part of the key
+    String encodedS3Uri =
+        URLEncoder.encode(s3Uri, StandardCharsets.UTF_8)
+            .replace("%3A", ":")
+            .replace("%2F", "/")
+            .replace("+", "%20");
+    S3Uri s3FileUri = amazonS3Client.utilities().parseUri(URI.create(encodedS3Uri));
     String bucket =
         s3FileUri
             .bucket()

@@ -288,8 +288,9 @@ public class AwsHelperServiceTest {
 
   @Test
   public void testGetLaunchTime_NoInstance() {
+    // No reservations: the lookup fails inside the service and is wrapped in AwsServiceException
     when(ec2Client.describeInstances(any(DescribeInstancesRequest.class)))
-        .thenThrow(AwsServiceException.builder().message("Instance not found").build());
+        .thenReturn(DescribeInstancesResponse.builder().build());
 
     assertThrows(
         AwsServiceException.class,
@@ -318,8 +319,9 @@ public class AwsHelperServiceTest {
 
   @Test
   public void testGetPrivateIp_NoInstance() {
+    // No reservations: the lookup fails inside the service and is wrapped in AwsServiceException
     when(ec2Client.describeInstances(any(DescribeInstancesRequest.class)))
-        .thenThrow(AwsServiceException.builder().message("Instance not found").build());
+        .thenReturn(DescribeInstancesResponse.builder().build());
 
     assertThrows(
         AwsServiceException.class,

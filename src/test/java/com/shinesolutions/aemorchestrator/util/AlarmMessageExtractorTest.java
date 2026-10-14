@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Scanner;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import tools.jackson.core.JacksonException;
+import tools.jackson.core.exc.StreamReadException;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 
@@ -84,7 +84,7 @@ public class AlarmMessageExtractorTest {
   @Test
   public void testExtractEventMessageParseFail() throws Exception {
     assertThrows(
-        JacksonException.class,
+        StreamReadException.class,
         () -> {
           alarmMessageExtractor.extractMessage("Invalid string");
         });
