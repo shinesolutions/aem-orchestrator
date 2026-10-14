@@ -21,7 +21,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-public class ScaleDownPublishActionTest {
+class ScaleDownPublishActionTest {
 
   @Mock private AemInstanceHelperService aemHelperService;
 
@@ -36,7 +36,7 @@ public class ScaleDownPublishActionTest {
   private String pairedDispatcherId;
 
   @BeforeEach
-  public void setUp() throws Exception {
+  void setUp() throws Exception {
     authorAemBaseUrl = "authorAemBaseUrl";
     instanceId = "instanceId";
     pairedDispatcherId = "pairedDispatcherId";
@@ -45,11 +45,12 @@ public class ScaleDownPublishActionTest {
   }
 
   @Test
-  public void testTerminatePairedDispatcherAndDeleteReplicationAgent() throws Exception {
+  void testTerminatePairedDispatcherAndDeleteReplicationAgent() throws Exception {
     when(aemHelperService.getDispatcherIdForPairedPublish(instanceId))
         .thenReturn(pairedDispatcherId);
 
     boolean success = action.execute(instanceId);
+    assertThat(success, equalTo(true));
 
     verify(awsHelperService, times(1)).terminateInstance(pairedDispatcherId);
 
@@ -59,12 +60,10 @@ public class ScaleDownPublishActionTest {
     // Ensure reverse replication queue removal not called unless enabled
     verify(replicationAgentManager, times(0))
         .deleteReverseReplicationAgent(instanceId, authorAemBaseUrl, AgentRunMode.AUTHOR);
-
-    assertThat(success, equalTo(true));
   }
 
   @Test
-  public void testCantFindPairedDispatcher() throws Exception {
+  void testCantFindPairedDispatcher() throws Exception {
     when(aemHelperService.getDispatcherIdForPairedPublish(instanceId)).thenReturn(null);
 
     boolean success = action.execute(instanceId);
@@ -78,7 +77,7 @@ public class ScaleDownPublishActionTest {
   }
 
   @Test
-  public void testHandlesExceptionWhenDeletingReplicationAgent() throws Exception {
+  void testHandlesExceptionWhenDeletingReplicationAgent() throws Exception {
     when(aemHelperService.getDispatcherIdForPairedPublish(instanceId))
         .thenReturn(pairedDispatcherId);
 
@@ -94,13 +93,14 @@ public class ScaleDownPublishActionTest {
   }
 
   @Test
-  public void testDeletesReverseReplicationQueueIfEnabled() throws Exception {
+  void testDeletesReverseReplicationQueueIfEnabled() throws Exception {
     when(aemHelperService.getDispatcherIdForPairedPublish(instanceId))
         .thenReturn(pairedDispatcherId);
 
     setField(action, "reverseReplicationEnabled", true);
 
     boolean success = action.execute(instanceId);
+    assertThat(success, equalTo(true));
 
     verify(awsHelperService, times(1)).terminateInstance(pairedDispatcherId);
 
@@ -109,12 +109,10 @@ public class ScaleDownPublishActionTest {
 
     verify(replicationAgentManager, times(1))
         .deleteReverseReplicationAgent(instanceId, authorAemBaseUrl, AgentRunMode.AUTHOR);
-
-    assertThat(success, equalTo(true));
   }
 
   @Test
-  public void testDeletesReverseReplicationWithException() throws Exception {
+  void testDeletesReverseReplicationWithException() throws Exception {
     when(aemHelperService.getDispatcherIdForPairedPublish(instanceId))
         .thenReturn(pairedDispatcherId);
 

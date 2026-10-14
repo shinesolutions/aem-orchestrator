@@ -6,17 +6,17 @@ import static org.hamcrest.Matchers.equalTo;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-public class TestNotificationEventHandlerTest {
+class TestNotificationEventHandlerTest {
 
   private TestNotificationEventHandler handler;
 
   @BeforeEach
-  public void setUp() throws Exception {
+  void setUp() throws Exception {
     handler = new TestNotificationEventHandler();
   }
 
   @Test
-  public void testHandleEventSuccess() {
+  void testHandleEventSuccess() {
     boolean result = handler.handleEvent("Some text");
     assertThat(result, equalTo(true));
   }

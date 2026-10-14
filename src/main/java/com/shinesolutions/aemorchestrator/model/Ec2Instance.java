@@ -1,6 +1,9 @@
 package com.shinesolutions.aemorchestrator.model;
 
-public class EC2Instance {
+/**
+ * An EC2 instance in an auto scaling group, identified by its instance ID and availability zone.
+ */
+public class Ec2Instance {
 
   private String instanceId;
   private String availabilityZone;
@@ -13,7 +16,8 @@ public class EC2Instance {
     this.instanceId = instanceId;
   }
 
-  public EC2Instance withInstanceId(String instanceId) {
+  /** Sets the instance ID and returns this object for chaining. */
+  public Ec2Instance withInstanceId(String instanceId) {
     this.setInstanceId(instanceId);
     return this;
   }
@@ -26,7 +30,8 @@ public class EC2Instance {
     this.availabilityZone = availabilityZone;
   }
 
-  public EC2Instance withAvailabilityZone(String availabilityZone) {
+  /** Sets the availability zone and returns this object for chaining. */
+  public Ec2Instance withAvailabilityZone(String availabilityZone) {
     this.setAvailabilityZone(availabilityZone);
     return this;
   }

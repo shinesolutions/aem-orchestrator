@@ -1,5 +1,8 @@
 package com.shinesolutions.aemorchestrator.model;
 
+/**
+ * Message types the orchestrator handles, each holding the SNS subject prefix that identifies it.
+ */
 public enum EventType {
   AUTOSCALING_EC2_INSTANCE_TERMINATE("Auto Scaling: termination"),
   AUTOSCALING_EC2_INSTANCE_LAUNCH("Auto Scaling: launch"),

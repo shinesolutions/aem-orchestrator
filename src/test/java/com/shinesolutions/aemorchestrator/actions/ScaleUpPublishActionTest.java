@@ -23,7 +23,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-public class ScaleUpPublishActionTest {
+class ScaleUpPublishActionTest {
 
   @Mock private AemInstanceHelperService aemHelperService;
 
@@ -43,7 +43,7 @@ public class ScaleUpPublishActionTest {
   private String unpairedDispatcherId;
 
   @BeforeEach
-  public void setUp() throws Exception {
+  void setUp() throws Exception {
     instanceId = "i-0347568433";
     awsDeviceName = "testDeviceName";
     authorAemBaseUrl = "testAuthorAemBaseUrl";
@@ -62,11 +62,12 @@ public class ScaleUpPublishActionTest {
   }
 
   @Test
-  public void testExecuteSuccess() throws Exception {
+  void testExecuteSuccess() throws Exception {
     givenActivePublishToSnapshotFrom();
     givenActivePublishVolumeIsSnapshotted();
 
     boolean result = action.execute(instanceId);
+    assertThat(result, equalTo(true));
 
     // Check replication agents
     verify(aemHelperService, times(1)).pairPublishWithDispatcher(instanceId, unpairedDispatcherId);
@@ -86,18 +87,17 @@ public class ScaleUpPublishActionTest {
 
     verify(replicationAgentManager, times(1))
         .resumeReplicationAgent(activePublishId, authorAemBaseUrl, AgentRunMode.PUBLISH);
-
-    assertThat(result, equalTo(true));
   }
 
   @Test
-  public void testExecuteReverseReplicationSuccess() throws Exception {
+  void testExecuteReverseReplicationSuccess() throws Exception {
     givenActivePublishToSnapshotFrom();
     givenActivePublishVolumeIsSnapshotted();
 
     enableReverseReplication();
 
     boolean result = action.execute(instanceId);
+    assertThat(result, equalTo(true));
 
     verify(aemHelperService, times(1)).pairPublishWithDispatcher(instanceId, unpairedDispatcherId);
 
@@ -116,18 +116,17 @@ public class ScaleUpPublishActionTest {
 
     verify(replicationAgentManager, times(1))
         .resumeReplicationAgent(activePublishId, authorAemBaseUrl, AgentRunMode.PUBLISH);
-
-    assertThat(result, equalTo(true));
   }
 
   @Test
-  public void testExceptionWhenCreatingReplicationAgent() throws Exception {
+  void testExceptionWhenCreatingReplicationAgent() throws Exception {
     doThrow(new ApiException("Test"))
         .when(replicationAgentManager)
         .createReplicationAgent(
             instanceId, publishAemBaseUrl, authorAemBaseUrl, AgentRunMode.PUBLISH);
 
     boolean result = action.execute(instanceId);
+    assertThat(result, equalTo(false));
 
     verify(aemHelperService, times(1)).pairPublishWithDispatcher(instanceId, unpairedDispatcherId);
 
@@ -142,12 +141,10 @@ public class ScaleUpPublishActionTest {
 
     verify(replicationAgentManager, times(0))
         .resumeReplicationAgent(activePublishId, authorAemBaseUrl, AgentRunMode.PUBLISH);
-
-    assertThat(result, equalTo(false));
   }
 
   @Test
-  public void testExceptionWhenCreatingReverseReplicationAgent() throws Exception {
+  void testExceptionWhenCreatingReverseReplicationAgent() throws Exception {
     enableReverseReplication();
 
     doThrow(new ApiException("Test"))
@@ -156,6 +153,7 @@ public class ScaleUpPublishActionTest {
             instanceId, publishAemBaseUrl, authorAemBaseUrl, AgentRunMode.PUBLISH);
 
     boolean result = action.execute(instanceId);
+    assertThat(result, equalTo(false));
 
     verify(aemHelperService, times(1)).pairPublishWithDispatcher(instanceId, unpairedDispatcherId);
 
@@ -170,15 +168,14 @@ public class ScaleUpPublishActionTest {
 
     verify(replicationAgentManager, times(0))
         .resumeReplicationAgent(activePublishId, authorAemBaseUrl, AgentRunMode.PUBLISH);
-
-    assertThat(result, equalTo(false));
   }
 
   @Test
-  public void testWhenIsFirstPublish() throws Exception {
+  void testWhenIsFirstPublish() throws Exception {
     when(aemHelperService.isFirstPublishInstance()).thenReturn(true);
 
     boolean result = action.execute(instanceId);
+    assertThat(result, equalTo(true));
 
     verify(aemHelperService, times(1)).pairPublishWithDispatcher(instanceId, unpairedDispatcherId);
 
@@ -194,12 +191,10 @@ public class ScaleUpPublishActionTest {
 
     verify(replicationAgentManager, times(0))
         .resumeReplicationAgent(activePublishId, authorAemBaseUrl, AgentRunMode.PUBLISH);
-
-    assertThat(result, equalTo(true));
   }
 
   @Test
-  public void testCantFindHealthyActivePublisher() throws Exception {
+  void testCantFindHealthyActivePublisher() throws Exception {
     givenActivePublishToSnapshotFrom();
 
     doThrow(new InstanceNotInHealthyStateException(""))
@@ -207,6 +202,7 @@ public class ScaleUpPublishActionTest {
         .waitForPublishToBeHealthy(activePublishId);
 
     boolean result = action.execute(instanceId);
+    assertThat(result, equalTo(false));
 
     verify(aemHelperService, times(1)).pairPublishWithDispatcher(instanceId, unpairedDispatcherId);
 
@@ -221,12 +217,10 @@ public class ScaleUpPublishActionTest {
 
     verify(replicationAgentManager, times(0))
         .resumeReplicationAgent(activePublishId, authorAemBaseUrl, AgentRunMode.PUBLISH);
-
-    assertThat(result, equalTo(false));
   }
 
   @Test
-  public void testExceptionWhenPausingActiveReplicationAgent() throws Exception {
+  void testExceptionWhenPausingActiveReplicationAgent() throws Exception {
     givenActivePublishToSnapshotFrom();
 
     doThrow(new ApiException("Test"))
@@ -234,6 +228,7 @@ public class ScaleUpPublishActionTest {
         .pauseReplicationAgent(activePublishId, authorAemBaseUrl, AgentRunMode.PUBLISH);
 
     boolean result = action.execute(instanceId);
+    assertThat(result, equalTo(false));
 
     verify(aemHelperService, times(1)).pairPublishWithDispatcher(instanceId, unpairedDispatcherId);
 
@@ -245,17 +240,16 @@ public class ScaleUpPublishActionTest {
 
     verify(replicationAgentManager, times(1))
         .resumeReplicationAgent(activePublishId, authorAemBaseUrl, AgentRunMode.PUBLISH);
-
-    assertThat(result, equalTo(false));
   }
 
   @Test
-  public void testWithNullVolumeId() throws Exception {
+  void testWithNullVolumeId() throws Exception {
     givenActivePublishToSnapshotFrom();
 
     when(awsHelperService.getVolumeId(activePublishId, awsDeviceName)).thenReturn(null);
 
     boolean result = action.execute(instanceId);
+    assertThat(result, equalTo(false));
 
     verify(aemHelperService, times(1)).pairPublishWithDispatcher(instanceId, unpairedDispatcherId);
 
@@ -270,12 +264,10 @@ public class ScaleUpPublishActionTest {
 
     verify(replicationAgentManager, times(1))
         .resumeReplicationAgent(activePublishId, authorAemBaseUrl, AgentRunMode.PUBLISH);
-
-    assertThat(result, equalTo(false));
   }
 
   @Test
-  public void testFailedToResumeActivePublishReplicationAgent() throws Exception {
+  void testFailedToResumeActivePublishReplicationAgent() throws Exception {
     givenActivePublishToSnapshotFrom();
     givenActivePublishVolumeIsSnapshotted();
 
@@ -284,6 +276,7 @@ public class ScaleUpPublishActionTest {
         .resumeReplicationAgent(activePublishId, authorAemBaseUrl, AgentRunMode.PUBLISH);
 
     boolean result = action.execute(instanceId);
+    assertThat(result, equalTo(true));
 
     verify(aemHelperService, times(1)).pairPublishWithDispatcher(instanceId, unpairedDispatcherId);
 
@@ -298,16 +291,15 @@ public class ScaleUpPublishActionTest {
 
     verify(replicationAgentManager, times(1))
         .resumeReplicationAgent(activePublishId, authorAemBaseUrl, AgentRunMode.PUBLISH);
-
-    assertThat(result, equalTo(true));
   }
 
   @Test
-  public void testUnableToFindUnpairedDispatcher() throws Exception {
+  void testUnableToFindUnpairedDispatcher() throws Exception {
     when(aemHelperService.findUnpairedPublishDispatcher(instanceId))
         .thenThrow(new NoSuchElementException());
 
     boolean result = action.execute(instanceId);
+    assertThat(result, equalTo(false));
 
     verify(aemHelperService, times(0)).pairPublishWithDispatcher(instanceId, unpairedDispatcherId);
 
@@ -322,17 +314,16 @@ public class ScaleUpPublishActionTest {
 
     verify(replicationAgentManager, times(0))
         .resumeReplicationAgent(activePublishId, authorAemBaseUrl, AgentRunMode.PUBLISH);
-
-    assertThat(result, equalTo(false));
   }
 
   @Test
-  public void testUnablePairPublishWithDispatcher() throws Exception {
+  void testUnablePairPublishWithDispatcher() throws Exception {
     doThrow(new RuntimeException("Test"))
         .when(aemHelperService)
         .pairPublishWithDispatcher(instanceId, unpairedDispatcherId);
 
     boolean result = action.execute(instanceId);
+    assertThat(result, equalTo(false));
 
     verify(replicationAgentManager, times(0))
         .createReplicationAgent(
@@ -345,8 +336,6 @@ public class ScaleUpPublishActionTest {
 
     verify(replicationAgentManager, times(0))
         .resumeReplicationAgent(activePublishId, authorAemBaseUrl, AgentRunMode.PUBLISH);
-
-    assertThat(result, equalTo(false));
   }
 
   /** Not the first publish instance: an active publish exists to snapshot from. */

@@ -14,25 +14,26 @@ import java.io.IOException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-public class AemConfigTest {
+class AemConfigTest {
 
   private AemConfig aemConfig;
 
   @BeforeEach
-  public void setup() {
+  void setup() {
     aemConfig = new AemConfig();
   }
 
   @Test
-  public void testAemCredentials_ReadFromPropertiesFile() throws Exception {
+  void testAemCredentials_readFromPropertiesFile() throws Exception {
+    setField(aemConfig, "readCredentialsFromS3", false);
+
     String orchestratorUsername = "orchestratorUsername";
     String orchestratorPassword = "orchestratorPassword";
-    String replicatorUsername = "replicatorUsername";
-    String replicatorPassword = "replicatorPassword";
-
-    setField(aemConfig, "readCredentialsFromS3", false);
     setField(aemConfig, "orchestratorUsername", orchestratorUsername);
     setField(aemConfig, "orchestratorPassword", orchestratorPassword);
+
+    String replicatorUsername = "replicatorUsername";
+    String replicatorPassword = "replicatorPassword";
     setField(aemConfig, "replicatorUsername", replicatorUsername);
     setField(aemConfig, "replicatorPassword", replicatorPassword);
 
@@ -49,7 +50,7 @@ public class AemConfigTest {
   }
 
   @Test
-  public void testAemCredentials_ReadingThrowsException() throws Exception {
+  void testAemCredentials_readingThrowsException() throws Exception {
     String s3CredentialFileUri = "s3CredentialFileUri";
     setField(aemConfig, "s3CredentialFileUri", s3CredentialFileUri);
     setField(aemConfig, "readCredentialsFromS3", true);
@@ -65,7 +66,7 @@ public class AemConfigTest {
   }
 
   @Test
-  public void testEnvValueStandardArchitecture() {
+  void testEnvValueStandardArchitecture() {
     AwsHelperService awsHelperService = mock(AwsHelperService.class);
 
     // Set autoScaleGroupNameForPublishDispatcher
@@ -149,7 +150,7 @@ public class AemConfigTest {
   }
 
   @Test
-  public void testEnvValuePreviewArchitecture() {
+  void testEnvValuePreviewArchitecture() {
     AwsHelperService awsHelperService = mock(AwsHelperService.class);
 
     // Set autoScaleGroupNameForPublishDispatcher

@@ -18,7 +18,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-public class AemApiFactoryTest {
+class AemApiFactoryTest {
 
   @InjectMocks private AemApiFactory aemApiFactory;
 
@@ -33,7 +33,7 @@ public class AemApiFactoryTest {
   private Boolean verifySsl;
 
   @BeforeEach
-  public void setup() {
+  void setup() {
     basePath = "testBasePath";
     useDebug = false;
     verifySsl = false;
@@ -45,7 +45,7 @@ public class AemApiFactoryTest {
   }
 
   @Test
-  public void testGetSlingApi_ClientIsOrchestrator() {
+  void testGetSlingApi_clientIsOrchestrator() {
     UserPasswordCredentials orchestratorCredentials = new UserPasswordCredentials();
     orchestratorCredentials.setUserName("orchestratorUsername");
     orchestratorCredentials.setPassword("orchestratorPassword");
@@ -64,7 +64,7 @@ public class AemApiFactoryTest {
   }
 
   @Test
-  public void testGetSlingApi_ClientIsReplicator() {
+  void testGetSlingApi_clientIsReplicator() {
     UserPasswordCredentials replicatorCredentials = new UserPasswordCredentials();
     replicatorCredentials.setUserName("replicatorUsername");
     replicatorCredentials.setPassword("replicatorPassword");

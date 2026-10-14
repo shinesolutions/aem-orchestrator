@@ -14,14 +14,14 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.boot.actuate.info.Info;
 
 @ExtendWith(MockitoExtension.class)
-public class InfoActuatorTest {
+class InfoActuatorTest {
 
   @Mock EnvironmentValues envValues;
 
   @InjectMocks private InfoActuator infoActuator;
 
   @Test
-  public void testContribute() {
+  void testContribute() {
     // Setup for "auto-scaling-group-names".
     String autoScaleGroupNameForAuthorDispatcher = "autoScaleGroupNameForAuthorDispatcher";
     String autoScaleGroupNameForPublish = "autoScaleGroupNameForPublish";

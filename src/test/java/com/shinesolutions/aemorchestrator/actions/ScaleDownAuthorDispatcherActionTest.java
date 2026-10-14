@@ -19,7 +19,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-public class ScaleDownAuthorDispatcherActionTest {
+class ScaleDownAuthorDispatcherActionTest {
 
   @Mock private FlushAgentManager flushAgentManager;
 
@@ -31,7 +31,7 @@ public class ScaleDownAuthorDispatcherActionTest {
   private String instanceId;
 
   @BeforeEach
-  public void setUp() throws Exception {
+  void setUp() throws Exception {
     instanceId = "instanceId";
     aemBasePath = "aemBasePath";
 
@@ -39,7 +39,7 @@ public class ScaleDownAuthorDispatcherActionTest {
   }
 
   @Test
-  public void testDeleteFlushAgentSuccess() throws Exception {
+  void testDeleteFlushAgentSuccess() throws Exception {
     boolean success = action.execute(instanceId);
 
     verify(flushAgentManager, times(1))
@@ -49,7 +49,7 @@ public class ScaleDownAuthorDispatcherActionTest {
   }
 
   @Test
-  public void testHandlesException() throws Exception {
+  void testHandlesException() throws Exception {
     doThrow(new ApiException())
         .when(flushAgentManager)
         .deleteFlushAgent(instanceId, aemBasePath, AgentRunMode.AUTHOR);

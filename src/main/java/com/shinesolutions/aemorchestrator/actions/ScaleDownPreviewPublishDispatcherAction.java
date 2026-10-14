@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
+/** Scale-down action run when a preview publish dispatcher instance is terminated. */
 @Component
 public class ScaleDownPreviewPublishDispatcherAction implements Action {
 
@@ -16,6 +17,17 @@ public class ScaleDownPreviewPublishDispatcherAction implements Action {
 
   @Resource private AwsHelperService awsHelperService;
 
+  /**
+   * Terminates the paired preview publish instance and realigns the preview publish Auto Scaling
+   * group capacity.
+   *
+   * <p>Terminates the preview publish instance paired with the dispatcher (if one is found), then
+   * sets the preview publish Auto Scaling group's desired capacity to the preview publish
+   * dispatcher group's desired capacity when the two differ.
+   *
+   * @param instanceId the EC2 instance ID of the terminated preview publish dispatcher
+   * @return always {@code true}, so the SQS message is removed from the queue
+   */
   public boolean execute(String instanceId) {
     logger.info("ScaleDownPreviewPublishDispatcherAction executing");
 
@@ -44,7 +56,8 @@ public class ScaleDownPreviewPublishDispatcherAction implements Action {
     if (currentDispatcherDesiredCapacity == currentPreviewPublishDesiredCapacity) {
       // If desired capacity already the same, then don't do anything
       logger.info(
-          "Desired capacity already matching for previewPublish and dispatcher. No changes will be made");
+          "Desired capacity already matching for previewPublish and dispatcher. No changes will"
+              + " be made");
     } else {
       logger.info(
           "Changing previewPublish auto scaling group capacity of "

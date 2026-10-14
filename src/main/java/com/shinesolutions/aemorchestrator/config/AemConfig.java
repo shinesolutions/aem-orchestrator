@@ -12,6 +12,10 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 
+/**
+ * Spring configuration, active in the {@code default} profile, for the AEM credentials the
+ * orchestrator uses and the names of the AWS resources it manages.
+ */
 @Configuration
 @Profile("default")
 public class AemConfig {
@@ -78,6 +82,16 @@ public class AemConfig {
   @Value("${aws.cloudformation.sns.logicalId.eventTopic}")
   private String awsSnsTopicLogicalId;
 
+  /**
+   * Provides the AEM orchestrator and replicator credentials.
+   *
+   * <p>When {@code aem.credentials.s3.use} is true, the credentials are read from the JSON file at
+   * {@code aem.credentials.s3.file.uri} (see {@link CredentialsExtractor}); otherwise they are
+   * taken from the {@code aem.credentials.orchestrator.*} and {@code aem.credentials.replicator.*}
+   * properties.
+   *
+   * @throws Exception if the credentials file cannot be read from S3 or parsed
+   */
   @Bean
   public AemCredentials aemCredentials(final AwsHelperService awsHelper) throws Exception {
     AemCredentials aemCredentials;
@@ -114,6 +128,16 @@ public class AemConfig {
     return aemCredentials;
   }
 
+  /**
+   * Provides the names of the AWS resources the orchestrator acts on, resolved from the physical
+   * resource IDs of CloudFormation stack resources.
+   *
+   * <p>Resolves the auto scaling group names for the publish dispatcher, publish and author
+   * dispatcher, the author load balancer name and DNS name, and the SNS event topic ARN, using the
+   * {@code aws.cloudformation.stackName.*} and {@code aws.cloudformation.*.logicalId.*} properties.
+   * The preview publish and preview publish dispatcher group names are resolved only when {@code
+   * aws.cloudformation.stackName.previewPublishDispatcher} is set.
+   */
   @Bean
   public EnvironmentValues envValues(final AwsHelperService awsHelper) {
     EnvironmentValues envValues = new EnvironmentValues();

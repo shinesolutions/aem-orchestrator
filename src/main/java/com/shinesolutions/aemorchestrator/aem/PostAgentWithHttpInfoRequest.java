@@ -3,6 +3,16 @@ package com.shinesolutions.aemorchestrator.aem;
 import java.math.BigDecimal;
 import java.util.List;
 
+/**
+ * Parameter object for the swaggeraem4j {@code SlingApi.postAgentWithHttpInfo} call, which takes
+ * over fifty positional arguments.
+ *
+ * <p>Each property maps to one request parameter posted to {@code
+ * /etc/replication/agents.<runMode>/<name>}, mostly properties of the agent's {@code jcr:content}
+ * node. Unset properties are passed as {@code null} and omitted from the request. The {@code with*}
+ * methods set a property and return this instance for chaining; {@link AemApiHelper} unpacks the
+ * object into the API call.
+ */
 public class PostAgentWithHttpInfoRequest {
 
   private String runMode;
@@ -21,17 +31,17 @@ public class PostAgentWithHttpInfoRequest {
   private Boolean jcrContentNoStatusUpdate;
   private Boolean jcrContentNoVersioning;
   private BigDecimal jcrContentProtocolConnectTimeout;
-  private Boolean jcrContentProtocolHTTPConnectionClosed;
-  private String jcrContentProtocolHTTPExpired;
-  private List<String> jcrContentProtocolHTTPHeaders;
-  private String jcrContentProtocolHTTPHeadersTypeHint;
-  private String jcrContentProtocolHTTPMethod;
-  private Boolean jcrContentProtocolHTTPSRelaxed;
+  private Boolean jcrContentProtocolHttpConnectionClosed;
+  private String jcrContentProtocolHttpExpired;
+  private List<String> jcrContentProtocolHttpHeaders;
+  private String jcrContentProtocolHttpHeadersTypeHint;
+  private String jcrContentProtocolHttpMethod;
+  private Boolean jcrContentProtocolHttpsRelaxed;
   private String jcrContentProtocolInterface;
   private BigDecimal jcrContentProtocolSocketTimeout;
   private String jcrContentProtocolVersion;
-  private String jcrContentProxyNTLMDomain;
-  private String jcrContentProxyNTLMHost;
+  private String jcrContentProxyNtlmDomain;
+  private String jcrContentProxyNtlmHost;
   private String jcrContentProxyHost;
   private String jcrContentProxyPassword;
   private BigDecimal jcrContentProxyPort;
@@ -43,9 +53,9 @@ public class PostAgentWithHttpInfoRequest {
   private Boolean jcrContentReverseReplication;
   private String jcrContentSerializationType;
   private String jcrContentSlingResourceType;
-  private String jcrContentSSL;
-  private String jcrContentTransportNTLMDomain;
-  private String jcrContentTransportNTLMHost;
+  private String jcrContentSsl;
+  private String jcrContentTransportNtlmDomain;
+  private String jcrContentTransportNtlmHost;
   private String jcrContentTransportPassword;
   private String jcrContentTransportUri;
   private String jcrContentTransportUser;
@@ -66,6 +76,7 @@ public class PostAgentWithHttpInfoRequest {
     this.runMode = runMode;
   }
 
+  /** Sets the run mode selecting the agents folder, {@code /etc/replication/agents.<runMode>}. */
   public PostAgentWithHttpInfoRequest withRunMode(String runMode) {
     this.setRunMode(runMode);
     return this;
@@ -79,6 +90,7 @@ public class PostAgentWithHttpInfoRequest {
     this.name = name;
   }
 
+  /** Sets the agent's node name within the run mode's agents folder. */
   public PostAgentWithHttpInfoRequest withName(String name) {
     this.setName(name);
     return this;
@@ -92,6 +104,7 @@ public class PostAgentWithHttpInfoRequest {
     this.jcrPrimaryType = jcrPrimaryType;
   }
 
+  /** Sets the agent node's {@code jcr:primaryType} property. */
   public PostAgentWithHttpInfoRequest withJcrPrimaryType(String jcrPrimaryType) {
     this.setJcrPrimaryType(jcrPrimaryType);
     return this;
@@ -121,6 +134,7 @@ public class PostAgentWithHttpInfoRequest {
     this.jcrContentCqName = jcrContentCqName;
   }
 
+  /** Sets the agent's {@code jcr:content/cq:name} property. */
   public PostAgentWithHttpInfoRequest withJcrContentCqName(String jcrContentCqName) {
     this.setJcrContentCqName(jcrContentCqName);
     return this;
@@ -134,6 +148,7 @@ public class PostAgentWithHttpInfoRequest {
     this.jcrContentJcrTitle = jcrContentJcrTitle;
   }
 
+  /** Sets the agent's {@code jcr:content/jcr:title} property. */
   public PostAgentWithHttpInfoRequest withJcrContentJcrTitle(String jcrContentJcrTitle) {
     this.setJcrContentJcrTitle(jcrContentJcrTitle);
     return this;
@@ -147,6 +162,7 @@ public class PostAgentWithHttpInfoRequest {
     this.jcrContentJcrDescription = jcrContentJcrDescription;
   }
 
+  /** Sets the agent's {@code jcr:content/jcr:description} property. */
   public PostAgentWithHttpInfoRequest withJcrContentJcrDescription(
       String jcrContentJcrDescription) {
     this.setJcrContentJcrDescription(jcrContentJcrDescription);
@@ -161,6 +177,7 @@ public class PostAgentWithHttpInfoRequest {
     this.jcrContentSlingResourceType = jcrContentSlingResourceType;
   }
 
+  /** Sets the agent's {@code jcr:content/sling:resourceType} property. */
   public PostAgentWithHttpInfoRequest withJcrContentSlingResourceType(
       String jcrContentSlingResourceType) {
     this.setJcrContentSlingResourceType(jcrContentSlingResourceType);
@@ -175,6 +192,7 @@ public class PostAgentWithHttpInfoRequest {
     this.jcrContentTransportUri = jcrContentTransportUri;
   }
 
+  /** Sets the agent's {@code jcr:content/transportUri} property. */
   public PostAgentWithHttpInfoRequest withJcrContentTransportUri(String jcrContentTransportUri) {
     this.setJcrContentTransportUri(jcrContentTransportUri);
     return this;
@@ -188,6 +206,7 @@ public class PostAgentWithHttpInfoRequest {
     this.jcrContentTransportUser = jcrContentTransportUser;
   }
 
+  /** Sets the agent's {@code jcr:content/transportUser} property. */
   public PostAgentWithHttpInfoRequest withJcrContentTransportUser(String jcrContentTransportUser) {
     this.setJcrContentTransportUser(jcrContentTransportUser);
     return this;
@@ -201,6 +220,7 @@ public class PostAgentWithHttpInfoRequest {
     this.jcrContentTransportPassword = jcrContentTransportPassword;
   }
 
+  /** Sets the agent's {@code jcr:content/transportPassword} property. */
   public PostAgentWithHttpInfoRequest withJcrContentTransportPassword(
       String jcrContentTransportPassword) {
     this.setJcrContentTransportPassword(jcrContentTransportPassword);
@@ -215,6 +235,7 @@ public class PostAgentWithHttpInfoRequest {
     this.jcrContentLogLevel = jcrContentLogLevel;
   }
 
+  /** Sets the agent's {@code jcr:content/logLevel} property. */
   public PostAgentWithHttpInfoRequest withJcrContentLogLevel(String jcrContentLogLevel) {
     this.setJcrContentLogLevel(jcrContentLogLevel);
     return this;
@@ -224,51 +245,55 @@ public class PostAgentWithHttpInfoRequest {
     this.jcrContentNoVersioning = jcrContentNoVersioning;
   }
 
+  /** Sets the agent's {@code jcr:content/noVersioning} property. */
   public PostAgentWithHttpInfoRequest withJcrContentNoVersioning(Boolean jcrContentNoVersioning) {
     this.setJcrContentNoVersioning(jcrContentNoVersioning);
     return this;
   }
 
-  public List<String> getJcrContentProtocolHTTPHeaders() {
-    return jcrContentProtocolHTTPHeaders;
+  public List<String> getJcrContentProtocolHttpHeaders() {
+    return jcrContentProtocolHttpHeaders;
   }
 
-  public void setJcrContentProtocolHTTPHeaders(List<String> jcrContentProtocolHTTPHeaders) {
-    this.jcrContentProtocolHTTPHeaders = jcrContentProtocolHTTPHeaders;
+  public void setJcrContentProtocolHttpHeaders(List<String> jcrContentProtocolHttpHeaders) {
+    this.jcrContentProtocolHttpHeaders = jcrContentProtocolHttpHeaders;
   }
 
-  public PostAgentWithHttpInfoRequest withJcrContentProtocolHTTPHeaders(
-      List<String> jcrContentProtocolHTTPHeaders) {
-    this.setJcrContentProtocolHTTPHeaders(jcrContentProtocolHTTPHeaders);
+  /** Sets the agent's {@code jcr:content/protocolHTTPHeaders} property. */
+  public PostAgentWithHttpInfoRequest withJcrContentProtocolHttpHeaders(
+      List<String> jcrContentProtocolHttpHeaders) {
+    this.setJcrContentProtocolHttpHeaders(jcrContentProtocolHttpHeaders);
     return this;
   }
 
-  public String getJcrContentProtocolHTTPHeadersTypeHint() {
-    return jcrContentProtocolHTTPHeadersTypeHint;
+  public String getJcrContentProtocolHttpHeadersTypeHint() {
+    return jcrContentProtocolHttpHeadersTypeHint;
   }
 
-  public void setJcrContentProtocolHTTPHeadersTypeHint(
-      String jcrContentProtocolHTTPHeadersTypeHint) {
-    this.jcrContentProtocolHTTPHeadersTypeHint = jcrContentProtocolHTTPHeadersTypeHint;
+  public void setJcrContentProtocolHttpHeadersTypeHint(
+      String jcrContentProtocolHttpHeadersTypeHint) {
+    this.jcrContentProtocolHttpHeadersTypeHint = jcrContentProtocolHttpHeadersTypeHint;
   }
 
-  public PostAgentWithHttpInfoRequest withJcrContentProtocolHTTPHeadersTypeHint(
-      String jcrContentProtocolHTTPHeadersTypeHint) {
-    this.setJcrContentProtocolHTTPHeadersTypeHint(jcrContentProtocolHTTPHeadersTypeHint);
+  /** Sets the agent's {@code jcr:content/protocolHTTPHeaders@TypeHint} property. */
+  public PostAgentWithHttpInfoRequest withJcrContentProtocolHttpHeadersTypeHint(
+      String jcrContentProtocolHttpHeadersTypeHint) {
+    this.setJcrContentProtocolHttpHeadersTypeHint(jcrContentProtocolHttpHeadersTypeHint);
     return this;
   }
 
-  public String getJcrContentProtocolHTTPMethod() {
-    return jcrContentProtocolHTTPMethod;
+  public String getJcrContentProtocolHttpMethod() {
+    return jcrContentProtocolHttpMethod;
   }
 
-  public void setJcrContentProtocolHTTPMethod(String jcrContentProtocolHTTPMethod) {
-    this.jcrContentProtocolHTTPMethod = jcrContentProtocolHTTPMethod;
+  public void setJcrContentProtocolHttpMethod(String jcrContentProtocolHttpMethod) {
+    this.jcrContentProtocolHttpMethod = jcrContentProtocolHttpMethod;
   }
 
-  public PostAgentWithHttpInfoRequest withJcrContentProtocolHTTPMethod(
-      String jcrContentProtocolHTTPMethod) {
-    this.setJcrContentProtocolHTTPMethod(jcrContentProtocolHTTPMethod);
+  /** Sets the agent's {@code jcr:content/protocolHTTPMethod} property. */
+  public PostAgentWithHttpInfoRequest withJcrContentProtocolHttpMethod(
+      String jcrContentProtocolHttpMethod) {
+    this.setJcrContentProtocolHttpMethod(jcrContentProtocolHttpMethod);
     return this;
   }
 
@@ -280,6 +305,7 @@ public class PostAgentWithHttpInfoRequest {
     this.jcrContentRetryDelay = jcrContentRetryDelay;
   }
 
+  /** Sets the agent's {@code jcr:content/retryDelay} property. */
   public PostAgentWithHttpInfoRequest withJcrContentRetryDelay(String jcrContentRetryDelay) {
     this.setJcrContentRetryDelay(jcrContentRetryDelay);
     return this;
@@ -293,6 +319,7 @@ public class PostAgentWithHttpInfoRequest {
     this.jcrContentSerializationType = jcrContentSerializationType;
   }
 
+  /** Sets the agent's {@code jcr:content/serializationType} property. */
   public PostAgentWithHttpInfoRequest withJcrContentSerializationType(
       String jcrContentSerializationType) {
     this.setJcrContentSerializationType(jcrContentSerializationType);
@@ -307,6 +334,7 @@ public class PostAgentWithHttpInfoRequest {
     this.jcrContentJcrMixinTypes = jcrContentJcrMixinTypes;
   }
 
+  /** Sets the agent's {@code jcr:content/jcr:mixinTypes} property. */
   public PostAgentWithHttpInfoRequest withJcrContentJcrMixinTypes(String jcrContentJcrMixinTypes) {
     this.setJcrContentJcrMixinTypes(jcrContentJcrMixinTypes);
     return this;
@@ -316,6 +344,7 @@ public class PostAgentWithHttpInfoRequest {
     this.jcrContentTriggerReceive = jcrContentTriggerReceive;
   }
 
+  /** Sets the agent's {@code jcr:content/triggerReceive} property. */
   public PostAgentWithHttpInfoRequest withJcrContentTriggerReceive(
       Boolean jcrContentTriggerReceive) {
     this.setJcrContentTriggerReceive(jcrContentTriggerReceive);
@@ -326,6 +355,7 @@ public class PostAgentWithHttpInfoRequest {
     this.jcrContentTriggerSpecific = jcrContentTriggerSpecific;
   }
 
+  /** Sets the agent's {@code jcr:content/triggerSpecific} property. */
   public PostAgentWithHttpInfoRequest withJcrContentTriggerSpecific(
       Boolean jcrContentTriggerSpecific) {
     this.setJcrContentTriggerSpecific(jcrContentTriggerSpecific);
@@ -340,6 +370,7 @@ public class PostAgentWithHttpInfoRequest {
     this.jcrContentCqTemplate = jcrContentCqTemplate;
   }
 
+  /** Sets the agent's {@code jcr:content/cq:template} property. */
   public PostAgentWithHttpInfoRequest withJcrContentCqTemplate(String jcrContentCqTemplate) {
     this.setJcrContentCqTemplate(jcrContentCqTemplate);
     return this;
@@ -349,6 +380,7 @@ public class PostAgentWithHttpInfoRequest {
     this.jcrContentEnabled = jcrContentEnabled;
   }
 
+  /** Sets the agent's {@code jcr:content/enabled} property. */
   public PostAgentWithHttpInfoRequest withJcrContentEnabled(Boolean jcrContentEnabled) {
     this.setJcrContentEnabled(jcrContentEnabled);
     return this;
@@ -362,6 +394,7 @@ public class PostAgentWithHttpInfoRequest {
     this.operation = operation;
   }
 
+  /** Sets the Sling POST {@code :operation}, e.g. {@code delete} to remove the agent. */
   public PostAgentWithHttpInfoRequest withOperation(String operation) {
     this.setOperation(operation);
     return this;
@@ -371,6 +404,7 @@ public class PostAgentWithHttpInfoRequest {
     this.jcrContentTriggerDistribute = jcrContentTriggerDistribute;
   }
 
+  /** Sets the agent's {@code jcr:content/triggerDistribute} property. */
   public PostAgentWithHttpInfoRequest withJcrContentTriggerDistribute(
       Boolean jcrContentTriggerDistribute) {
     this.setJcrContentTriggerDistribute(jcrContentTriggerDistribute);
@@ -381,19 +415,21 @@ public class PostAgentWithHttpInfoRequest {
     this.jcrContentTriggerModified = jcrContentTriggerModified;
   }
 
+  /** Sets the agent's {@code jcr:content/triggerModified} property. */
   public PostAgentWithHttpInfoRequest withJcrContentTriggerModified(
       Boolean jcrContentTriggerModified) {
     this.setJcrContentTriggerModified(jcrContentTriggerModified);
     return this;
   }
 
-  public void setJcrContentProtocolHTTPSRelaxed(Boolean jcrContentProtocolHTTPSRelaxed) {
-    this.jcrContentProtocolHTTPSRelaxed = jcrContentProtocolHTTPSRelaxed;
+  public void setJcrContentProtocolHttpsRelaxed(Boolean jcrContentProtocolHttpsRelaxed) {
+    this.jcrContentProtocolHttpsRelaxed = jcrContentProtocolHttpsRelaxed;
   }
 
-  public PostAgentWithHttpInfoRequest withJcrContentProtocolHTTPSRelaxed(
-      Boolean jcrContentProtocolHTTPSRelaxed) {
-    this.setJcrContentProtocolHTTPSRelaxed(jcrContentProtocolHTTPSRelaxed);
+  /** Sets the agent's {@code jcr:content/protocolHTTPSRelaxed} property. */
+  public PostAgentWithHttpInfoRequest withJcrContentProtocolHttpsRelaxed(
+      Boolean jcrContentProtocolHttpsRelaxed) {
+    this.setJcrContentProtocolHttpsRelaxed(jcrContentProtocolHttpsRelaxed);
     return this;
   }
 
@@ -405,6 +441,7 @@ public class PostAgentWithHttpInfoRequest {
     this.jcrContentJcrLastModified = jcrContentJcrLastModified;
   }
 
+  /** Sets the agent's {@code jcr:content/jcr:lastModified} property. */
   public PostAgentWithHttpInfoRequest withJcrContentJcrLastModified(
       String jcrContentJcrLastModified) {
     this.setJcrContentJcrLastModified(jcrContentJcrLastModified);
@@ -419,6 +456,7 @@ public class PostAgentWithHttpInfoRequest {
     this.jcrContentJcrLastModifiedBy = jcrContentJcrLastModifiedBy;
   }
 
+  /** Sets the agent's {@code jcr:content/jcr:lastModifiedBy} property. */
   public PostAgentWithHttpInfoRequest withJcrContentJcrLastModifiedBy(
       String jcrContentJcrLastModifiedBy) {
     this.setJcrContentJcrLastModifiedBy(jcrContentJcrLastModifiedBy);
@@ -433,24 +471,26 @@ public class PostAgentWithHttpInfoRequest {
     this.jcrContentNoStatusUpdate = jcrContentNoStatusUpdate;
   }
 
+  /** Sets the agent's {@code jcr:content/noStatusUpdate} property. */
   public PostAgentWithHttpInfoRequest withJcrContentNoStatusUpdate(
       Boolean jcrContentNoStatusUpdate) {
     this.setJcrContentNoStatusUpdate(jcrContentNoStatusUpdate);
     return this;
   }
 
-  public Boolean getJcrContentProtocolHTTPConnectionClosed() {
-    return jcrContentProtocolHTTPConnectionClosed;
+  public Boolean getJcrContentProtocolHttpConnectionClosed() {
+    return jcrContentProtocolHttpConnectionClosed;
   }
 
-  public void setJcrContentProtocolHTTPConnectionClosed(
-      Boolean jcrContentProtocolHTTPConnectionClosed) {
-    this.jcrContentProtocolHTTPConnectionClosed = jcrContentProtocolHTTPConnectionClosed;
+  public void setJcrContentProtocolHttpConnectionClosed(
+      Boolean jcrContentProtocolHttpConnectionClosed) {
+    this.jcrContentProtocolHttpConnectionClosed = jcrContentProtocolHttpConnectionClosed;
   }
 
-  public PostAgentWithHttpInfoRequest withJcrContentProtocolHTTPConnectionClosed(
-      Boolean jcrContentProtocolHTTPConnectionClosed) {
-    this.setJcrContentProtocolHTTPConnectionClosed(jcrContentProtocolHTTPConnectionClosed);
+  /** Sets the agent's {@code jcr:content/protocolHTTPConnectionClosed} property. */
+  public PostAgentWithHttpInfoRequest withJcrContentProtocolHttpConnectionClosed(
+      Boolean jcrContentProtocolHttpConnectionClosed) {
+    this.setJcrContentProtocolHttpConnectionClosed(jcrContentProtocolHttpConnectionClosed);
     return this;
   }
 
@@ -462,6 +502,7 @@ public class PostAgentWithHttpInfoRequest {
     this.jcrContentProtocolConnectTimeout = jcrContentProtocolConnectTimeout;
   }
 
+  /** Sets the agent's {@code jcr:content/protocolConnectTimeout} property. */
   public PostAgentWithHttpInfoRequest withJcrContentProtocolConnectTimeout(
       BigDecimal jcrContentProtocolConnectTimeout) {
     this.setJcrContentProtocolConnectTimeout(jcrContentProtocolConnectTimeout);
@@ -476,8 +517,8 @@ public class PostAgentWithHttpInfoRequest {
     return jcrContentNoVersioning;
   }
 
-  public Boolean getJcrContentProtocolHTTPSRelaxed() {
-    return jcrContentProtocolHTTPSRelaxed;
+  public Boolean getJcrContentProtocolHttpsRelaxed() {
+    return jcrContentProtocolHttpsRelaxed;
   }
 
   public Boolean getJcrContentTriggerDistribute() {
@@ -496,17 +537,18 @@ public class PostAgentWithHttpInfoRequest {
     return jcrContentTriggerSpecific;
   }
 
-  public String getJcrContentProtocolHTTPExpired() {
-    return jcrContentProtocolHTTPExpired;
+  public String getJcrContentProtocolHttpExpired() {
+    return jcrContentProtocolHttpExpired;
   }
 
-  public void setJcrContentProtocolHTTPExpired(String jcrContentProtocolHTTPExpired) {
-    this.jcrContentProtocolHTTPExpired = jcrContentProtocolHTTPExpired;
+  public void setJcrContentProtocolHttpExpired(String jcrContentProtocolHttpExpired) {
+    this.jcrContentProtocolHttpExpired = jcrContentProtocolHttpExpired;
   }
 
-  public PostAgentWithHttpInfoRequest withJcrContentProtocolHTTPExpired(
-      String jcrContentProtocolHTTPExpired) {
-    this.setJcrContentProtocolHTTPExpired(jcrContentProtocolHTTPExpired);
+  /** Sets the agent's {@code jcr:content/protocolHTTPExpired} property. */
+  public PostAgentWithHttpInfoRequest withJcrContentProtocolHttpExpired(
+      String jcrContentProtocolHttpExpired) {
+    this.setJcrContentProtocolHttpExpired(jcrContentProtocolHttpExpired);
     return this;
   }
 
@@ -518,6 +560,7 @@ public class PostAgentWithHttpInfoRequest {
     this.jcrContentProtocolInterface = jcrContentProtocolInterface;
   }
 
+  /** Sets the agent's {@code jcr:content/protocolInterface} property. */
   public PostAgentWithHttpInfoRequest withJcrContentProtocolInterface(
       String jcrContentProtocolInterface) {
     this.setJcrContentProtocolInterface(jcrContentProtocolInterface);
@@ -532,6 +575,7 @@ public class PostAgentWithHttpInfoRequest {
     this.jcrContentProtocolSocketTimeout = jcrContentProtocolSocketTimeout;
   }
 
+  /** Sets the agent's {@code jcr:content/protocolSocketTimeout} property. */
   public PostAgentWithHttpInfoRequest withJcrContentProtocolSocketTimeout(
       BigDecimal jcrContentProtocolSocketTimeout) {
     this.setJcrContentProtocolSocketTimeout(jcrContentProtocolSocketTimeout);
@@ -546,36 +590,39 @@ public class PostAgentWithHttpInfoRequest {
     this.jcrContentProtocolVersion = jcrContentProtocolVersion;
   }
 
+  /** Sets the agent's {@code jcr:content/protocolVersion} property. */
   public PostAgentWithHttpInfoRequest withJcrContentProtocolVersion(
       String jcrContentProtocolVersion) {
     this.setJcrContentProtocolVersion(jcrContentProtocolVersion);
     return this;
   }
 
-  public String getJcrContentProxyNTLMDomain() {
-    return jcrContentProxyNTLMDomain;
+  public String getJcrContentProxyNtlmDomain() {
+    return jcrContentProxyNtlmDomain;
   }
 
-  public void setJcrContentProxyNTLMDomain(String jcrContentProxyNTLMDomain) {
-    this.jcrContentProxyNTLMDomain = jcrContentProxyNTLMDomain;
+  public void setJcrContentProxyNtlmDomain(String jcrContentProxyNtlmDomain) {
+    this.jcrContentProxyNtlmDomain = jcrContentProxyNtlmDomain;
   }
 
-  public PostAgentWithHttpInfoRequest withJcrContentProxyNTLMDomain(
-      String jcrContentProxyNTLMDomain) {
-    this.setJcrContentProxyNTLMDomain(jcrContentProxyNTLMDomain);
+  /** Sets the agent's {@code jcr:content/proxyNTLMDomain} property. */
+  public PostAgentWithHttpInfoRequest withJcrContentProxyNtlmDomain(
+      String jcrContentProxyNtlmDomain) {
+    this.setJcrContentProxyNtlmDomain(jcrContentProxyNtlmDomain);
     return this;
   }
 
-  public String getJcrContentProxyNTLMHost() {
-    return jcrContentProxyNTLMHost;
+  public String getJcrContentProxyNtlmHost() {
+    return jcrContentProxyNtlmHost;
   }
 
-  public void setJcrContentProxyNTLMHost(String jcrContentProxyNTLMHost) {
-    this.jcrContentProxyNTLMHost = jcrContentProxyNTLMHost;
+  public void setJcrContentProxyNtlmHost(String jcrContentProxyNtlmHost) {
+    this.jcrContentProxyNtlmHost = jcrContentProxyNtlmHost;
   }
 
-  public PostAgentWithHttpInfoRequest withJcrContentProxyNTLMHost(String jcrContentProxyNTLMHost) {
-    this.setJcrContentProxyNTLMHost(jcrContentProxyNTLMHost);
+  /** Sets the agent's {@code jcr:content/proxyNTLMHost} property. */
+  public PostAgentWithHttpInfoRequest withJcrContentProxyNtlmHost(String jcrContentProxyNtlmHost) {
+    this.setJcrContentProxyNtlmHost(jcrContentProxyNtlmHost);
     return this;
   }
 
@@ -587,6 +634,7 @@ public class PostAgentWithHttpInfoRequest {
     this.jcrContentProxyHost = jcrContentProxyHost;
   }
 
+  /** Sets the agent's {@code jcr:content/proxyHost} property. */
   public PostAgentWithHttpInfoRequest withJcrContentProxyHost(String jcrContentProxyHost) {
     this.setJcrContentProxyHost(jcrContentProxyHost);
     return this;
@@ -600,6 +648,7 @@ public class PostAgentWithHttpInfoRequest {
     this.jcrContentProxyPort = jcrContentProxyPort;
   }
 
+  /** Sets the agent's {@code jcr:content/proxyPort} property. */
   public PostAgentWithHttpInfoRequest withJcrContentProxyPort(BigDecimal jcrContentProxyPort) {
     this.setJcrContentProxyPort(jcrContentProxyPort);
     return this;
@@ -613,6 +662,7 @@ public class PostAgentWithHttpInfoRequest {
     this.jcrContentProxyUser = jcrContentProxyUser;
   }
 
+  /** Sets the agent's {@code jcr:content/proxyUser} property. */
   public PostAgentWithHttpInfoRequest withJcrContentProxyUser(String jcrContentProxyUser) {
     this.setJcrContentProxyUser(jcrContentProxyUser);
     return this;
@@ -626,6 +676,7 @@ public class PostAgentWithHttpInfoRequest {
     this.jcrContentProxyPassword = jcrContentProxyPassword;
   }
 
+  /** Sets the agent's {@code jcr:content/proxyPassword} property. */
   public PostAgentWithHttpInfoRequest withJcrContentProxyPassword(String jcrContentProxyPassword) {
     this.setJcrContentProxyPassword(jcrContentProxyPassword);
     return this;
@@ -639,6 +690,7 @@ public class PostAgentWithHttpInfoRequest {
     this.jcrContentQueueBatchMaxSize = jcrContentQueueBatchMaxSize;
   }
 
+  /** Sets the agent's {@code jcr:content/queueBatchMaxSize} property. */
   public PostAgentWithHttpInfoRequest withJcrContentQueueBatchMaxSize(
       BigDecimal jcrContentQueueBatchMaxSize) {
     this.setJcrContentQueueBatchMaxSize(jcrContentQueueBatchMaxSize);
@@ -653,6 +705,7 @@ public class PostAgentWithHttpInfoRequest {
     this.jcrContentQueueBatchMode = jcrContentQueueBatchMode;
   }
 
+  /** Sets the agent's {@code jcr:content/queueBatchMode} property. */
   public PostAgentWithHttpInfoRequest withJcrContentQueueBatchMode(
       String jcrContentQueueBatchMode) {
     this.setJcrContentQueueBatchMode(jcrContentQueueBatchMode);
@@ -667,6 +720,7 @@ public class PostAgentWithHttpInfoRequest {
     this.jcrContentQueueBatchWaitTime = jcrContentQueueBatchWaitTime;
   }
 
+  /** Sets the agent's {@code jcr:content/queueBatchWaitTime} property. */
   public PostAgentWithHttpInfoRequest withJcrContentQueueBatchWaitTime(
       BigDecimal jcrContentQueueBatchWaitTime) {
     this.setJcrContentQueueBatchWaitTime(jcrContentQueueBatchWaitTime);
@@ -681,50 +735,54 @@ public class PostAgentWithHttpInfoRequest {
     this.jcrContentReverseReplication = jcrContentReverseReplication;
   }
 
+  /** Sets the agent's {@code jcr:content/reverseReplication} property. */
   public PostAgentWithHttpInfoRequest withJcrContentReverseReplication(
       Boolean jcrContentReverseReplication) {
     this.setJcrContentReverseReplication(jcrContentReverseReplication);
     return this;
   }
 
-  public String getJcrContentSSL() {
-    return jcrContentSSL;
+  public String getJcrContentSsl() {
+    return jcrContentSsl;
   }
 
-  public void setJcrContentSSL(String jcrContentSSL) {
-    this.jcrContentSSL = jcrContentSSL;
+  public void setJcrContentSsl(String jcrContentSsl) {
+    this.jcrContentSsl = jcrContentSsl;
   }
 
-  public PostAgentWithHttpInfoRequest withJcrContentSSL(String jcrContentSSL) {
-    this.setJcrContentSSL(jcrContentSSL);
+  /** Sets the agent's {@code jcr:content/ssl} property. */
+  public PostAgentWithHttpInfoRequest withJcrContentSsl(String jcrContentSsl) {
+    this.setJcrContentSsl(jcrContentSsl);
     return this;
   }
 
-  public String getJcrContentTransportNTLMDomain() {
-    return jcrContentTransportNTLMDomain;
+  public String getJcrContentTransportNtlmDomain() {
+    return jcrContentTransportNtlmDomain;
   }
 
-  public void setJcrContentTransportNTLMDomain(String jcrContentTransportNTLMDomain) {
-    this.jcrContentTransportNTLMDomain = jcrContentTransportNTLMDomain;
+  public void setJcrContentTransportNtlmDomain(String jcrContentTransportNtlmDomain) {
+    this.jcrContentTransportNtlmDomain = jcrContentTransportNtlmDomain;
   }
 
-  public PostAgentWithHttpInfoRequest withJcrContentTransportNTLMDomain(
-      String jcrContentTransportNTLMDomain) {
-    this.setJcrContentTransportNTLMDomain(jcrContentTransportNTLMDomain);
+  /** Sets the agent's {@code jcr:content/transportNTLMDomain} property. */
+  public PostAgentWithHttpInfoRequest withJcrContentTransportNtlmDomain(
+      String jcrContentTransportNtlmDomain) {
+    this.setJcrContentTransportNtlmDomain(jcrContentTransportNtlmDomain);
     return this;
   }
 
-  public String getJcrContentTransportNTLMHost() {
-    return jcrContentTransportNTLMHost;
+  public String getJcrContentTransportNtlmHost() {
+    return jcrContentTransportNtlmHost;
   }
 
-  public void setJcrContentTransportNTLMHost(String jcrContentTransportNTLMHost) {
-    this.jcrContentTransportNTLMHost = jcrContentTransportNTLMHost;
+  public void setJcrContentTransportNtlmHost(String jcrContentTransportNtlmHost) {
+    this.jcrContentTransportNtlmHost = jcrContentTransportNtlmHost;
   }
 
-  public PostAgentWithHttpInfoRequest withJcrContentTransportNTLMHost(
-      String jcrContentTransportNTLMHost) {
-    this.setJcrContentTransportNTLMHost(jcrContentTransportNTLMHost);
+  /** Sets the agent's {@code jcr:content/transportNTLMHost} property. */
+  public PostAgentWithHttpInfoRequest withJcrContentTransportNtlmHost(
+      String jcrContentTransportNtlmHost) {
+    this.setJcrContentTransportNtlmHost(jcrContentTransportNtlmHost);
     return this;
   }
 
@@ -736,6 +794,7 @@ public class PostAgentWithHttpInfoRequest {
     this.jcrContentTriggerOnOffTime = jcrContentTriggerOnOffTime;
   }
 
+  /** Sets the agent's {@code jcr:content/triggerOnOffTime} property. */
   public PostAgentWithHttpInfoRequest withJcrContentTriggerOnOffTime(
       Boolean jcrContentTriggerOnOffTime) {
     this.setJcrContentTriggerOnOffTime(jcrContentTriggerOnOffTime);
@@ -750,6 +809,7 @@ public class PostAgentWithHttpInfoRequest {
     this.jcrContentUserId = jcrContentUserId;
   }
 
+  /** Sets the agent's {@code jcr:content/userId} property. */
   public PostAgentWithHttpInfoRequest withJcrContentUserId(String jcrContentUserId) {
     this.setJcrContentUserId(jcrContentUserId);
     return this;

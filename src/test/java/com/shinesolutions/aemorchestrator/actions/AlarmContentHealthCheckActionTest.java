@@ -16,7 +16,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-public class AlarmContentHealthCheckActionTest {
+class AlarmContentHealthCheckActionTest {
 
   @Mock private AwsHelperService awsHelperService;
 
@@ -25,12 +25,12 @@ public class AlarmContentHealthCheckActionTest {
   private String instanceId;
 
   @BeforeEach
-  public void setUp() throws Exception {
+  void setUp() throws Exception {
     instanceId = "i-704262407";
   }
 
   @Test
-  public void testTerminateSuccess() {
+  void testTerminateSuccess() {
     setField(alarmContentHealthCheckAction, "terminateInstanceEnable", true);
 
     boolean result = alarmContentHealthCheckAction.execute(instanceId);
@@ -42,7 +42,7 @@ public class AlarmContentHealthCheckActionTest {
   }
 
   @Test
-  public void testNotifySuccess() {
+  void testNotifySuccess() {
     setField(alarmContentHealthCheckAction, "terminateInstanceEnable", false);
 
     boolean result = alarmContentHealthCheckAction.execute(instanceId);
@@ -54,7 +54,7 @@ public class AlarmContentHealthCheckActionTest {
   }
 
   @Test
-  public void testTerminateWithException() {
+  void testTerminateWithException() {
     setField(alarmContentHealthCheckAction, "terminateInstanceEnable", true);
     doThrow(new RuntimeException()).when(awsHelperService).terminateInstance(instanceId);
 

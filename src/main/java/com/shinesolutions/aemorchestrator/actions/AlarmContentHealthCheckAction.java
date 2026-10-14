@@ -7,6 +7,14 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+/**
+ * Responds to a content health check CloudWatch alarm raised for a publish (or preview publish)
+ * instance.
+ *
+ * <p>If {@code alarm.content.health.check.terminate.instance.enable} is set, the unhealthy instance
+ * is terminated; otherwise its unhealthy state is only logged as an error. Failures are logged and
+ * the action always returns {@code true}, so the alarm message is removed from the queue.
+ */
 @Component
 public class AlarmContentHealthCheckAction implements Action {
 
@@ -34,7 +42,7 @@ public class AlarmContentHealthCheckAction implements Action {
 
     } catch (Exception e) {
       logger.error(
-          "Unable to terminate publish instance: " + awsHelperService + ". It may not be running?");
+          "Unable to terminate publish instance: " + instanceId + ". It may not be running?");
     }
 
     return true;

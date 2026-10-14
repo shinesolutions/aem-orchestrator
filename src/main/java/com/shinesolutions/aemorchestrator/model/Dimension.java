@@ -2,6 +2,10 @@ package com.shinesolutions.aemorchestrator.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+/**
+ * A CloudWatch metric dimension, its {@code name} and {@code value}, from the {@code Dimensions} of
+ * an alarm {@link Trigger}.
+ */
 public class Dimension {
   @JsonProperty("name")
   private String name;

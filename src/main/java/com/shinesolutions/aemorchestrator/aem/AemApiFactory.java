@@ -7,6 +7,10 @@ import jakarta.annotation.Resource;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+/**
+ * Creates swaggeraem4j {@link SlingApi} clients for an AEM instance, configured with the {@code
+ * aem.client.api.*} settings and the credentials appropriate to the agent action.
+ */
 @Component
 public class AemApiFactory {
 
@@ -24,8 +28,17 @@ public class AemApiFactory {
   private static enum UserType {
     ORCHESTRATOR,
     REPLICATOR
-  };
+  }
 
+  /**
+   * Returns a {@link SlingApi} for the AEM instance at {@code basePath}.
+   *
+   * <p>{@link AgentAction#CREATE} authenticates as the replicator user; every other action uses the
+   * orchestrator user.
+   *
+   * @param basePath base URL of the target AEM instance
+   * @param action the agent action the client will perform, used to choose the credentials
+   */
   public SlingApi getSlingApi(String basePath, AgentAction action) {
     // Only a 'create' type agent action requires the replicator user
     UserType user = action == AgentAction.CREATE ? UserType.REPLICATOR : UserType.ORCHESTRATOR;

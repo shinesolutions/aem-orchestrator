@@ -10,11 +10,11 @@ import org.junit.jupiter.api.Test;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 
-public class CredentialsExtractorTest {
+class CredentialsExtractorTest {
 
   @Test
   @SuppressWarnings("resource")
-  public void testExtractSuccess() throws Exception {
+  void testExtractSuccess() throws Exception {
     // Read file into a string
     File sampleFile = new File(getClass().getResource("/sample-aem-credentials.json").getFile());
     String sampleFileContent = new Scanner(sampleFile).useDelimiter("\\Z").next();

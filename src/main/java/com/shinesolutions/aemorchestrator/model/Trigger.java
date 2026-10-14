@@ -4,6 +4,10 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 
+/**
+ * The {@code Trigger} of a CloudWatch alarm message, describing the alarmed metric, its threshold
+ * and evaluation, and its {@code Dimensions}.
+ */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Trigger {
 

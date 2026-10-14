@@ -22,7 +22,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-public class AutoScalingLaunchEventHandlerTest {
+class AutoScalingLaunchEventHandlerTest {
 
   @Mock private Map<String, Action> scaleUpAutoScaleGroupMappings;
 
@@ -37,19 +37,19 @@ public class AutoScalingLaunchEventHandlerTest {
   private EventMessage message;
 
   @BeforeEach
-  public void setUp() throws Exception {
+  void setUp() throws Exception {
     action = mock(Action.class);
     messageContent = "testMessage";
 
     message = new EventMessage();
     message.setAutoScalingGroupName("testGroup");
-    message.setEC2InstanceId("test-instance");
+    message.setEc2InstanceId("test-instance");
 
     when(eventMessageExtractor.extractMessage(messageContent)).thenReturn(message);
   }
 
   @Test
-  public void testNoActionToPerform() {
+  void testNoActionToPerform() {
     message.setDescription("Moving EC2 instance out of Standby");
 
     boolean result = handler.handleEvent(messageContent);
@@ -58,7 +58,7 @@ public class AutoScalingLaunchEventHandlerTest {
   }
 
   @Test
-  public void testNoActionFound() {
+  void testNoActionFound() {
     when(scaleUpAutoScaleGroupMappings.get(anyString())).thenReturn(null);
 
     boolean result = handler.handleEvent(messageContent);
@@ -67,7 +67,7 @@ public class AutoScalingLaunchEventHandlerTest {
   }
 
   @Test
-  public void testNoActionFoundWithEventDescription() {
+  void testNoActionFoundWithEventDescription() {
     message.setDescription("Test description");
     when(scaleUpAutoScaleGroupMappings.get(anyString())).thenReturn(null);
 
@@ -77,18 +77,18 @@ public class AutoScalingLaunchEventHandlerTest {
   }
 
   @Test
-  public void testInstanceNotRunning() {
+  void testInstanceNotRunning() {
     when(scaleUpAutoScaleGroupMappings.get(anyString())).thenReturn(action);
-    when(awsHelperService.isInstanceRunning(message.getEC2InstanceId())).thenReturn(false);
+    when(awsHelperService.isInstanceRunning(message.getEc2InstanceId())).thenReturn(false);
 
     boolean result = handler.handleEvent(messageContent);
 
     assertThat(result, equalTo(true));
-    verify(action, never()).execute(message.getEC2InstanceId());
+    verify(action, never()).execute(message.getEc2InstanceId());
   }
 
   @Test
-  public void testInstanceHandlesExceptionsGracefully() {
+  void testInstanceHandlesExceptionsGracefully() {
     when(scaleUpAutoScaleGroupMappings.get(anyString())).thenThrow(new RuntimeException());
 
     boolean result = handler.handleEvent(messageContent);
@@ -97,26 +97,26 @@ public class AutoScalingLaunchEventHandlerTest {
   }
 
   @Test
-  public void testSuccessAndActionDeleteMessage() {
+  void testSuccessAndActionDeleteMessage() {
     when(scaleUpAutoScaleGroupMappings.get(anyString())).thenReturn(action);
-    when(awsHelperService.isInstanceRunning(message.getEC2InstanceId())).thenReturn(true);
-    when(action.execute(message.getEC2InstanceId())).thenReturn(true);
+    when(awsHelperService.isInstanceRunning(message.getEc2InstanceId())).thenReturn(true);
+    when(action.execute(message.getEc2InstanceId())).thenReturn(true);
 
     boolean result = handler.handleEvent(messageContent);
 
     assertThat(result, equalTo(true));
-    verify(action, times(1)).execute(message.getEC2InstanceId());
+    verify(action, times(1)).execute(message.getEc2InstanceId());
   }
 
   @Test
-  public void testSuccessAndActionKeepMessage() {
+  void testSuccessAndActionKeepMessage() {
     when(scaleUpAutoScaleGroupMappings.get(anyString())).thenReturn(action);
-    when(awsHelperService.isInstanceRunning(message.getEC2InstanceId())).thenReturn(true);
-    when(action.execute(message.getEC2InstanceId())).thenReturn(false);
+    when(awsHelperService.isInstanceRunning(message.getEc2InstanceId())).thenReturn(true);
+    when(action.execute(message.getEc2InstanceId())).thenReturn(false);
 
     boolean result = handler.handleEvent(messageContent);
 
     assertThat(result, equalTo(false));
-    verify(action, times(1)).execute(message.getEC2InstanceId());
+    verify(action, times(1)).execute(message.getEc2InstanceId());
   }
 }

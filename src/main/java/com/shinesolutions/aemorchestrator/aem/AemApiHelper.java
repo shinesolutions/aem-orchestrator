@@ -5,10 +5,19 @@ import com.shinesolutions.swaggeraem4j.ApiResponse;
 import com.shinesolutions.swaggeraem4j.api.SlingApi;
 import org.springframework.stereotype.Component;
 
-/** Wrapper for making calls to the AEM Client API easier */
+/** Wrapper for making calls to the AEM Client API easier. */
 @Component
 public class AemApiHelper {
 
+  /**
+   * Creates, updates or deletes an AEM replication/flush agent by unpacking {@code request} into
+   * the positional arguments of {@link SlingApi#postAgentWithHttpInfo}.
+   *
+   * @param slingApi client for the AEM instance hosting the agent
+   * @param request agent run mode, name and properties to post; {@code null} values are omitted
+   * @return the API response, used by callers for its status code
+   * @throws ApiException if the AEM request fails or returns an error status
+   */
   public ApiResponse<Void> postAgentWithHttpInfo(
       SlingApi slingApi, PostAgentWithHttpInfoRequest request) throws ApiException {
     return slingApi.postAgentWithHttpInfo(
@@ -28,17 +37,17 @@ public class AemApiHelper {
         request.getJcrContentNoStatusUpdate(),
         request.getJcrContentNoVersioning(),
         request.getJcrContentProtocolConnectTimeout(),
-        request.getJcrContentProtocolHTTPConnectionClosed(),
-        request.getJcrContentProtocolHTTPExpired(),
-        request.getJcrContentProtocolHTTPHeaders(),
-        request.getJcrContentProtocolHTTPHeadersTypeHint(),
-        request.getJcrContentProtocolHTTPMethod(),
-        request.getJcrContentProtocolHTTPSRelaxed(),
+        request.getJcrContentProtocolHttpConnectionClosed(),
+        request.getJcrContentProtocolHttpExpired(),
+        request.getJcrContentProtocolHttpHeaders(),
+        request.getJcrContentProtocolHttpHeadersTypeHint(),
+        request.getJcrContentProtocolHttpMethod(),
+        request.getJcrContentProtocolHttpsRelaxed(),
         request.getJcrContentProtocolInterface(),
         request.getJcrContentProtocolSocketTimeout(),
         request.getJcrContentProtocolVersion(),
-        request.getJcrContentProxyNTLMDomain(),
-        request.getJcrContentProxyNTLMHost(),
+        request.getJcrContentProxyNtlmDomain(),
+        request.getJcrContentProxyNtlmHost(),
         request.getJcrContentProxyHost(),
         request.getJcrContentProxyPassword(),
         request.getJcrContentProxyPort(),
@@ -50,9 +59,9 @@ public class AemApiHelper {
         request.getJcrContentReverseReplication(),
         request.getJcrContentSerializationType(),
         request.getJcrContentSlingResourceType(),
-        request.getJcrContentSSL(),
-        request.getJcrContentTransportNTLMDomain(),
-        request.getJcrContentTransportNTLMHost(),
+        request.getJcrContentSsl(),
+        request.getJcrContentTransportNtlmDomain(),
+        request.getJcrContentTransportNtlmHost(),
         request.getJcrContentTransportPassword(),
         request.getJcrContentTransportUri(),
         request.getJcrContentTransportUser(),

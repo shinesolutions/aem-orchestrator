@@ -11,18 +11,18 @@ import org.junit.jupiter.api.Test;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 
-public class SnsMessageExtractorTest {
+class SnsMessageExtractorTest {
 
   private SnsMessageExtractor extractor;
 
   @BeforeEach
-  public void setUp() throws Exception {
+  void setUp() throws Exception {
     extractor = new SnsMessageExtractor();
   }
 
   @Test
   @SuppressWarnings("resource")
-  public void testExtractEventMessage() throws Exception {
+  void testExtractEventMessage() throws Exception {
     File sampleFileMessageOnly =
         new File(getClass().getResource("/sample-sqs-event-message-2.json").getFile());
     String sampleFileContent = new Scanner(sampleFileMessageOnly).useDelimiter("\\Z").next();
@@ -40,7 +40,7 @@ public class SnsMessageExtractorTest {
     assertThat(message.getTimestamp(), equalTo(root.path("Timestamp").asString()));
     assertThat(message.getSignatureVersion(), equalTo(root.path("SignatureVersion").asString()));
     assertThat(message.getSignature(), equalTo(root.path("Signature").asString()));
-    assertThat(message.getSigningCertURL(), equalTo(root.path("SigningCertURL").asString()));
-    assertThat(message.getUnsubscribeURL(), equalTo(root.path("UnsubscribeURL").asString()));
+    assertThat(message.getSigningCertUrl(), equalTo(root.path("SigningCertURL").asString()));
+    assertThat(message.getUnsubscribeUrl(), equalTo(root.path("UnsubscribeURL").asString()));
   }
 }

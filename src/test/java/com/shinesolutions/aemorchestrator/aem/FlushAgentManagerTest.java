@@ -2,7 +2,10 @@ package com.shinesolutions.aemorchestrator.aem;
 
 import static org.mockito.ArgumentMatchers.endsWith;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import com.shinesolutions.swaggeraem4j.ApiException;
 import com.shinesolutions.swaggeraem4j.ApiResponse;
@@ -15,7 +18,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-public class FlushAgentManagerTest {
+class FlushAgentManagerTest {
 
   @Mock private AemApiFactory aemApiFactory;
 
@@ -28,7 +31,7 @@ public class FlushAgentManagerTest {
   private SlingApi slingApi;
 
   @BeforeEach
-  public void setup() throws ApiException {
+  void setup() throws ApiException {
     slingApi = new SlingApi();
     when(aemApiFactory.getSlingApi(anyString(), any(AgentAction.class))).thenReturn(slingApi);
 
@@ -39,7 +42,7 @@ public class FlushAgentManagerTest {
   }
 
   @Test
-  public void testCreateFlushAgent() throws ApiException {
+  void testCreateFlushAgent() throws ApiException {
     PostAgentWithHttpInfoRequest request = new PostAgentWithHttpInfoRequest();
     when(agentRequestFactory.getCreateFlushAgentRequest(
             any(AgentRunMode.class), anyString(), anyString(), anyString()))
@@ -59,7 +62,7 @@ public class FlushAgentManagerTest {
   }
 
   @Test
-  public void testDeleteFlushAgent() throws ApiException {
+  void testDeleteFlushAgent() throws ApiException {
     PostAgentWithHttpInfoRequest request = new PostAgentWithHttpInfoRequest();
     when(agentRequestFactory.getDeleteAgentRequest(any(AgentRunMode.class), anyString()))
         .thenReturn(request);

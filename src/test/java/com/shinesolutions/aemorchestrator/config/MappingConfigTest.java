@@ -5,25 +5,39 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import com.shinesolutions.aemorchestrator.actions.*;
-import com.shinesolutions.aemorchestrator.handler.*;
+import com.shinesolutions.aemorchestrator.actions.Action;
+import com.shinesolutions.aemorchestrator.actions.ScaleDownAuthorDispatcherAction;
+import com.shinesolutions.aemorchestrator.actions.ScaleDownPreviewPublishAction;
+import com.shinesolutions.aemorchestrator.actions.ScaleDownPreviewPublishDispatcherAction;
+import com.shinesolutions.aemorchestrator.actions.ScaleDownPublishAction;
+import com.shinesolutions.aemorchestrator.actions.ScaleDownPublishDispatcherAction;
+import com.shinesolutions.aemorchestrator.actions.ScaleUpAuthorDispatcherAction;
+import com.shinesolutions.aemorchestrator.actions.ScaleUpPreviewPublishAction;
+import com.shinesolutions.aemorchestrator.actions.ScaleUpPreviewPublishDispatcherAction;
+import com.shinesolutions.aemorchestrator.actions.ScaleUpPublishAction;
+import com.shinesolutions.aemorchestrator.actions.ScaleUpPublishDispatcherAction;
+import com.shinesolutions.aemorchestrator.handler.AlarmMessageHandler;
+import com.shinesolutions.aemorchestrator.handler.AutoScalingLaunchEventHandler;
+import com.shinesolutions.aemorchestrator.handler.AutoScalingTerminateEventHandler;
+import com.shinesolutions.aemorchestrator.handler.MessageHandler;
+import com.shinesolutions.aemorchestrator.handler.TestNotificationEventHandler;
 import com.shinesolutions.aemorchestrator.model.EnvironmentValues;
 import com.shinesolutions.aemorchestrator.model.EventType;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-public class MappingConfigTest {
+class MappingConfigTest {
 
   private MappingConfig mappingConfig;
 
   @BeforeEach
-  public void setup() {
+  void setup() {
     mappingConfig = new MappingConfig();
   }
 
   @Test
-  public void testEventTypeHandlerMappings() {
+  void testEventTypeHandlerMappings() {
     AutoScalingTerminateEventHandler scaleDownEventHandler =
         mock(AutoScalingTerminateEventHandler.class);
     AutoScalingLaunchEventHandler scaleUpEventHandler = mock(AutoScalingLaunchEventHandler.class);
@@ -51,7 +65,7 @@ public class MappingConfigTest {
   }
 
   @Test
-  public void testScaleDownAutoScaleGroupMappings() {
+  void testScaleDownAutoScaleGroupMappings() {
     ScaleDownPublishDispatcherAction scaleDownPublishDispatcherAction =
         mock(ScaleDownPublishDispatcherAction.class);
     ScaleDownPublishAction scaleDownPublishAction = mock(ScaleDownPublishAction.class);
@@ -91,7 +105,7 @@ public class MappingConfigTest {
   }
 
   @Test
-  public void testScaleUpAutoScaleGroupMappings() {
+  void testScaleUpAutoScaleGroupMappings() {
     ScaleUpPublishDispatcherAction scaleUpPublishDispatcherAction =
         mock(ScaleUpPublishDispatcherAction.class);
     ScaleUpPublishAction scaleUpPublishAction = mock(ScaleUpPublishAction.class);

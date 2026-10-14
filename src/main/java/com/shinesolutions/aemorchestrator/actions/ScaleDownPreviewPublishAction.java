@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+/** Scale-down action run when a preview publish instance is terminated. */
 @Component
 public class ScaleDownPreviewPublishAction implements Action {
 
@@ -25,6 +26,18 @@ public class ScaleDownPreviewPublishAction implements Action {
 
   @Resource private ReplicationAgentManager replicationAgentManager;
 
+  /**
+   * Cleans up the resources associated with a terminated preview publish instance.
+   *
+   * <p>Terminates the paired preview publish dispatcher (if one is found), deletes the instance's
+   * preview replication agent from the author instance, deletes its preview reverse replication
+   * agent when {@code aem.reverseReplication.enable} is set, and deletes its content health check
+   * alarm. Failures to delete the agents or the alarm are logged and ignored, as they may already
+   * have been deleted.
+   *
+   * @param instanceId the EC2 instance ID of the terminated preview publish instance
+   * @return always {@code true}, so the SQS message is removed from the queue
+   */
   public boolean execute(String instanceId) {
     logger.info("ScaleDownPreviewPublishAction executing");
 

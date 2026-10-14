@@ -1,13 +1,17 @@
 package com.shinesolutions.aemorchestrator.model;
 
-public enum AemSSL {
+/**
+ * SSL modes for the AEM replication and flush agents the orchestrator creates, each holding the
+ * value set as the agent's {@code ssl} property.
+ */
+public enum AemSsl {
   RELAXED("relaxed"),
   CLIENTAUTH("clientauth"),
   DEFAULT("default");
 
   private final String value;
 
-  private AemSSL(String v) {
+  private AemSsl(String v) {
     value = v;
   }
 

@@ -10,6 +10,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
+/**
+ * Handles Auto Scaling launch notifications by running the scale-up {@link Action} mapped to the
+ * event's Auto Scaling group.
+ *
+ * <p>Returns {@code true} (removing the message from the queue) without running an action when the
+ * event is an instance moving out of Standby or the launched instance is no longer running.
+ * Otherwise returns the action's result, or {@code false} if no action is mapped to the group or
+ * processing fails.
+ */
 @Component
 public class AutoScalingLaunchEventHandler implements MessageHandler {
 
@@ -33,7 +42,8 @@ public class AutoScalingLaunchEventHandler implements MessageHandler {
       if (eventMessage.getDescription() != null
           && eventMessage.getDescription().startsWith("Moving EC2 instance out of Standby")) {
         logger.info(
-            "Detected a 'Moving EC2 instance out of Standby' event. The stack should already be aware of this instance. No action to perform.");
+            "Detected a 'Moving EC2 instance out of Standby' event. The stack should already be"
+                + " aware of this instance. No action to perform.");
         return true;
       }
 
@@ -42,14 +52,15 @@ public class AutoScalingLaunchEventHandler implements MessageHandler {
         logger.warn(
             "Unable to find 'scale up' action for auto scaling group name: "
                 + eventMessage.getAutoScalingGroupName()
-                + ". Please check the correct auto scaling group names were added to the application config");
+                + ". Please check the correct auto scaling group names were added to the"
+                + " application config");
       } else {
-        if (awsHelperService.isInstanceRunning(eventMessage.getEC2InstanceId())) {
-          success = action.execute(eventMessage.getEC2InstanceId());
+        if (awsHelperService.isInstanceRunning(eventMessage.getEc2InstanceId())) {
+          success = action.execute(eventMessage.getEc2InstanceId());
         } else {
           logger.warn(
               "Instance "
-                  + eventMessage.getEC2InstanceId()
+                  + eventMessage.getEc2InstanceId()
                   + " does not appear to be running. Ignoring message (no action taken)");
           success = true;
         }

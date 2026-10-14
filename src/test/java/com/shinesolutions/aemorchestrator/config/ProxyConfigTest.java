@@ -7,17 +7,17 @@ import com.shinesolutions.aemorchestrator.model.ProxyDetails;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-public class ProxyConfigTest {
+class ProxyConfigTest {
 
   private ProxyConfig proxyConfig;
 
   @BeforeEach
-  public void setup() {
+  void setup() {
     proxyConfig = new ProxyConfig();
   }
 
   @Test
-  public void testProxyDetails_NoEnvironmentVariable() {
+  void testProxyDetails_noEnvironmentVariable() {
     ProxyDetails details = proxyConfig.proxyDetails();
 
     String httpProxyHost = "";

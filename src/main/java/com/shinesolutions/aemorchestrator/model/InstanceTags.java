@@ -1,5 +1,9 @@
 package com.shinesolutions.aemorchestrator.model;
 
+/**
+ * EC2 instance tags the orchestrator uses to describe and pair AEM instances, each holding the tag
+ * key.
+ */
 public enum InstanceTags {
   PAIR_INSTANCE_ID("PairInstanceId"),
   PREVIEW_PAIR_INSTANCE_ID("PreviewPairInstanceId"),

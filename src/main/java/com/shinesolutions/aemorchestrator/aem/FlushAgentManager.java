@@ -25,6 +25,12 @@ public class FlushAgentManager {
 
   @Resource private AemApiHelper aemApiHelper;
 
+  /**
+   * Deletes the flush agent for the given dispatcher from the AEM instance at {@code aemBaseUrl}.
+   *
+   * @param dispatcherInstanceId EC2 instance id of the dispatcher, used to derive the agent name
+   * @param aemBaseUrl base URL of the AEM instance hosting the flush agent
+   */
   public void deleteFlushAgent(String dispatcherInstanceId, String aemBaseUrl, AgentRunMode runMode)
       throws ApiException {
     logger.info(
@@ -43,6 +49,14 @@ public class FlushAgentManager {
     logger.debug("ApiResponse status code: " + response.getStatusCode());
   }
 
+  /**
+   * Creates a flush agent on the AEM instance at {@code aemBaseUrl} that invalidates the cache of
+   * the given dispatcher, retrying up to 5 times on {@link ApiException}.
+   *
+   * @param dispatcherInstanceId EC2 instance id of the dispatcher, used to derive the agent name
+   * @param aemBaseUrl base URL of the AEM instance hosting the flush agent
+   * @param aemDispatcherBaseUrl base URL of the dispatcher whose cache the agent flushes
+   */
   @Retryable(maxAttempts = 5, retryFor = ApiException.class, backoff = @Backoff(delay = 5000))
   public void createFlushAgent(
       String dispatcherInstanceId,

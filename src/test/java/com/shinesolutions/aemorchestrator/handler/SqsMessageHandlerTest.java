@@ -26,7 +26,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-public class SqsMessageHandlerTest {
+class SqsMessageHandlerTest {
 
   @Mock private SnsMessageExtractor snsMessageExtractor;
 
@@ -41,7 +41,7 @@ public class SqsMessageHandlerTest {
   private static final String TEXT = "\"text\"";
 
   @BeforeEach
-  public void setup() throws Exception {
+  void setup() throws Exception {
     String subject = "test1Subject";
     String messageBody = TEXT.replace("\"", "\\\"");
 
@@ -65,7 +65,7 @@ public class SqsMessageHandlerTest {
   }
 
   @Test
-  public void testSuccess() {
+  void testSuccess() {
     ArgumentCaptor<String> eventMessageCaptor = ArgumentCaptor.forClass(String.class);
 
     when(mockEventHandler1.handleEvent(anyString())).thenReturn(true);
@@ -81,7 +81,7 @@ public class SqsMessageHandlerTest {
   }
 
   @Test
-  public void testSuccessWithDifferentSubject() {
+  void testSuccessWithDifferentSubject() {
     snsMessage.setSubject("test2Subject");
 
     when(mockEventHandler2.handleEvent(anyString())).thenReturn(true);
@@ -95,7 +95,7 @@ public class SqsMessageHandlerTest {
   }
 
   @Test
-  public void testErrorWhenReadingMessage() throws Exception {
+  void testErrorWhenReadingMessage() throws Exception {
     when(snsMessageExtractor.extractMessage(anyString())).thenThrow(new RuntimeException());
 
     boolean result = sqsMessageHandler.handleMessage(testMessage);
@@ -107,7 +107,7 @@ public class SqsMessageHandlerTest {
   }
 
   @Test
-  public void testNoSnsMessage() throws IOException {
+  void testNoSnsMessage() throws IOException {
     snsMessage = null;
     when(snsMessageExtractor.extractMessage(anyString())).thenReturn(snsMessage);
 
@@ -120,7 +120,7 @@ public class SqsMessageHandlerTest {
   }
 
   @Test
-  public void testNoSnsMessageSubject() {
+  void testNoSnsMessageSubject() {
     snsMessage.setSubject(null);
 
     boolean result = sqsMessageHandler.handleMessage(testMessage);
@@ -132,7 +132,7 @@ public class SqsMessageHandlerTest {
   }
 
   @Test
-  public void testNoEventHandlerFound() {
+  void testNoEventHandlerFound() {
     snsMessage.setSubject("unknownSubject");
 
     boolean result = sqsMessageHandler.handleMessage(testMessage);
@@ -145,7 +145,7 @@ public class SqsMessageHandlerTest {
   }
 
   @Test
-  public void testEventHandlerError() {
+  void testEventHandlerError() {
     doThrow(new RuntimeException("Test exception"))
         .when(mockEventHandler1)
         .handleEvent(anyString());

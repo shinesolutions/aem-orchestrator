@@ -27,6 +27,10 @@ public class ReplicationAgentManager {
 
   @Resource private AemApiHelper aemApiHelper;
 
+  /**
+   * Creates a replication agent on the author instance that replicates content to the given publish
+   * instance, authenticating as the replicator user.
+   */
   public void createReplicationAgent(
       String publishId, String publishAemBaseUrl, String authorAemBaseUrl, AgentRunMode runMode)
       throws ApiException {
@@ -44,6 +48,10 @@ public class ReplicationAgentManager {
     performPostAgentAction(request, authorAemBaseUrl, AgentAction.CREATE);
   }
 
+  /**
+   * Creates a replication agent on the author instance that replicates content to the given preview
+   * publish instance, authenticating as the replicator user.
+   */
   public void createPreviewReplicationAgent(
       String publishId, String publishAemBaseUrl, String authorAemBaseUrl, AgentRunMode runMode)
       throws ApiException {
@@ -61,6 +69,10 @@ public class ReplicationAgentManager {
     performPostAgentAction(request, authorAemBaseUrl, AgentAction.CREATE);
   }
 
+  /**
+   * Creates a reverse replication agent on the author instance that pulls content back from the
+   * given publish instance.
+   */
   public void createReverseReplicationAgent(
       String publishId, String publishAemBaseUrl, String authorAemBaseUrl, AgentRunMode runMode)
       throws ApiException {
@@ -78,6 +90,10 @@ public class ReplicationAgentManager {
     performPostAgentAction(request, authorAemBaseUrl, AgentAction.CREATE);
   }
 
+  /**
+   * Creates a reverse replication agent on the author instance that pulls content back from the
+   * given preview publish instance.
+   */
   public void createPreviewReverseReplicationAgent(
       String publishId, String publishAemBaseUrl, String authorAemBaseUrl, AgentRunMode runMode)
       throws ApiException {
@@ -95,6 +111,10 @@ public class ReplicationAgentManager {
     performPostAgentAction(request, authorAemBaseUrl, AgentAction.CREATE);
   }
 
+  /**
+   * Pauses replication to the given publish instance by giving its agent an invalid transport user,
+   * so content queues on the author until {@link #resumeReplicationAgent} is called.
+   */
   public void pauseReplicationAgent(String publishId, String authorAemBaseUrl, AgentRunMode runMode)
       throws ApiException {
     logger.info("Pausing replication agent for publish id: " + publishId);
@@ -106,6 +126,11 @@ public class ReplicationAgentManager {
     performPostAgentAction(request, authorAemBaseUrl, AgentAction.PAUSE);
   }
 
+  /**
+   * Pauses replication to the given preview publish instance by giving its agent an invalid
+   * transport user, so content queues on the author until {@link #resumePreviewReplicationAgent} is
+   * called.
+   */
   public void pausePreviewReplicationAgent(
       String publishId, String authorAemBaseUrl, AgentRunMode runMode) throws ApiException {
     logger.info("Pausing replication agent for preview publish id: " + publishId);
@@ -117,6 +142,10 @@ public class ReplicationAgentManager {
     performPostAgentAction(request, authorAemBaseUrl, AgentAction.PAUSE);
   }
 
+  /**
+   * Resumes replication to the given publish instance by restoring the replicator credentials on
+   * its agent.
+   */
   public void resumeReplicationAgent(
       String publishId, String authorAemBaseUrl, AgentRunMode runMode) throws ApiException {
     logger.info("Resuming replication agent for publish id: " + publishId);
@@ -131,6 +160,10 @@ public class ReplicationAgentManager {
     performPostAgentAction(request, authorAemBaseUrl, AgentAction.RESTART);
   }
 
+  /**
+   * Resumes replication to the given preview publish instance by restoring the replicator
+   * credentials on its agent.
+   */
   public void resumePreviewReplicationAgent(
       String publishId, String authorAemBaseUrl, AgentRunMode runMode) throws ApiException {
     logger.info("Resuming replication agent for preview publish id: " + publishId);
@@ -145,6 +178,7 @@ public class ReplicationAgentManager {
     performPostAgentAction(request, authorAemBaseUrl, AgentAction.RESTART);
   }
 
+  /** Deletes the author's replication agent for the given publish instance. */
   public void deleteReplicationAgent(
       String publishId, String authorAemBaseUrl, AgentRunMode runMode) throws ApiException {
     logger.info("Deleting replication agent for publish id: " + publishId);
@@ -155,6 +189,7 @@ public class ReplicationAgentManager {
     performPostAgentAction(request, authorAemBaseUrl, AgentAction.DELETE);
   }
 
+  /** Deletes the author's replication agent for the given preview publish instance. */
   public void deletePreviewReplicationAgent(
       String publishId, String authorAemBaseUrl, AgentRunMode runMode) throws ApiException {
     logger.info("Deleting replication agent for preview publish id: " + publishId);
@@ -166,6 +201,7 @@ public class ReplicationAgentManager {
     performPostAgentAction(request, authorAemBaseUrl, AgentAction.DELETE);
   }
 
+  /** Deletes the author's reverse replication agent for the given publish instance. */
   public void deleteReverseReplicationAgent(
       String publishId, String authorAemBaseUrl, AgentRunMode runMode) throws ApiException {
     logger.info("Deleting reverse replication agent for publish id: " + publishId);
@@ -177,6 +213,7 @@ public class ReplicationAgentManager {
     performPostAgentAction(request, authorAemBaseUrl, AgentAction.DELETE);
   }
 
+  /** Deletes the author's reverse replication agent for the given preview publish instance. */
   public void deletePreviewReverseReplicationAgent(
       String publishId, String authorAemBaseUrl, AgentRunMode runMode) throws ApiException {
     logger.info("Deleting reverse replication agent for preview publish id: " + publishId);

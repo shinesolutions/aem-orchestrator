@@ -20,7 +20,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-public class AutoScalingTerminateEventHandlerTest {
+class AutoScalingTerminateEventHandlerTest {
 
   @Mock private Map<String, Action> scaleDownAutoScaleGroupMappings;
 
@@ -33,19 +33,19 @@ public class AutoScalingTerminateEventHandlerTest {
   private EventMessage message;
 
   @BeforeEach
-  public void setUp() throws Exception {
+  void setUp() throws Exception {
     action = mock(Action.class);
     messageContent = "testMessage";
 
     message = new EventMessage();
     message.setAutoScalingGroupName("testGroup");
-    message.setEC2InstanceId("test-instance");
+    message.setEc2InstanceId("test-instance");
 
     when(eventMessageExtractor.extractMessage(messageContent)).thenReturn(message);
   }
 
   @Test
-  public void testNoActionFound() throws Exception {
+  void testNoActionFound() throws Exception {
     when(scaleDownAutoScaleGroupMappings.get(anyString())).thenReturn(null);
 
     boolean result = handler.handleEvent(messageContent);
@@ -54,7 +54,7 @@ public class AutoScalingTerminateEventHandlerTest {
   }
 
   @Test
-  public void testInstanceHandlesExceptionsGracefully() throws Exception {
+  void testInstanceHandlesExceptionsGracefully() throws Exception {
     when(scaleDownAutoScaleGroupMappings.get(anyString())).thenThrow(new RuntimeException());
 
     boolean result = handler.handleEvent(messageContent);
@@ -63,24 +63,24 @@ public class AutoScalingTerminateEventHandlerTest {
   }
 
   @Test
-  public void testSuccessAndActionDeleteMessage() throws Exception {
+  void testSuccessAndActionDeleteMessage() throws Exception {
     when(scaleDownAutoScaleGroupMappings.get(anyString())).thenReturn(action);
-    when(action.execute(message.getEC2InstanceId())).thenReturn(true);
+    when(action.execute(message.getEc2InstanceId())).thenReturn(true);
 
     boolean result = handler.handleEvent(messageContent);
 
     assertThat(result, equalTo(true));
-    verify(action, times(1)).execute(message.getEC2InstanceId());
+    verify(action, times(1)).execute(message.getEc2InstanceId());
   }
 
   @Test
-  public void testSuccessAndActionKeepMessage() throws Exception {
+  void testSuccessAndActionKeepMessage() throws Exception {
     when(scaleDownAutoScaleGroupMappings.get(anyString())).thenReturn(action);
-    when(action.execute(message.getEC2InstanceId())).thenReturn(false);
+    when(action.execute(message.getEc2InstanceId())).thenReturn(false);
 
     boolean result = handler.handleEvent(messageContent);
 
     assertThat(result, equalTo(false));
-    verify(action, times(1)).execute(message.getEC2InstanceId());
+    verify(action, times(1)).execute(message.getEc2InstanceId());
   }
 }

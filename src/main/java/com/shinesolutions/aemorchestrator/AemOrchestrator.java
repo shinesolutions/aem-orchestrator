@@ -26,6 +26,10 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.retry.annotation.EnableRetry;
 
+/**
+ * Spring Boot entry point for the AEM Orchestrator, which manages AEM instances in response to Auto
+ * Scaling events received from SQS.
+ */
 @SpringBootApplication
 @ComponentScan
 @EnableRetry
@@ -33,6 +37,10 @@ public class AemOrchestrator {
 
   private static final Logger logger = LoggerFactory.getLogger(AemOrchestrator.class);
 
+  /**
+   * Starts the application context, waits for the required AWS/AEM resources to be ready, then
+   * starts the SQS message listener; closes the context if either step fails.
+   */
   public static void main(String[] args) throws Exception {
     ConfigurableApplicationContext context = SpringApplication.run(AemOrchestrator.class, args);
 

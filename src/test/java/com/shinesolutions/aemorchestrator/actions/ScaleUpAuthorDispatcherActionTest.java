@@ -19,7 +19,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-public class ScaleUpAuthorDispatcherActionTest {
+class ScaleUpAuthorDispatcherActionTest {
 
   @Mock private FlushAgentManager flushAgentManager;
 
@@ -32,7 +32,7 @@ public class ScaleUpAuthorDispatcherActionTest {
   private String authElbAemBaseUrl;
 
   @BeforeEach
-  public void setUp() throws Exception {
+  void setUp() throws Exception {
     instanceId = "instanceId";
     authDispatcherAemBaseUrl = "authDispatcherAemBaseUrl";
     authElbAemBaseUrl = "authElbAemBaseUrl";
@@ -43,7 +43,7 @@ public class ScaleUpAuthorDispatcherActionTest {
   }
 
   @Test
-  public void testCreateFlushAgentAndAddTags() throws Exception {
+  void testCreateFlushAgentAndAddTags() throws Exception {
     boolean success = action.execute(instanceId);
 
     verify(flushAgentManager, times(1))
@@ -56,7 +56,7 @@ public class ScaleUpAuthorDispatcherActionTest {
   }
 
   @Test
-  public void testHandlesExceptionOnFlushAgentCreation() throws Exception {
+  void testHandlesExceptionOnFlushAgentCreation() throws Exception {
     doThrow(new ApiException())
         .when(flushAgentManager)
         .createFlushAgent(
@@ -70,7 +70,7 @@ public class ScaleUpAuthorDispatcherActionTest {
   }
 
   @Test
-  public void testHandlesExceptionOnTagCreation() throws Exception {
+  void testHandlesExceptionOnTagCreation() throws Exception {
     doThrow(new RuntimeException())
         .when(aemHelperService)
         .tagAuthorDispatcherWithAuthorHost(instanceId);

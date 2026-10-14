@@ -3,6 +3,12 @@ package com.shinesolutions.aemorchestrator.model;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+/**
+ * SNS notification received as the body of an SQS message.
+ *
+ * <p>Its {@code Subject} selects the message handler and its {@code Message} carries the event
+ * payload as a JSON string; unknown fields are ignored.
+ */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class SnsMessage {
 
@@ -31,10 +37,10 @@ public class SnsMessage {
   private String signature;
 
   @JsonProperty("SigningCertURL")
-  private String signingCertURL;
+  private String signingCertUrl;
 
   @JsonProperty("UnsubscribeURL")
-  private String unsubscribeURL;
+  private String unsubscribeUrl;
 
   public String getType() {
     return type;
@@ -100,19 +106,19 @@ public class SnsMessage {
     this.signature = signature;
   }
 
-  public String getSigningCertURL() {
-    return signingCertURL;
+  public String getSigningCertUrl() {
+    return signingCertUrl;
   }
 
-  public void setSigningCertURL(String signingCertURL) {
-    this.signingCertURL = signingCertURL;
+  public void setSigningCertUrl(String signingCertUrl) {
+    this.signingCertUrl = signingCertUrl;
   }
 
-  public String getUnsubscribeURL() {
-    return unsubscribeURL;
+  public String getUnsubscribeUrl() {
+    return unsubscribeUrl;
   }
 
-  public void setUnsubscribeURL(String unsubscribeURL) {
-    this.unsubscribeURL = unsubscribeURL;
+  public void setUnsubscribeUrl(String unsubscribeUrl) {
+    this.unsubscribeUrl = unsubscribeUrl;
   }
 }

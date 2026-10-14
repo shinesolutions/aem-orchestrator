@@ -23,9 +23,17 @@ import java.util.Map;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+/**
+ * Spring configuration that maps incoming messages to their handlers and auto scaling groups to
+ * their scaling actions.
+ */
 @Configuration
 public class MappingConfig {
 
+  /**
+   * Maps each {@link EventType} value to its handler; an incoming SNS message is dispatched to the
+   * handler whose key is a prefix of the message subject.
+   */
   @Bean
   public Map<String, MessageHandler> eventTypeHandlerMappings(
       final AutoScalingTerminateEventHandler scaleDownEventHandler,
@@ -42,6 +50,10 @@ public class MappingConfig {
     return mappings;
   }
 
+  /**
+   * Maps each auto scaling group name in {@link EnvironmentValues} to the action that handles an
+   * instance terminating in that group.
+   */
   @Bean(name = "scaleDownAutoScaleGroupMappings")
   public Map<String, Action> scaleDownAutoScaleGroupMappings(
       final ScaleDownPublishDispatcherAction scaleDownPublishDispatcherAction,
@@ -66,6 +78,10 @@ public class MappingConfig {
     return mappings;
   }
 
+  /**
+   * Maps each auto scaling group name in {@link EnvironmentValues} to the action that handles an
+   * instance launching in that group.
+   */
   @Bean(name = "scaleUpAutoScaleGroupMappings")
   public Map<String, Action> scaleUpAutoScaleGroupMappings(
       final ScaleUpPublishDispatcherAction scaleUpPublishDispatcherAction,

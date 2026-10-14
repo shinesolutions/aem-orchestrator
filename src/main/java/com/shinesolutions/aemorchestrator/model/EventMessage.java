@@ -3,6 +3,13 @@ package com.shinesolutions.aemorchestrator.model;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+/**
+ * Auto Scaling instance launch, termination or test notification, delivered as the {@code Message}
+ * of an SNS message.
+ *
+ * <p>Maps the event fields such as {@code Event}, {@code AutoScalingGroupName} and {@code
+ * EC2InstanceId}; unknown fields are ignored.
+ */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class EventMessage {
 
@@ -25,7 +32,7 @@ public class EventMessage {
   private String endTime;
 
   @JsonProperty("AutoScalingGroupARN")
-  private String autoScalingGroupARN;
+  private String autoScalingGroupArn;
 
   @JsonProperty("AutoScalingGroupName")
   private String autoScalingGroupName;
@@ -40,7 +47,7 @@ public class EventMessage {
   private String time;
 
   @JsonProperty("EC2InstanceId")
-  private String eC2InstanceId;
+  private String ec2InstanceId;
 
   @JsonProperty("StatusCode")
   private String statusCode;
@@ -105,12 +112,12 @@ public class EventMessage {
     this.endTime = endTime;
   }
 
-  public String getAutoScalingGroupARN() {
-    return autoScalingGroupARN;
+  public String getAutoScalingGroupArn() {
+    return autoScalingGroupArn;
   }
 
-  public void setAutoScalingGroupARN(String autoScalingGroupARN) {
-    this.autoScalingGroupARN = autoScalingGroupARN;
+  public void setAutoScalingGroupArn(String autoScalingGroupArn) {
+    this.autoScalingGroupArn = autoScalingGroupArn;
   }
 
   public String getAutoScalingGroupName() {
@@ -145,12 +152,12 @@ public class EventMessage {
     this.time = time;
   }
 
-  public String getEC2InstanceId() {
-    return eC2InstanceId;
+  public String getEc2InstanceId() {
+    return ec2InstanceId;
   }
 
-  public void setEC2InstanceId(String eC2InstanceId) {
-    this.eC2InstanceId = eC2InstanceId;
+  public void setEc2InstanceId(String ec2InstanceId) {
+    this.ec2InstanceId = ec2InstanceId;
   }
 
   public String getStatusCode() {

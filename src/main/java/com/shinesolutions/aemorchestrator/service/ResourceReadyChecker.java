@@ -10,6 +10,10 @@ import org.springframework.retry.policy.SimpleRetryPolicy;
 import org.springframework.retry.support.RetryTemplate;
 import org.springframework.stereotype.Component;
 
+/**
+ * Checks that external dependencies (currently the Author ELB) are ready before the orchestrator
+ * starts consuming messages.
+ */
 @Component
 public class ResourceReadyChecker {
 
@@ -30,13 +34,14 @@ public class ResourceReadyChecker {
   @Resource private AemInstanceHelperService aemInstanceHelperService;
 
   /**
-   * Ensures external dependencies are available before starting to read messages from the queue
+   * Ensures external dependencies are available before starting to read messages from the queue.
+   *
+   * <p>Polls the Author ELB health check with exponential backoff, configured via the
+   * startup.waitForAuthorElb.* properties, until it is healthy or the attempts are exhausted.
    *
    * @return true if startup successful, false if not
    */
   public boolean isResourcesReady() {
-    boolean isStartupOk = false;
-
     ExponentialBackOffPolicy exponentialBackOffPolicy = getExponentialBackOffPolicy();
     SimpleRetryPolicy retryPolicy = getSimpleRetryPolicy();
 
@@ -47,13 +52,15 @@ public class ResourceReadyChecker {
 
     logger.info("Waiting for Author ELB to be in healthy state");
 
+    boolean isStartupOk = false;
     try {
       isStartupOk =
           retryTemplate.execute(
               c -> {
                 boolean result = aemInstanceHelperService.isAuthorElbHealthy();
-                if (!result) // Needs to be healthy
-                throw new Exception("Author ELB does not appear to be in a healthy state");
+                if (!result) { // Needs to be healthy
+                  throw new Exception("Author ELB does not appear to be in a healthy state");
+                }
                 return result;
               });
     } catch (Exception e) {

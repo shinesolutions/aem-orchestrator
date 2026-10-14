@@ -1,16 +1,26 @@
 package com.shinesolutions.aemorchestrator.service;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.allOf;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasProperty;
+import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
-import java.util.*;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.NoSuchElementException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -34,7 +44,24 @@ import software.amazon.awssdk.services.cloudwatch.CloudWatchClient;
 import software.amazon.awssdk.services.cloudwatch.model.DeleteAlarmsRequest;
 import software.amazon.awssdk.services.cloudwatch.model.PutMetricAlarmRequest;
 import software.amazon.awssdk.services.ec2.Ec2Client;
-import software.amazon.awssdk.services.ec2.model.*;
+import software.amazon.awssdk.services.ec2.model.CreateSnapshotRequest;
+import software.amazon.awssdk.services.ec2.model.CreateSnapshotResponse;
+import software.amazon.awssdk.services.ec2.model.CreateTagsRequest;
+import software.amazon.awssdk.services.ec2.model.DescribeInstanceAttributeRequest;
+import software.amazon.awssdk.services.ec2.model.DescribeInstanceAttributeResponse;
+import software.amazon.awssdk.services.ec2.model.DescribeInstancesRequest;
+import software.amazon.awssdk.services.ec2.model.DescribeInstancesResponse;
+import software.amazon.awssdk.services.ec2.model.DescribeTagsRequest;
+import software.amazon.awssdk.services.ec2.model.DescribeTagsResponse;
+import software.amazon.awssdk.services.ec2.model.EbsInstanceBlockDevice;
+import software.amazon.awssdk.services.ec2.model.Instance;
+import software.amazon.awssdk.services.ec2.model.InstanceBlockDeviceMapping;
+import software.amazon.awssdk.services.ec2.model.InstanceState;
+import software.amazon.awssdk.services.ec2.model.InstanceStateName;
+import software.amazon.awssdk.services.ec2.model.Placement;
+import software.amazon.awssdk.services.ec2.model.Reservation;
+import software.amazon.awssdk.services.ec2.model.TagDescription;
+import software.amazon.awssdk.services.ec2.model.TerminateInstancesRequest;
 import software.amazon.awssdk.services.elasticloadbalancingv2.ElasticLoadBalancingV2Client;
 import software.amazon.awssdk.services.elasticloadbalancingv2.model.DescribeLoadBalancersRequest;
 import software.amazon.awssdk.services.elasticloadbalancingv2.model.DescribeLoadBalancersResponse;
@@ -45,7 +72,7 @@ import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 
 @ExtendWith(MockitoExtension.class)
-public class AwsHelperServiceTest {
+class AwsHelperServiceTest {
 
   private static final String TEST_INSTANCE_ID = "testInstanceId";
 
@@ -64,7 +91,7 @@ public class AwsHelperServiceTest {
   @InjectMocks private AwsHelperService awsHelperService;
 
   @Test
-  public void testAddTags() {
+  void testAddTags() {
     final Map<String, String> tags = new HashMap<>();
     tags.put("key1", "value1");
     awsHelperService.addTags(TEST_INSTANCE_ID, tags);
@@ -78,7 +105,7 @@ public class AwsHelperServiceTest {
   }
 
   @Test
-  public void testCreateContentHealthCheckAlarm() {
+  void testCreateContentHealthCheckAlarm() {
     final String alarmName = "testAlarmName";
     final String alarmDescription = "testAlarmDescription";
     final String publishInstanceId = "testPublishInstanceId";
@@ -99,7 +126,7 @@ public class AwsHelperServiceTest {
   }
 
   @Test
-  public void testCreateSnapshot() {
+  void testCreateSnapshot() {
     final String snapshotId = "testSnapshotId";
     final CreateSnapshotResponse response =
         CreateSnapshotResponse.builder().snapshotId(snapshotId).build();
@@ -118,7 +145,7 @@ public class AwsHelperServiceTest {
   }
 
   @Test
-  public void testDeleteAlarm() {
+  void testDeleteAlarm() {
     final String alarmName = "testAlarmName";
     awsHelperService.deleteAlarm(alarmName);
 
@@ -129,7 +156,7 @@ public class AwsHelperServiceTest {
   }
 
   @Test
-  public void testGetAutoScalingGroupDesiredCapacity() {
+  void testGetAutoScalingGroupDesiredCapacity() {
     final int desiredCapacity = 5;
 
     final AutoScalingGroup group =
@@ -151,7 +178,7 @@ public class AwsHelperServiceTest {
   }
 
   @Test
-  public void testGetAvailabilityZone() {
+  void testGetAvailabilityZone() {
     final String availabilityZone = "testZone";
     final Placement placement = Placement.builder().availabilityZone(availabilityZone).build();
     final Instance instance = Instance.builder().placement(placement).build();
@@ -170,7 +197,7 @@ public class AwsHelperServiceTest {
   }
 
   @Test
-  public void testGetElbName() {
+  void testGetElbName() {
     final LoadBalancer loadBalancer =
         LoadBalancer.builder().loadBalancerName("testElbName").build();
 
@@ -181,7 +208,8 @@ public class AwsHelperServiceTest {
         .thenReturn(response);
 
     final String elbArn =
-        "arn:aws:elasticloadbalancing:ap-southeast-2:918473058104:loadbalancer/app/bloch-Autho-1GWRY37R2O1GQ/809dd96ac8ee4083";
+        "arn:aws:elasticloadbalancing:ap-southeast-2:918473058104:loadbalancer/app/"
+            + "bloch-Autho-1GWRY37R2O1GQ/809dd96ac8ee4083";
     assertThat(awsHelperService.getElbName(elbArn), equalTo(loadBalancer.loadBalancerName()));
 
     final ArgumentCaptor<DescribeLoadBalancersRequest> argumentCaptor =
@@ -191,7 +219,7 @@ public class AwsHelperServiceTest {
   }
 
   @Test
-  public void testGetElbDnsName() {
+  void testGetElbDnsName() {
     final LoadBalancer loadBalancer = LoadBalancer.builder().dnsName("testDnsName").build();
 
     final DescribeLoadBalancersResponse response =
@@ -210,7 +238,7 @@ public class AwsHelperServiceTest {
   }
 
   @Test
-  public void testGetInstanceIdsForAutoScalingGroup() {
+  void testGetInstanceIdsForAutoScalingGroup() {
     final software.amazon.awssdk.services.autoscaling.model.Instance instance =
         software.amazon.awssdk.services.autoscaling.model.Instance.builder()
             .instanceId(TEST_INSTANCE_ID)
@@ -236,7 +264,7 @@ public class AwsHelperServiceTest {
   }
 
   @Test
-  public void testGetInstancesForAutoScalingGroup() {
+  void testGetInstancesForAutoScalingGroup() {
     final software.amazon.awssdk.services.autoscaling.model.Instance instance =
         software.amazon.awssdk.services.autoscaling.model.Instance.builder()
             .instanceId(TEST_INSTANCE_ID)
@@ -266,7 +294,7 @@ public class AwsHelperServiceTest {
   }
 
   @Test
-  public void testGetLaunchTime() {
+  void testGetLaunchTime() {
     final Instant launchTime = Instant.now();
     final Instance instance = Instance.builder().launchTime(launchTime).build();
     final Reservation reservation = Reservation.builder().instances(instance).build();
@@ -285,7 +313,7 @@ public class AwsHelperServiceTest {
   }
 
   @Test
-  public void testGetLaunchTime_NoInstance() {
+  void testGetLaunchTime_noInstance() {
     // No reservations: the lookup fails inside the service and is wrapped in AwsServiceException
     when(ec2Client.describeInstances(any(DescribeInstancesRequest.class)))
         .thenReturn(DescribeInstancesResponse.builder().build());
@@ -298,7 +326,7 @@ public class AwsHelperServiceTest {
   }
 
   @Test
-  public void testGetPrivateIp() {
+  void testGetPrivateIp() {
     final String privateIp = "0.0.0.0";
     final Instance instance = Instance.builder().privateIpAddress(privateIp).build();
     final Reservation reservation = Reservation.builder().instances(instance).build();
@@ -316,7 +344,7 @@ public class AwsHelperServiceTest {
   }
 
   @Test
-  public void testGetPrivateIp_NoInstance() {
+  void testGetPrivateIp_noInstance() {
     // No reservations: the lookup fails inside the service and is wrapped in AwsServiceException
     when(ec2Client.describeInstances(any(DescribeInstancesRequest.class)))
         .thenReturn(DescribeInstancesResponse.builder().build());
@@ -329,7 +357,7 @@ public class AwsHelperServiceTest {
   }
 
   @Test
-  public void testGetStackPhysicalResourceId() {
+  void testGetStackPhysicalResourceId() {
     final StackResource stackResource1 =
         StackResource.builder()
             .logicalResourceId("logical1")
@@ -361,7 +389,7 @@ public class AwsHelperServiceTest {
   }
 
   @Test
-  public void testGetStackPhysicalResourceId_NoStackResource() {
+  void testGetStackPhysicalResourceId_noStackResource() {
     final DescribeStackResourcesResponse response =
         DescribeStackResourcesResponse.builder().stackResources(Collections.emptyList()).build();
 
@@ -376,7 +404,7 @@ public class AwsHelperServiceTest {
   }
 
   @Test
-  public void testGetTags() {
+  void testGetTags() {
     TagDescription tag1 = TagDescription.builder().key("key1").value("value1").build();
     TagDescription tag2 = TagDescription.builder().key("key2").value("value2").build();
 
@@ -392,7 +420,7 @@ public class AwsHelperServiceTest {
   }
 
   @Test
-  public void testGetVolumeId() {
+  void testGetVolumeId() {
     final String volumeId = "testVolumeId";
     final String deviceName = "testDeviceName";
 
@@ -415,7 +443,7 @@ public class AwsHelperServiceTest {
   }
 
   @Test
-  public void testGetVolumeId_NoEbsInstance() {
+  void testGetVolumeId_noEbsInstance() {
     final DescribeInstanceAttributeResponse response =
         DescribeInstanceAttributeResponse.builder()
             .blockDeviceMappings(Collections.emptyList())
@@ -432,7 +460,7 @@ public class AwsHelperServiceTest {
   }
 
   @Test
-  public void testIsInstanceRunning() {
+  void testIsInstanceRunning() {
     final DescribeInstancesResponse runningResponse =
         DescribeInstancesResponse.builder()
             .reservations(
@@ -472,7 +500,7 @@ public class AwsHelperServiceTest {
   }
 
   @Test
-  public void testIsInstanceRunning_Default() {
+  void testIsInstanceRunning_default() {
     final DescribeInstancesResponse response =
         DescribeInstancesResponse.builder().reservations(Collections.emptyList()).build();
 
@@ -482,7 +510,7 @@ public class AwsHelperServiceTest {
   }
 
   @Test
-  public void testReadFileFromS3() throws IOException {
+  void testReadFileFromS3() throws IOException {
     final String testInput = "Test Input";
     final ResponseInputStream<GetObjectResponse> responseInputStream =
         new ResponseInputStream<>(
@@ -505,7 +533,7 @@ public class AwsHelperServiceTest {
   }
 
   @Test
-  public void testReadFileFromS3_NoKey() {
+  void testReadFileFromS3_noKey() {
     // SDK v1 also rejected a missing key (IllegalArgumentException from AmazonS3Client.getObject)
     when(s3Client.utilities()).thenReturn(S3Utilities.builder().region(Region.US_EAST_1).build());
 
@@ -516,7 +544,7 @@ public class AwsHelperServiceTest {
   }
 
   @Test
-  public void testReadFileFromS3_KeyWithReservedCharacters() throws IOException {
+  void testReadFileFromS3_keyWithReservedCharacters() throws IOException {
     final ResponseInputStream<GetObjectResponse> responseInputStream =
         new ResponseInputStream<>(
             GetObjectResponse.builder().build(),
@@ -537,7 +565,7 @@ public class AwsHelperServiceTest {
   }
 
   @Test
-  public void testSetAutoScalingGroupDesiredCapacity() {
+  void testSetAutoScalingGroupDesiredCapacity() {
     final String groupName = "testGroupName";
     final int desiredCapacity = 5;
 
@@ -551,7 +579,7 @@ public class AwsHelperServiceTest {
   }
 
   @Test
-  public void testTerminateInstance() {
+  void testTerminateInstance() {
     awsHelperService.terminateInstance(TEST_INSTANCE_ID);
 
     final ArgumentCaptor<TerminateInstancesRequest> argumentCaptor =

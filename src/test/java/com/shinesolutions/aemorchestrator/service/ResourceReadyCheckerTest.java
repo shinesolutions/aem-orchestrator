@@ -17,19 +17,19 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-public class ResourceReadyCheckerTest {
+class ResourceReadyCheckerTest {
 
   @Mock private AemInstanceHelperService aemInstanceHelperService;
 
   @InjectMocks private ResourceReadyChecker startupManager;
 
   @BeforeEach
-  public void setUp() throws Exception {
+  void setUp() throws Exception {
     setFields(1, 1, 1, 1);
   }
 
   @Test
-  public void testSuccess() throws Exception {
+  void testSuccess() throws Exception {
     when(aemInstanceHelperService.isAuthorElbHealthy()).thenReturn(true);
 
     boolean result = startupManager.isResourcesReady();
@@ -38,7 +38,7 @@ public class ResourceReadyCheckerTest {
   }
 
   @Test
-  public void testElbNotHealthyStateOneRetry() throws Exception {
+  void testElbNotHealthyStateOneRetry() throws Exception {
     when(aemInstanceHelperService.isAuthorElbHealthy()).thenReturn(false);
 
     boolean result = startupManager.isResourcesReady();
@@ -47,7 +47,7 @@ public class ResourceReadyCheckerTest {
   }
 
   @Test
-  public void testManyFailsThenSucceed() throws Exception {
+  void testManyFailsThenSucceed() throws Exception {
     when(aemInstanceHelperService.isAuthorElbHealthy()).thenReturn(false, false, false, true);
 
     setFields(5, 1, 1, 1);
@@ -58,7 +58,7 @@ public class ResourceReadyCheckerTest {
   }
 
   @Test
-  public void testElbNotHealthyStateManyRetries() throws Exception {
+  void testElbNotHealthyStateManyRetries() throws Exception {
     int numberOfRetries = 5;
     when(aemInstanceHelperService.isAuthorElbHealthy()).thenReturn(false);
 
@@ -72,7 +72,7 @@ public class ResourceReadyCheckerTest {
   }
 
   @Test
-  public void testHealthCheckThrowsException() throws Exception {
+  void testHealthCheckThrowsException() throws Exception {
 
     when(aemInstanceHelperService.isAuthorElbHealthy()).thenThrow(new IOException());
 
@@ -82,7 +82,7 @@ public class ResourceReadyCheckerTest {
   }
 
   @Test
-  public void testManyReturnOptionsBeforeSuccess() throws Exception {
+  void testManyReturnOptionsBeforeSuccess() throws Exception {
 
     when(aemInstanceHelperService.isAuthorElbHealthy())
         .thenThrow(new IOException())

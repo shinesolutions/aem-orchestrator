@@ -1,5 +1,11 @@
 package com.shinesolutions.aemorchestrator.model;
 
+/**
+ * Names of the AWS resources that make up this AEM environment: the auto scaling groups, the author
+ * load balancer and its DNS name, and the SNS event topic ARN.
+ *
+ * <p>Resolved from CloudFormation stacks at startup by {@code AemConfig}.
+ */
 public class EnvironmentValues {
   private String autoScaleGroupNameForAuthorDispatcher;
   private String autoScaleGroupNameForPublish;

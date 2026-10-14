@@ -13,18 +13,18 @@ import tools.jackson.core.exc.StreamReadException;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 
-public class EventMessageExtractorTest {
+class EventMessageExtractorTest {
 
   private EventMessageExtractor eventMessageExtractor;
 
   @BeforeEach
-  public void setUp() throws Exception {
+  void setUp() throws Exception {
     eventMessageExtractor = new EventMessageExtractor();
   }
 
   @Test
   @SuppressWarnings("resource")
-  public void testExtractEventMessageSuccess() throws Exception {
+  void testExtractEventMessageSuccess() throws Exception {
 
     File sampleFileMessageOnly =
         new File(getClass().getResource("/sample-sqs-event-message-1.json").getFile());
@@ -41,18 +41,18 @@ public class EventMessageExtractorTest {
     assertThat(eventMsg.getRequestId(), equalTo(root.path("RequestId").asString()));
     assertThat(eventMsg.getEndTime(), equalTo(root.path("EndTime").asString()));
     assertThat(
-        eventMsg.getAutoScalingGroupARN(), equalTo(root.path("AutoScalingGroupARN").asString()));
+        eventMsg.getAutoScalingGroupArn(), equalTo(root.path("AutoScalingGroupARN").asString()));
 
     assertThat(eventMsg.getActivityId(), equalTo(root.path("ActivityId").asString()));
     assertThat(eventMsg.getStartTime(), equalTo(root.path("StartTime").asString()));
     assertThat(eventMsg.getService(), equalTo(root.path("Service").asString()));
 
     assertThat(eventMsg.getTime(), equalTo(root.path("Time").asString()));
-    assertThat(eventMsg.getEC2InstanceId(), equalTo(root.path("EC2InstanceId").asString()));
+    assertThat(eventMsg.getEc2InstanceId(), equalTo(root.path("EC2InstanceId").asString()));
     assertThat(eventMsg.getStatusCode(), equalTo(root.path("StatusCode").asString()));
 
     JsonNode details = root.path("Details");
-    assertThat(eventMsg.getDetails().getSubnetID(), equalTo(details.path("Subnet ID").asString()));
+    assertThat(eventMsg.getDetails().getSubnetId(), equalTo(details.path("Subnet ID").asString()));
     assertThat(
         eventMsg.getDetails().getAvailabilityZone(),
         equalTo(details.path("Availability Zone").asString()));
@@ -65,7 +65,7 @@ public class EventMessageExtractorTest {
   }
 
   @Test
-  public void testExtractEventMessageParseFail() throws Exception {
+  void testExtractEventMessageParseFail() throws Exception {
     assertThrows(
         StreamReadException.class,
         () -> {

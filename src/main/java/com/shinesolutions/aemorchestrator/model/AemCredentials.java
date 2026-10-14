@@ -1,5 +1,9 @@
 package com.shinesolutions.aemorchestrator.model;
 
+/**
+ * Credentials for the AEM users the orchestrator needs: the orchestrator user it calls the AEM API
+ * as, and the replicator user set on the replication agents it manages.
+ */
 public class AemCredentials {
 
   private UserPasswordCredentials replicatorCredentials;

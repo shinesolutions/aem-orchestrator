@@ -23,7 +23,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-/** Simple utilities class for performing common HTTP requests */
+/** Simple utilities class for performing common HTTP requests. */
 @Component
 public class HttpUtil {
 
@@ -33,8 +33,8 @@ public class HttpUtil {
   private boolean enableRelaxedSslHttpClient;
 
   /**
-   * Performs a HTTP GET request for a provided URL and returns the response code. Normally used for
-   * performing health checks
+   * Performs a HTTP GET request for a provided URL and checks for a 200 OK response. Normally used
+   * for performing health checks.
    *
    * @param url of the GET request
    * @return true if response is a HTTP status OK (200)

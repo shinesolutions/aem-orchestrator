@@ -2,7 +2,10 @@ package com.shinesolutions.aemorchestrator.aem;
 
 import static org.mockito.ArgumentMatchers.endsWith;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import com.shinesolutions.aemorchestrator.model.AemCredentials;
 import com.shinesolutions.aemorchestrator.model.UserPasswordCredentials;
@@ -17,7 +20,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-public class ReplicationAgentManagerTest {
+class ReplicationAgentManagerTest {
 
   @Mock private AemApiFactory aemApiFactory;
 
@@ -44,7 +47,7 @@ public class ReplicationAgentManagerTest {
   private String username;
 
   @BeforeEach
-  public void setup() throws ApiException {
+  void setup() throws ApiException {
     publishId = "testPublishId";
     publishAemBaseUrl = "testPublishAemBaseUrl";
     authorAemBaseUrl = "testAuthorAemBaseUrl";
@@ -62,7 +65,7 @@ public class ReplicationAgentManagerTest {
   }
 
   @Test
-  public void testCreateReplicationAgent() throws ApiException {
+  void testCreateReplicationAgent() throws ApiException {
     givenReplicatorCredentials();
 
     PostAgentWithHttpInfoRequest request = new PostAgentWithHttpInfoRequest();
@@ -91,7 +94,7 @@ public class ReplicationAgentManagerTest {
   }
 
   @Test
-  public void testPreviewCreateReplicationAgent() throws ApiException {
+  void testPreviewCreateReplicationAgent() throws ApiException {
     givenReplicatorCredentials();
 
     PostAgentWithHttpInfoRequest request = new PostAgentWithHttpInfoRequest();
@@ -120,7 +123,7 @@ public class ReplicationAgentManagerTest {
   }
 
   @Test
-  public void testCreateReverseReplicationAgent() throws ApiException {
+  void testCreateReverseReplicationAgent() throws ApiException {
     givenReplicatorCredentials();
 
     PostAgentWithHttpInfoRequest request = new PostAgentWithHttpInfoRequest();
@@ -149,7 +152,7 @@ public class ReplicationAgentManagerTest {
   }
 
   @Test
-  public void testCreatePreviewReverseReplicationAgent() throws ApiException {
+  void testCreatePreviewReverseReplicationAgent() throws ApiException {
     givenReplicatorCredentials();
 
     PostAgentWithHttpInfoRequest request = new PostAgentWithHttpInfoRequest();
@@ -178,7 +181,7 @@ public class ReplicationAgentManagerTest {
   }
 
   @Test
-  public void testDeleteReplicationAgent() throws ApiException {
+  void testDeleteReplicationAgent() throws ApiException {
     PostAgentWithHttpInfoRequest request = new PostAgentWithHttpInfoRequest();
     when(agentRequestFactory.getDeleteAgentRequest(any(AgentRunMode.class), anyString()))
         .thenReturn(request);
@@ -191,7 +194,7 @@ public class ReplicationAgentManagerTest {
   }
 
   @Test
-  public void testDeletePreviewReplicationAgent() throws ApiException {
+  void testDeletePreviewReplicationAgent() throws ApiException {
     PostAgentWithHttpInfoRequest request = new PostAgentWithHttpInfoRequest();
     when(agentRequestFactory.getDeleteAgentRequest(any(AgentRunMode.class), anyString()))
         .thenReturn(request);
@@ -204,7 +207,7 @@ public class ReplicationAgentManagerTest {
   }
 
   @Test
-  public void testDeleteReverseReplicationAgent() throws ApiException {
+  void testDeleteReverseReplicationAgent() throws ApiException {
     PostAgentWithHttpInfoRequest request = new PostAgentWithHttpInfoRequest();
     when(agentRequestFactory.getDeleteAgentRequest(any(AgentRunMode.class), anyString()))
         .thenReturn(request);
@@ -217,7 +220,7 @@ public class ReplicationAgentManagerTest {
   }
 
   @Test
-  public void testDeletePreviewReverseReplicationAgent() throws ApiException {
+  void testDeletePreviewReverseReplicationAgent() throws ApiException {
     PostAgentWithHttpInfoRequest request = new PostAgentWithHttpInfoRequest();
     when(agentRequestFactory.getDeleteAgentRequest(any(AgentRunMode.class), anyString()))
         .thenReturn(request);
@@ -231,7 +234,7 @@ public class ReplicationAgentManagerTest {
   }
 
   @Test
-  public void testPauseReplicationAgent() throws ApiException {
+  void testPauseReplicationAgent() throws ApiException {
     PostAgentWithHttpInfoRequest request = new PostAgentWithHttpInfoRequest();
     when(agentRequestFactory.getPauseReplicationAgentRequest(any(AgentRunMode.class), anyString()))
         .thenReturn(request);
@@ -244,7 +247,7 @@ public class ReplicationAgentManagerTest {
   }
 
   @Test
-  public void testPausePreviewReplicationAgent() throws ApiException {
+  void testPausePreviewReplicationAgent() throws ApiException {
     PostAgentWithHttpInfoRequest request = new PostAgentWithHttpInfoRequest();
     when(agentRequestFactory.getPauseReplicationAgentRequest(any(AgentRunMode.class), anyString()))
         .thenReturn(request);
@@ -257,7 +260,7 @@ public class ReplicationAgentManagerTest {
   }
 
   @Test
-  public void testResumeReplicationAgent() throws ApiException {
+  void testResumeReplicationAgent() throws ApiException {
     givenReplicatorCredentials();
 
     PostAgentWithHttpInfoRequest request = new PostAgentWithHttpInfoRequest();
@@ -275,7 +278,7 @@ public class ReplicationAgentManagerTest {
   }
 
   @Test
-  public void testResumePreviewReplicationAgent() throws ApiException {
+  void testResumePreviewReplicationAgent() throws ApiException {
     givenReplicatorCredentials();
 
     PostAgentWithHttpInfoRequest request = new PostAgentWithHttpInfoRequest();

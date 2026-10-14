@@ -16,7 +16,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-public class ScaleUpPublishDispatcherActionTest {
+class ScaleUpPublishDispatcherActionTest {
 
   @Mock private AemInstanceHelperService aemHelperService;
 
@@ -25,12 +25,12 @@ public class ScaleUpPublishDispatcherActionTest {
   private String instanceId;
 
   @BeforeEach
-  public void setUp() throws Exception {
+  void setUp() throws Exception {
     instanceId = "i-4398603686";
   }
 
   @Test
-  public void testSameDesiredCapacity() {
+  void testSameDesiredCapacity() {
     when(aemHelperService.getAutoScalingGroupDesiredCapacityForPublishDispatcher()).thenReturn(2);
     when(aemHelperService.getAutoScalingGroupDesiredCapacityForPublish()).thenReturn(2);
 
@@ -42,7 +42,7 @@ public class ScaleUpPublishDispatcherActionTest {
   }
 
   @Test
-  public void testHigherDesiredCapacity() {
+  void testHigherDesiredCapacity() {
     int dispatcherDesiredCapcity = 4;
     when(aemHelperService.getAutoScalingGroupDesiredCapacityForPublishDispatcher())
         .thenReturn(dispatcherDesiredCapcity);
@@ -58,7 +58,7 @@ public class ScaleUpPublishDispatcherActionTest {
   }
 
   @Test
-  public void testLowerDesiredCapacity() {
+  void testLowerDesiredCapacity() {
     int dispatcherDesiredCapcity = 3;
     when(aemHelperService.getAutoScalingGroupDesiredCapacityForPublishDispatcher())
         .thenReturn(dispatcherDesiredCapcity);

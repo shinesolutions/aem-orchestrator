@@ -8,6 +8,11 @@ import org.springframework.boot.actuate.info.Info;
 import org.springframework.boot.actuate.info.InfoContributor;
 import org.springframework.stereotype.Component;
 
+/**
+ * Contributes environment details to the Spring Boot actuator {@code info} endpoint: the monitored
+ * Auto Scaling group names, the author load balancer name and DNS, and the alarm notification topic
+ * ARN.
+ */
 @Component
 public class InfoActuator implements InfoContributor {
 

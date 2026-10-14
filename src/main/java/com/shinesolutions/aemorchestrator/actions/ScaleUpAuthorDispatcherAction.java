@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
+/** Scale-up action run when an author dispatcher instance is launched. */
 @Component
 public class ScaleUpAuthorDispatcherAction implements Action {
 
@@ -18,6 +19,16 @@ public class ScaleUpAuthorDispatcherAction implements Action {
 
   @Resource private AemInstanceHelperService aemHelperService;
 
+  /**
+   * Registers a newly launched author dispatcher with the author instance.
+   *
+   * <p>Creates a flush agent on the author instance (via the author ELB) that targets the new
+   * dispatcher, then tags the dispatcher with the author ELB DNS name as its author host.
+   *
+   * @param instanceId the EC2 instance ID of the launched author dispatcher
+   * @return {@code true} if both steps succeed, so the SQS message is removed from the queue;
+   *     {@code false} if either fails, leaving the message on the queue to be retried
+   */
   public boolean execute(String instanceId) {
     logger.info("ScaleUpAuthorDispatcherAction executing");
     boolean success = false;

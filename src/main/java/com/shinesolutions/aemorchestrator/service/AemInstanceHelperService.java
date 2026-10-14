@@ -1,10 +1,19 @@
 package com.shinesolutions.aemorchestrator.service;
 
-import static com.shinesolutions.aemorchestrator.model.InstanceTags.*;
+import static com.shinesolutions.aemorchestrator.model.InstanceTags.AEM_AUTHOR_HOST;
+import static com.shinesolutions.aemorchestrator.model.InstanceTags.AEM_PREVIEW_PUBLISH_DISPATCHER_HOST;
+import static com.shinesolutions.aemorchestrator.model.InstanceTags.AEM_PREVIEW_PUBLISH_HOST;
+import static com.shinesolutions.aemorchestrator.model.InstanceTags.AEM_PUBLISH_DISPATCHER_HOST;
+import static com.shinesolutions.aemorchestrator.model.InstanceTags.AEM_PUBLISH_HOST;
+import static com.shinesolutions.aemorchestrator.model.InstanceTags.NAME;
+import static com.shinesolutions.aemorchestrator.model.InstanceTags.PAIR_INSTANCE_ID;
+import static com.shinesolutions.aemorchestrator.model.InstanceTags.PREVIEW_PAIR_INSTANCE_ID;
+import static com.shinesolutions.aemorchestrator.model.InstanceTags.SNAPSHOT_ID;
+import static com.shinesolutions.aemorchestrator.model.InstanceTags.SNAPSHOT_TYPE;
 
 import com.shinesolutions.aemorchestrator.exception.InstanceNotInHealthyStateException;
 import com.shinesolutions.aemorchestrator.exception.NoPairFoundException;
-import com.shinesolutions.aemorchestrator.model.EC2Instance;
+import com.shinesolutions.aemorchestrator.model.Ec2Instance;
 import com.shinesolutions.aemorchestrator.model.EnvironmentValues;
 import com.shinesolutions.aemorchestrator.model.InstanceTags;
 import com.shinesolutions.aemorchestrator.util.HttpUtil;
@@ -22,9 +31,7 @@ import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Component;
 
-/*
- * Service used for finding URLs, IDs etc of AEM/AWS instances
- */
+/** Service used for finding URLs, IDs etc of AEM/AWS instances. */
 @Component
 public class AemInstanceHelperService {
 
@@ -83,7 +90,7 @@ public class AemInstanceHelperService {
   private static final String AEM_HEALTH_CHECK_URL_POSTFIX = "/system/health?tags=shallow";
 
   /**
-   * Gets the Publish Dispatcher base AEM URL for a given EC2 instance ID
+   * Gets the Publish Dispatcher base AEM URL for a given EC2 instance ID.
    *
    * @param instanceId EC2 instance ID
    * @return Base AEM URL (includes protocol, IP and port). E.g. http://[ip]:[port]
@@ -98,7 +105,7 @@ public class AemInstanceHelperService {
   }
 
   /**
-   * Gets the PreviewPublish Dispatcher base AEM URL for a given EC2 instance ID
+   * Gets the PreviewPublish Dispatcher base AEM URL for a given EC2 instance ID.
    *
    * @param instanceId EC2 instance ID
    * @return Base AEM URL (includes protocol, IP and port). E.g. http://[ip]:[port]
@@ -113,7 +120,7 @@ public class AemInstanceHelperService {
   }
 
   /**
-   * Gets the Publish instance base AEM URL for a given EC2 instance ID
+   * Gets the Publish instance base AEM URL for a given EC2 instance ID.
    *
    * @param instanceId C2 instance ID
    * @return Base AEM URL (includes protocol, IP and port). E.g. http://[ip]:[port]
@@ -125,7 +132,7 @@ public class AemInstanceHelperService {
   }
 
   /**
-   * Gets the PreviewPublish instance base AEM URL for a given EC2 instance ID
+   * Gets the PreviewPublish instance base AEM URL for a given EC2 instance ID.
    *
    * @param instanceId C2 instance ID
    * @return Base AEM URL (includes protocol, IP and port). E.g. http://[ip]:[port]
@@ -140,7 +147,7 @@ public class AemInstanceHelperService {
   }
 
   /**
-   * Gets the Author base AEM URL for a given EC2 instance ID
+   * Gets the Author Dispatcher base AEM URL for a given EC2 instance ID.
    *
    * @param instanceId C2 instance ID
    * @return Base AEM URL (includes protocol, IP and port). E.g. http://[ip]:[port]
@@ -155,7 +162,7 @@ public class AemInstanceHelperService {
   }
 
   /**
-   * Gets the Author base AEM URL for the Author AWS Elastic Load Balancer
+   * Gets the Author base AEM URL for the Author AWS Elastic Load Balancer.
    *
    * @return Base AEM URL (includes protocol, DNS name and port). E.g. http://[dns-name]:[port]
    */
@@ -166,7 +173,7 @@ public class AemInstanceHelperService {
   }
 
   /**
-   * Helper method for determining if the Author ELB is in a healthy state
+   * Determines if the Author ELB is in a healthy state via the AEM shallow health check.
    *
    * @return true if the Author ELB is in a healthy state, false if not
    * @throws IOException (normally if can't connect)
@@ -181,11 +188,13 @@ public class AemInstanceHelperService {
   }
 
   /**
-   * Gets the Publish instance base AEM URL for a given EC2 instance ID. Component init status
-   * indicates its cloud init status.
+   * Checks whether an AEM instance finished provisioning, from its {@code ComponentInitStatus} tag.
    *
-   * @param instanceId C2 instance ID
-   * @return true if provisioning was successful
+   * <p>The tag is set by the instance's cloud-init; only {@code Success} counts as provisioned,
+   * while {@code InProgress}, {@code Failed} or any other value does not.
+   *
+   * @param instanceId EC2 instance ID
+   * @return true if the {@code ComponentInitStatus} tag is {@code Success}
    */
   public boolean getAemComponentInitState(String instanceId) {
     String componentInitStatus =
@@ -211,7 +220,7 @@ public class AemInstanceHelperService {
   }
 
   /**
-   * Helper method for determining if the given Publish instance is in a healthy state
+   * Determines if the given Publish instance is in a healthy state.
    *
    * @param instanceId the publish AWS instance id
    * @return true if the Publish instance is in a healthy state
@@ -221,7 +230,7 @@ public class AemInstanceHelperService {
   }
 
   /**
-   * Helper method for determining if the given PreviewPublish instance is in a healthy state
+   * Determines if the given PreviewPublish instance is in a healthy state.
    *
    * @param instanceId the previewPublish AWS instance id
    * @return true if the PreviewPublish instance is in a healthy state
@@ -361,7 +370,7 @@ public class AemInstanceHelperService {
   }
 
   /**
-   * Gets the desired capacity of the Publish auto scaling group
+   * Gets the desired capacity of the Publish auto scaling group.
    *
    * @return Desired capacity for Publish auto scaling group
    */
@@ -371,7 +380,7 @@ public class AemInstanceHelperService {
   }
 
   /**
-   * Gets the desired capacity of the PreviewPublish auto scaling group
+   * Gets the desired capacity of the PreviewPublish auto scaling group.
    *
    * @return Desired capacity for PreviewPublish auto scaling group
    */
@@ -381,7 +390,7 @@ public class AemInstanceHelperService {
   }
 
   /**
-   * Gets the desired capacity of the Publish Dispatcher auto scaling group
+   * Gets the desired capacity of the Publish Dispatcher auto scaling group.
    *
    * @return Desired capacity for Publish Dispatcher auto scaling group
    */
@@ -391,7 +400,7 @@ public class AemInstanceHelperService {
   }
 
   /**
-   * Gets the desired capacity of the PreviewPublish Dispatcher auto scaling group
+   * Gets the desired capacity of the PreviewPublish Dispatcher auto scaling group.
    *
    * @return Desired capacity for PreviewPublish Dispatcher auto scaling group
    */
@@ -424,7 +433,10 @@ public class AemInstanceHelperService {
 
   /**
    * Finds an active Publish instance (excluding the given instance ID) suitable for taking a
-   * snapshot from
+   * snapshot from.
+   *
+   * <p>Only instances already tagged with a snapshot ID are considered; the earliest launched one
+   * is chosen, with ties broken by instance ID.
    *
    * @param excludeInstanceId the publish instance ID to exclude from the search (generally the new
    *     Publish instance that needs the snapshot)
@@ -458,7 +470,10 @@ public class AemInstanceHelperService {
 
   /**
    * Finds an active PreviewPublish instance (excluding the given instance ID) suitable for taking a
-   * snapshot from
+   * snapshot from.
+   *
+   * <p>Only instances already tagged with a snapshot ID are considered; the earliest launched one
+   * is chosen, with ties broken by instance ID.
    *
    * @param excludeInstanceId the previewPublish instance ID to exclude from the search (generally
    *     the new PreviewPublish instance that needs the snapshot)
@@ -536,7 +551,7 @@ public class AemInstanceHelperService {
   }
 
   /**
-   * Tags the given instance with a given snapshot ID
+   * Tags the given instance with a given snapshot ID.
    *
    * @param instanceId the EC2 instance to tag
    * @param snapshotId the snapshot ID to place in the tag
@@ -548,7 +563,7 @@ public class AemInstanceHelperService {
   }
 
   /**
-   * Tags the given Author Dispatcher instance with Author DNS host name
+   * Tags the given Author Dispatcher instance with Author DNS host name.
    *
    * @param authorDispatcherInstanceId the EC2 Author Dispatcher instance ID
    */
@@ -679,7 +694,7 @@ public class AemInstanceHelperService {
   public String findUnpairedPublishDispatcher(String instanceId) throws NoPairFoundException {
     String unpairedDispatcher = null;
 
-    List<EC2Instance> dispatcherIds =
+    List<Ec2Instance> dispatcherIds =
         awsHelperService.getInstancesForAutoScalingGroup(
             envValues.getAutoScaleGroupNameForPublishDispatcher());
     // Filter the list to get all possible eligible candidates
@@ -689,12 +704,12 @@ public class AemInstanceHelperService {
             .collect(Collectors.toList());
 
     if (dispatcherIds.size() > 1) {
-      String publishAZ = awsHelperService.getAvailabilityZone(instanceId);
+      String publishAz = awsHelperService.getAvailabilityZone(instanceId);
 
       // If there are many candidates, then pick the one with the same AZ or else use first
       unpairedDispatcher =
           (dispatcherIds.stream()
-                  .filter(i -> i.getAvailabilityZone().equalsIgnoreCase(publishAZ))
+                  .filter(i -> i.getAvailabilityZone().equalsIgnoreCase(publishAz))
                   .findFirst()
                   .orElse(dispatcherIds.get(0)))
               .getInstanceId();
@@ -723,7 +738,7 @@ public class AemInstanceHelperService {
       throws NoPairFoundException {
     String unpairedDispatcher = null;
 
-    List<EC2Instance> dispatcherIds =
+    List<Ec2Instance> dispatcherIds =
         awsHelperService.getInstancesForAutoScalingGroup(
             envValues.getAutoScaleGroupNameForPreviewPublishDispatcher());
     // Filter the list to get all possible eligible candidates
@@ -733,12 +748,12 @@ public class AemInstanceHelperService {
             .collect(Collectors.toList());
 
     if (dispatcherIds.size() > 1) {
-      String previewPublishAZ = awsHelperService.getAvailabilityZone(instanceId);
+      String previewPublishAz = awsHelperService.getAvailabilityZone(instanceId);
 
       // If there are many candidates, then pick the one with the same AZ or else use first
       unpairedDispatcher =
           (dispatcherIds.stream()
-                  .filter(i -> i.getAvailabilityZone().equalsIgnoreCase(previewPublishAZ))
+                  .filter(i -> i.getAvailabilityZone().equalsIgnoreCase(previewPublishAz))
                   .findFirst()
                   .orElse(dispatcherIds.get(0)))
               .getInstanceId();
@@ -768,7 +783,7 @@ public class AemInstanceHelperService {
   }
 
   /**
-   * Creates a CloudWatch content health alarm for a given publish instance
+   * Creates a CloudWatch content health alarm for a given publish instance.
    *
    * @param instanceId of the publish instance
    */
@@ -782,7 +797,7 @@ public class AemInstanceHelperService {
   }
 
   /**
-   * Creates a CloudWatch content health alarm for a given previewPublish instance
+   * Creates a CloudWatch content health alarm for a given previewPublish instance.
    *
    * @param instanceId of the previewPublish instance
    */
@@ -796,7 +811,7 @@ public class AemInstanceHelperService {
   }
 
   /**
-   * Deletes a CloudWatch content health alarm for a given publish instance ID
+   * Deletes a CloudWatch content health alarm for a given publish instance ID.
    *
    * @param instanceId of the publish instance
    */
@@ -805,7 +820,7 @@ public class AemInstanceHelperService {
   }
 
   /**
-   * Deletes a CloudWatch content health alarm for a given previewPublish instance ID
+   * Deletes a CloudWatch content health alarm for a given previewPublish instance ID.
    *
    * @param instanceId of the previewPublish instance
    */

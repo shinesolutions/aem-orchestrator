@@ -19,7 +19,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-public class AlarmMessageHandlerTest {
+class AlarmMessageHandlerTest {
 
   @Mock private AlarmMessageExtractor alarmMessageExtractor;
 
@@ -32,7 +32,7 @@ public class AlarmMessageHandlerTest {
   private AlarmMessage message;
 
   @BeforeEach
-  public void setUp() throws Exception {
+  void setUp() throws Exception {
     messageContent = "testMessage";
     pairInstanceId = "pairInstanceId";
 
@@ -49,7 +49,7 @@ public class AlarmMessageHandlerTest {
   }
 
   @Test
-  public void testSuccess() {
+  void testSuccess() {
     when(alarmContentHealthCheckAction.execute(pairInstanceId)).thenReturn(true);
 
     boolean result = alarmMessageHandler.handleEvent(messageContent);
@@ -58,7 +58,7 @@ public class AlarmMessageHandlerTest {
   }
 
   @Test
-  public void testNoPairInstanceIdTag() {
+  void testNoPairInstanceIdTag() {
     message.getTrigger().setDimensions(Arrays.asList());
 
     boolean result = alarmMessageHandler.handleEvent(messageContent);
@@ -67,7 +67,7 @@ public class AlarmMessageHandlerTest {
   }
 
   @Test
-  public void testWithException() {
+  void testWithException() {
     message.getTrigger().setDimensions(null); // Will throw NullPointerException
 
     boolean result = alarmMessageHandler.handleEvent(messageContent);

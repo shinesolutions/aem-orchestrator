@@ -3,14 +3,17 @@ package com.shinesolutions.aemorchestrator.aem;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.startsWith;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.util.ReflectionTestUtils.setField;
 
-import com.shinesolutions.aemorchestrator.model.AemSSL;
+import com.shinesolutions.aemorchestrator.model.AemSsl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-public class AgentRequestFactoryTest {
+class AgentRequestFactoryTest {
 
   private static final String DEFAULT_LOG_LEVEL = "info";
 
@@ -25,7 +28,7 @@ public class AgentRequestFactoryTest {
   private AgentRunMode runMode;
 
   @BeforeEach
-  public void setup() {
+  void setup() {
     runMode = AgentRunMode.AUTHOR;
     agentName = "testAgentName";
     agentDescription = "testAgentDescription";
@@ -35,7 +38,7 @@ public class AgentRequestFactoryTest {
   }
 
   @Test
-  public void testGetCreateFlushAgentRequest() {
+  void testGetCreateFlushAgentRequest() {
     PostAgentWithHttpInfoRequest request =
         agentRequestFactory.getCreateFlushAgentRequest(
             runMode, agentName, agentDescription, aemBaseUrl);
@@ -47,22 +50,22 @@ public class AgentRequestFactoryTest {
   }
 
   @Test
-  public void testGetCreateFlushAgentRequest_EnableRelaxedSsl() {
-    setField(agentRequestFactory, "enableRelaxedSSL", true);
+  void testGetCreateFlushAgentRequest_enableRelaxedSsl() {
+    setField(agentRequestFactory, "enableRelaxedSsl", true);
     PostAgentWithHttpInfoRequest request =
         agentRequestFactory.getCreateFlushAgentRequest(
             runMode, agentName, agentDescription, aemBaseUrl);
-    assertThat(request.getJcrContentSSL(), equalTo(AemSSL.RELAXED.getValue()));
+    assertThat(request.getJcrContentSsl(), equalTo(AemSsl.RELAXED.getValue()));
 
-    setField(agentRequestFactory, "enableRelaxedSSL", false);
+    setField(agentRequestFactory, "enableRelaxedSsl", false);
     request =
         agentRequestFactory.getCreateFlushAgentRequest(
             runMode, agentName, agentDescription, aemBaseUrl);
-    assertThat(request.getJcrContentSSL(), equalTo(AemSSL.DEFAULT.getValue()));
+    assertThat(request.getJcrContentSsl(), equalTo(AemSsl.DEFAULT.getValue()));
   }
 
   @Test
-  public void testGetCreateFlushAgentRequest_FlushLogLevel() {
+  void testGetCreateFlushAgentRequest_flushLogLevel() {
     String logLevel = null;
     setField(agentRequestFactory, "flushLogLevel", logLevel);
     PostAgentWithHttpInfoRequest request =
@@ -86,7 +89,7 @@ public class AgentRequestFactoryTest {
   }
 
   @Test
-  public void testGetCreateReplicationAgentRequest() {
+  void testGetCreateReplicationAgentRequest() {
     String user = "testUser";
     String password = "testPassword";
     PostAgentWithHttpInfoRequest request =
@@ -102,24 +105,24 @@ public class AgentRequestFactoryTest {
   }
 
   @Test
-  public void testGetCreateReplicationAgentRequest_EnableRelaxedSsl() {
-    setField(agentRequestFactory, "enableRelaxedSSL", true);
+  void testGetCreateReplicationAgentRequest_enableRelaxedSsl() {
+    setField(agentRequestFactory, "enableRelaxedSsl", true);
     String user = "testUser";
     String password = "testPassword";
     PostAgentWithHttpInfoRequest request =
         agentRequestFactory.getCreateReplicationAgentRequest(
             runMode, agentName, agentDescription, aemBaseUrl, user, password);
-    assertThat(request.getJcrContentSSL(), equalTo(AemSSL.RELAXED.getValue()));
+    assertThat(request.getJcrContentSsl(), equalTo(AemSsl.RELAXED.getValue()));
 
-    setField(agentRequestFactory, "enableRelaxedSSL", false);
+    setField(agentRequestFactory, "enableRelaxedSsl", false);
     request =
         agentRequestFactory.getCreateReplicationAgentRequest(
             runMode, agentName, agentDescription, aemBaseUrl, user, password);
-    assertThat(request.getJcrContentSSL(), equalTo(AemSSL.DEFAULT.getValue()));
+    assertThat(request.getJcrContentSsl(), equalTo(AemSsl.DEFAULT.getValue()));
   }
 
   @Test
-  public void testGetCreateReplicationAgentRequest_ReplicationLogLevel() {
+  void testGetCreateReplicationAgentRequest_replicationLogLevel() {
     String logLevel = null;
     setField(agentRequestFactory, "replicationLogLevel", logLevel);
     String user = "testUser";
@@ -145,7 +148,7 @@ public class AgentRequestFactoryTest {
   }
 
   @Test
-  public void testGetCreateReverseReplicationAgentRequest() {
+  void testGetCreateReverseReplicationAgentRequest() {
     String reverseReplicationTransportUriPostfix = "/testUriPostfix";
     setField(
         agentRequestFactory,
@@ -170,25 +173,25 @@ public class AgentRequestFactoryTest {
   }
 
   @Test
-  public void testGetCreateReverseReplicationAgentRequest_EnableRelaxedSsl() {
-    setField(agentRequestFactory, "enableRelaxedSSL", true);
+  void testGetCreateReverseReplicationAgentRequest_enableRelaxedSsl() {
+    setField(agentRequestFactory, "enableRelaxedSsl", true);
 
     String user = "testUser";
     String password = "testPassword";
     PostAgentWithHttpInfoRequest request =
         agentRequestFactory.getCreateReverseReplicationAgentRequest(
             runMode, agentName, agentDescription, aemBaseUrl, user, password);
-    assertThat(request.getJcrContentSSL(), equalTo(AemSSL.RELAXED.getValue()));
+    assertThat(request.getJcrContentSsl(), equalTo(AemSsl.RELAXED.getValue()));
 
-    setField(agentRequestFactory, "enableRelaxedSSL", false);
+    setField(agentRequestFactory, "enableRelaxedSsl", false);
     request =
         agentRequestFactory.getCreateReverseReplicationAgentRequest(
             runMode, agentName, agentDescription, aemBaseUrl, user, password);
-    assertThat(request.getJcrContentSSL(), equalTo(AemSSL.DEFAULT.getValue()));
+    assertThat(request.getJcrContentSsl(), equalTo(AemSsl.DEFAULT.getValue()));
   }
 
   @Test
-  public void testGetCreateReverseReplicationAgentRequest_ReplicationLogLevel() {
+  void testGetCreateReverseReplicationAgentRequest_replicationLogLevel() {
     String logLevel = null;
     setField(agentRequestFactory, "reverseReplicationLogLevel", logLevel);
     String user = "testUser";
@@ -214,7 +217,7 @@ public class AgentRequestFactoryTest {
   }
 
   @Test
-  public void testGetDeleteAgentRequest() {
+  void testGetDeleteAgentRequest() {
     PostAgentWithHttpInfoRequest request =
         agentRequestFactory.getDeleteAgentRequest(runMode, agentName);
 
@@ -223,7 +226,7 @@ public class AgentRequestFactoryTest {
   }
 
   @Test
-  public void testGetPauseReplicationAgentRequest() {
+  void testGetPauseReplicationAgentRequest() {
 
     PostAgentWithHttpInfoRequest request = new PostAgentWithHttpInfoRequest();
     PostAgentWithHttpInfoRequest spy = spy(request);
@@ -258,7 +261,7 @@ public class AgentRequestFactoryTest {
   }
 
   @Test
-  public void testGetResumeReplicationAgentRequest() {
+  void testGetResumeReplicationAgentRequest() {
     String user = "testUser";
     String password = "testPassword";
     PostAgentWithHttpInfoRequest request =

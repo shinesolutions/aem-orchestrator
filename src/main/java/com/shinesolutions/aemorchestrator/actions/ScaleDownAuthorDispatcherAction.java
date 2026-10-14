@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
+/** Scale-down action run when an author dispatcher instance is terminated. */
 @Component
 public class ScaleDownAuthorDispatcherAction implements Action {
 
@@ -18,6 +19,14 @@ public class ScaleDownAuthorDispatcherAction implements Action {
 
   @Resource private AemInstanceHelperService aemHelperService;
 
+  /**
+   * Deletes the terminated dispatcher's flush agent from the author instance (via the author ELB).
+   *
+   * <p>A failure to delete the agent is logged and ignored, as it may already have been deleted.
+   *
+   * @param instanceId the EC2 instance ID of the terminated author dispatcher
+   * @return always {@code true}, so the SQS message is removed from the queue
+   */
   public boolean execute(String instanceId) {
     logger.info("ScaleDownAuthorDispatcherAction executing");
 

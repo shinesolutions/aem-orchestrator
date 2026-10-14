@@ -16,7 +16,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-public class ScaleDownPreviewPublishDispatcherActionTest {
+class ScaleDownPreviewPublishDispatcherActionTest {
 
   @Mock private AemInstanceHelperService aemHelperService;
 
@@ -30,13 +30,13 @@ public class ScaleDownPreviewPublishDispatcherActionTest {
   private int currentPreviewPublishDesiredCapacity;
 
   @BeforeEach
-  public void setUp() throws Exception {
+  void setUp() throws Exception {
     instanceId = "instanceId";
     pairedPreviewPublishId = "pairedPreviewPublishId";
   }
 
   @Test
-  public void testTerminatePairedPreviewPublishAndMatchDesiredCapacity() {
+  void testTerminatePairedPreviewPublishAndMatchDesiredCapacity() {
     currentDispatcherDesiredCapacity = 2;
     currentPreviewPublishDesiredCapacity = 3;
 
@@ -60,7 +60,7 @@ public class ScaleDownPreviewPublishDispatcherActionTest {
   }
 
   @Test
-  public void testTerminatePairedPreviewPublishAndDesiredCapacityAlreadyMatching() {
+  void testTerminatePairedPreviewPublishAndDesiredCapacityAlreadyMatching() {
     currentDispatcherDesiredCapacity = 3;
     currentPreviewPublishDesiredCapacity = 3;
 
@@ -84,7 +84,7 @@ public class ScaleDownPreviewPublishDispatcherActionTest {
   }
 
   @Test
-  public void testCantFindPairedPreviewPublisher() {
+  void testCantFindPairedPreviewPublisher() {
     currentDispatcherDesiredCapacity = 1;
     currentPreviewPublishDesiredCapacity = 3;
 

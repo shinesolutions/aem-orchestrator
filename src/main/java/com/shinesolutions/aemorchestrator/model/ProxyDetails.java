@@ -1,5 +1,6 @@
 package com.shinesolutions.aemorchestrator.model;
 
+/** Host and port of the outbound proxy for AWS clients; an empty host means no proxy. */
 public class ProxyDetails {
 
   private String host;
@@ -13,6 +14,7 @@ public class ProxyDetails {
     this.host = host;
   }
 
+  /** Sets the host and returns this object for chaining. */
   public ProxyDetails withHost(String host) {
     this.setHost(host);
     return this;
@@ -26,6 +28,7 @@ public class ProxyDetails {
     this.port = port;
   }
 
+  /** Sets the port and returns this object for chaining. */
   public ProxyDetails withPort(int port) {
     this.setPort(port);
     return this;

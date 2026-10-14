@@ -15,18 +15,18 @@ import tools.jackson.core.exc.StreamReadException;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 
-public class AlarmMessageExtractorTest {
+class AlarmMessageExtractorTest {
 
   private AlarmMessageExtractor alarmMessageExtractor;
 
   @BeforeEach
-  public void setUp() throws Exception {
+  void setUp() throws Exception {
     alarmMessageExtractor = new AlarmMessageExtractor();
   }
 
   @Test
   @SuppressWarnings("resource")
-  public void testExtractAlarmMessageSuccess() throws Exception {
+  void testExtractAlarmMessageSuccess() throws Exception {
     File sampleFileMessageOnly =
         new File(getClass().getResource("/sample-sqs-alarm-message-1.json").getFile());
     String sampleFileContent = new Scanner(sampleFileMessageOnly).useDelimiter("\\Z").next();
@@ -87,7 +87,7 @@ public class AlarmMessageExtractorTest {
   }
 
   @Test
-  public void testExtractEventMessageParseFail() throws Exception {
+  void testExtractEventMessageParseFail() throws Exception {
     assertThrows(
         StreamReadException.class,
         () -> {

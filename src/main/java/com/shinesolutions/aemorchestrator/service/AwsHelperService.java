@@ -1,6 +1,6 @@
 package com.shinesolutions.aemorchestrator.service;
 
-import com.shinesolutions.aemorchestrator.model.EC2Instance;
+import com.shinesolutions.aemorchestrator.model.Ec2Instance;
 import com.shinesolutions.aemorchestrator.model.InstanceTags;
 import jakarta.annotation.Resource;
 import java.io.IOException;
@@ -59,11 +59,11 @@ import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.utils.IoUtils;
 
-/** Helper class for performing a range of AWS functions */
+/** Helper class for performing a range of AWS functions. */
 @Component
 public class AwsHelperService {
 
-  @Resource public Ec2Client amazonEC2Client;
+  @Resource public Ec2Client amazonEc2Client;
 
   @Resource public ElasticLoadBalancingV2Client amazonElbClient;
 
@@ -76,7 +76,7 @@ public class AwsHelperService {
   @Resource public CloudWatchClient amazonCloudWatchClient;
 
   /**
-   * Return the DNS name for a given AWS ELB group name
+   * Returns the DNS name of the load balancer with the given name.
    *
    * @param elbName the ELB group name
    * @return String DNS name
@@ -89,7 +89,7 @@ public class AwsHelperService {
   }
 
   /**
-   * Return the name for a given AWS ELB group name
+   * Returns the name of the load balancer with the given ARN.
    *
    * @param elbArn the ELB Arn
    * @return String ELB name
@@ -102,8 +102,10 @@ public class AwsHelperService {
   }
 
   /**
-   * Gets the private IP of a given AWS EC2 instance Will automatically retry 10 times every 10
-   * seconds if no instance is found
+   * Gets the private IP of a given AWS EC2 instance.
+   *
+   * <p>Makes up to 10 attempts, 5 seconds apart, on {@link AwsServiceException} (including when no
+   * instance is found).
    *
    * @param instanceId the EC2 instance ID
    * @return String private IP
@@ -114,7 +116,7 @@ public class AwsHelperService {
       backoff = @Backoff(delay = 5000))
   public String getPrivateIp(String instanceId) {
     DescribeInstancesResponse result =
-        amazonEC2Client.describeInstances(
+        amazonEc2Client.describeInstances(
             DescribeInstancesRequest.builder().instanceIds(instanceId).build());
 
     try {
@@ -129,8 +131,10 @@ public class AwsHelperService {
   }
 
   /**
-   * Gets the launch time of a given AWS EC2 instance Will automatically retry 10 times every 10
-   * seconds if no instance is found
+   * Gets the launch time of a given AWS EC2 instance.
+   *
+   * <p>Makes up to 10 attempts, 5 seconds apart, on {@link AwsServiceException} (including when no
+   * instance is found).
    *
    * @param instanceId the EC2 instance ID
    * @return Date launchTime
@@ -141,7 +145,7 @@ public class AwsHelperService {
       backoff = @Backoff(delay = 5000))
   public Date getLaunchTime(String instanceId) {
     DescribeInstancesResponse result =
-        amazonEC2Client.describeInstances(
+        amazonEc2Client.describeInstances(
             DescribeInstancesRequest.builder().instanceIds(instanceId).build());
 
     try {
@@ -159,14 +163,14 @@ public class AwsHelperService {
   }
 
   /**
-   * Gets the availability zone of a given instance
+   * Gets the availability zone of a given instance.
    *
    * @param instanceId the AWS instance ID
    * @return The Availability Zone of the instance.
    */
   public String getAvailabilityZone(String instanceId) {
     DescribeInstancesResponse result =
-        amazonEC2Client.describeInstances(
+        amazonEc2Client.describeInstances(
             DescribeInstancesRequest.builder().instanceIds(instanceId).build());
 
     return result.reservations().get(0).instances().get(0).placement().availabilityZone();
@@ -182,30 +186,31 @@ public class AwsHelperService {
   public boolean isInstanceRunning(String instanceId) {
     boolean isInstanceRunning = false;
     DescribeInstancesResponse result =
-        amazonEC2Client.describeInstances(
+        amazonEc2Client.describeInstances(
             DescribeInstancesRequest.builder().instanceIds(instanceId).build());
 
     try {
       InstanceStateName stateName = result.reservations().get(0).instances().get(0).state().name();
       isInstanceRunning = (stateName == InstanceStateName.RUNNING);
     } catch (IndexOutOfBoundsException e) {
-    } // Instance is long gone
+      // Instance is long gone
+    }
 
     return isInstanceRunning;
   }
 
   /**
-   * Terminates an EC2 instance for a given instance ID
+   * Terminates an EC2 instance for a given instance ID.
    *
    * @param instanceId the EC2 instance ID
    */
   public void terminateInstance(String instanceId) {
-    amazonEC2Client.terminateInstances(
+    amazonEc2Client.terminateInstances(
         TerminateInstancesRequest.builder().instanceIds(instanceId).build());
   }
 
   /**
-   * Gets a map of tags for an AWS EC2 instance
+   * Gets a map of tags for an AWS EC2 instance.
    *
    * @param instanceId the EC2 instance ID
    * @return Map of AWS tags
@@ -213,13 +218,13 @@ public class AwsHelperService {
   public Map<String, String> getTags(String instanceId) {
     Filter filter = Filter.builder().name("resource-id").values(instanceId).build();
     DescribeTagsResponse result =
-        amazonEC2Client.describeTags(DescribeTagsRequest.builder().filters(filter).build());
+        amazonEc2Client.describeTags(DescribeTagsRequest.builder().filters(filter).build());
     return result.tags().stream()
         .collect(Collectors.toMap(TagDescription::key, TagDescription::value));
   }
 
   /**
-   * Adds provided map of tags to the given instance
+   * Adds provided map of tags to the given instance.
    *
    * @param instanceId the EC2 instance ID
    * @param tags the Map of tags to add
@@ -229,12 +234,12 @@ public class AwsHelperService {
         tags.entrySet().stream()
             .map(e -> Tag.builder().key(e.getKey()).value(e.getValue()).build())
             .collect(Collectors.toList());
-    amazonEC2Client.createTags(
+    amazonEc2Client.createTags(
         CreateTagsRequest.builder().resources(instanceId).tags(ec2Tags).build());
   }
 
   /**
-   * Gets a list of EC2 instance IDs for a given auto scaling group name
+   * Gets a list of EC2 instance IDs for a given auto scaling group name.
    *
    * @param groupName auto scaling group name
    * @return List of strings containing instance IDs
@@ -245,25 +250,25 @@ public class AwsHelperService {
   }
 
   /**
-   * Gets a list of EC2 Instance objects for a given auto scaling group name
+   * Gets a list of EC2 Instance objects for a given auto scaling group name.
    *
    * @param groupName auto scaling group name
    * @return List of Instances containing instance IDs and availability zones
    */
-  public List<EC2Instance> getInstancesForAutoScalingGroup(String groupName) {
+  public List<Ec2Instance> getInstancesForAutoScalingGroup(String groupName) {
     List<Instance> instanceList = getAutoScalingGroup(groupName).instances();
 
     return instanceList.stream()
         .map(
             i ->
-                new EC2Instance()
+                new Ec2Instance()
                     .withInstanceId(i.instanceId())
                     .withAvailabilityZone(i.availabilityZone()))
         .collect(Collectors.toList());
   }
 
   /**
-   * Gets the auto scaling group's desired capacity for a given group name
+   * Gets the auto scaling group's desired capacity for a given group name.
    *
    * @param groupName auto scaling group name
    * @return int the desired capacity of the group
@@ -273,7 +278,7 @@ public class AwsHelperService {
   }
 
   /**
-   * Sets the auto scaling desired capacity for a given group name
+   * Sets the auto scaling desired capacity for a given group name.
    *
    * @param groupName auto scaling group name
    * @param desiredCapacity the desired capacity of the group to set
@@ -288,7 +293,7 @@ public class AwsHelperService {
   }
 
   /**
-   * Gets the volume id of a given instance and device name
+   * Gets the volume id of a given instance and device name.
    *
    * @param instanceId the EC2 instance ID
    * @param deviceName the block device mapping name
@@ -296,7 +301,7 @@ public class AwsHelperService {
    */
   public String getVolumeId(String instanceId, String deviceName) {
     DescribeInstanceAttributeResponse result =
-        amazonEC2Client.describeInstanceAttribute(
+        amazonEc2Client.describeInstanceAttribute(
             DescribeInstanceAttributeRequest.builder()
                 .instanceId(instanceId)
                 .attribute(InstanceAttributeName.BLOCK_DEVICE_MAPPING)
@@ -315,7 +320,7 @@ public class AwsHelperService {
   }
 
   /**
-   * Creates a snapshot for a given volume
+   * Creates a snapshot for a given volume.
    *
    * @param volumeId identifies the volume to snapshot
    * @param description of the new snap shot
@@ -323,13 +328,13 @@ public class AwsHelperService {
    */
   public String createSnapshot(String volumeId, String description) {
     CreateSnapshotResponse result =
-        amazonEC2Client.createSnapshot(
+        amazonEc2Client.createSnapshot(
             CreateSnapshotRequest.builder().volumeId(volumeId).description(description).build());
     return result.snapshotId();
   }
 
   /**
-   * Gets a physical resource ID on a given stack for a logical resource ID
+   * Gets a physical resource ID on a given stack for a logical resource ID.
    *
    * @param stackName the name or the unique stack ID of the cloud formation stack
    * @param logicalResourceId the logical name of the stack resource
@@ -351,7 +356,7 @@ public class AwsHelperService {
   }
 
   /**
-   * Reads a file from S3 into a String object
+   * Reads a file from S3 into a String object.
    *
    * @param s3Uri (eg. s3://bucket/file.ext)
    * @return String containing the content of the file in S3
@@ -383,8 +388,10 @@ public class AwsHelperService {
   }
 
   /**
-   * Creates a CloudWatch content health check alarm The metric for the alarm is always
-   * 'contentHealthCheck'
+   * Creates a CloudWatch content health check alarm.
+   *
+   * <p>The metric for the alarm is always 'contentHealthCheck'. The alarm fires when the maximum
+   * value stays below 1 for 5 consecutive 60 second periods.
    *
    * @param alarmName recommend including the instance id
    * @param alarmDescription a brief description of the alarm
@@ -420,7 +427,7 @@ public class AwsHelperService {
   }
 
   /**
-   * Delete a CloudWatch alarm for a given alarm name
+   * Deletes a CloudWatch alarm for a given alarm name.
    *
    * @param alarmName the name of the alarm
    */

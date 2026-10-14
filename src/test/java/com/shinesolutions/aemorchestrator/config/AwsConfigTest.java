@@ -22,17 +22,17 @@ import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.http.apache5.Apache5HttpClient;
 import software.amazon.awssdk.http.apache5.ProxyConfiguration;
 
-public class AwsConfigTest {
+class AwsConfigTest {
 
   private AwsConfig awsConfig;
 
   @BeforeEach
-  public void setup() {
+  void setup() {
     awsConfig = new AwsConfig();
   }
 
   @Test
-  public void testAwsClientConfig_EmptyProxy() {
+  void testAwsClientConfig_emptyProxy() {
     // Setup HTTP proxy
     String httpProxyHost = "";
     ProxyDetails proxyDetails = new ProxyDetails();
@@ -45,7 +45,6 @@ public class AwsConfigTest {
 
     setField(awsConfig, "useProxy", false);
     ProxyConfiguration proxyConfig = awsConfig.proxyConfiguration(proxyDetails);
-    ClientOverrideConfiguration overrideConfig = awsConfig.clientOverrideConfiguration();
     Apache5HttpClient.Builder httpClientBuilder = mock(Apache5HttpClient.Builder.class);
     awsConfig.configureHttpClient(httpClientBuilder, proxyDetails);
 
@@ -53,13 +52,15 @@ public class AwsConfigTest {
     verify(httpClientBuilder, never()).proxyConfiguration(any(ProxyConfiguration.class));
     verify(httpClientBuilder).connectionTimeout(Duration.ofMillis(clientConnectionTimeout));
     verify(httpClientBuilder).socketTimeout(Duration.ofSeconds(50));
+
+    ClientOverrideConfiguration overrideConfig = awsConfig.clientOverrideConfiguration();
     assertThat(overrideConfig.retryStrategy().isPresent(), equalTo(true));
     assertThat(
         overrideConfig.retryStrategy().get().maxAttempts(), equalTo(clientMaxErrorRetry + 1));
   }
 
   @Test
-  public void testAwsClientConfig_NoProxy() {
+  void testAwsClientConfig_noProxy() {
     int clientConnectionTimeout = 10;
     int clientMaxErrorRetry = 20;
     setField(awsConfig, "clientConnectionTimeout", clientConnectionTimeout);
@@ -67,7 +68,6 @@ public class AwsConfigTest {
 
     setField(awsConfig, "useProxy", false);
     ProxyConfiguration proxyConfig = awsConfig.proxyConfiguration(null);
-    ClientOverrideConfiguration overrideConfig = awsConfig.clientOverrideConfiguration();
     Apache5HttpClient.Builder httpClientBuilder = mock(Apache5HttpClient.Builder.class);
     awsConfig.configureHttpClient(httpClientBuilder, null);
 
@@ -75,13 +75,15 @@ public class AwsConfigTest {
     verify(httpClientBuilder, never()).proxyConfiguration(any(ProxyConfiguration.class));
     verify(httpClientBuilder).connectionTimeout(Duration.ofMillis(clientConnectionTimeout));
     verify(httpClientBuilder).socketTimeout(Duration.ofSeconds(50));
+
+    ClientOverrideConfiguration overrideConfig = awsConfig.clientOverrideConfiguration();
     assertThat(overrideConfig.retryStrategy().isPresent(), equalTo(true));
     assertThat(
         overrideConfig.retryStrategy().get().maxAttempts(), equalTo(clientMaxErrorRetry + 1));
   }
 
   @Test
-  public void testAwsClientConfig_UseProxy() {
+  void testAwsClientConfig_useProxy() {
     int clientConnectionTimeout = 10;
     int clientMaxErrorRetry = 20;
     setField(awsConfig, "clientConnectionTimeout", clientConnectionTimeout);
@@ -103,7 +105,6 @@ public class AwsConfigTest {
     // 1. Assert Client Proxy branch
     setField(awsConfig, "useProxy", true);
     ProxyConfiguration proxyConfig = awsConfig.proxyConfiguration(proxyDetails);
-    ClientOverrideConfiguration overrideConfig = awsConfig.clientOverrideConfiguration();
     Apache5HttpClient.Builder httpClientBuilder = mock(Apache5HttpClient.Builder.class);
     awsConfig.configureHttpClient(httpClientBuilder, proxyDetails);
 
@@ -116,6 +117,8 @@ public class AwsConfigTest {
     assertThat(configuredProxy(httpClientBuilder).scheme(), equalTo("http"));
     verify(httpClientBuilder).connectionTimeout(Duration.ofMillis(clientConnectionTimeout));
     verify(httpClientBuilder).socketTimeout(Duration.ofSeconds(50));
+
+    ClientOverrideConfiguration overrideConfig = awsConfig.clientOverrideConfiguration();
     assertThat(overrideConfig.retryStrategy().isPresent(), equalTo(true));
     assertThat(
         overrideConfig.retryStrategy().get().maxAttempts(), equalTo(clientMaxErrorRetry + 1));
@@ -142,7 +145,7 @@ public class AwsConfigTest {
   }
 
   @Test
-  public void testAwsCredentialsProvider() {
+  void testAwsCredentialsProvider() {
     AwsCredentialsProvider awsCredentialsProvider = awsConfig.awsCredentialsProvider();
 
     assertThat(awsCredentialsProvider, instanceOf(InstanceProfileCredentialsProvider.class));

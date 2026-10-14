@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+/** Scale-up action run when a publish instance is launched. */
 @Component
 public class ScaleUpPublishAction implements Action {
 
@@ -30,6 +31,26 @@ public class ScaleUpPublishAction implements Action {
 
   @Resource private ReplicationAgentManager replicationAgentManager;
 
+  /**
+   * Integrates a newly launched publish instance into the stack.
+   *
+   * <p>Runs the following steps in order, stopping at the first failure:
+   *
+   * <ol>
+   *   <li>Finds an unpaired publish dispatcher and pairs it with the instance via tags.
+   *   <li>Creates a replication agent on the author instance targeting the new publish instance,
+   *       plus a reverse replication agent when {@code aem.reverseReplication.enable} is set.
+   *   <li>Unless this is the first publish instance, waits for an active publish instance to be
+   *       healthy, pauses its replication agent, snapshots its {@code aws.device.name} volume and
+   *       resumes the agent. The new instance is tagged with the snapshot ID (empty for the first
+   *       publish instance).
+   *   <li>Creates a content health check alarm for the instance; a failure here is only logged.
+   * </ol>
+   *
+   * @param instanceId the EC2 instance ID of the launched publish instance
+   * @return {@code true} if all steps succeed, so the SQS message is removed from the queue; {@code
+   *     false} otherwise, leaving the message on the queue to be retried
+   */
   public boolean execute(String instanceId) {
     logger.info("ScaleUpPublishAction executing");
 

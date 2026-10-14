@@ -11,8 +11,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
-/*
- * Invokes the correct action based on the message type (taken from subject)
+/**
+ * Routes SNS notifications received from SQS to the {@link MessageHandler} for their message type.
+ *
+ * <p>The message type is taken from the SNS subject, which is matched by prefix against the keys of
+ * the {@code eventTypeHandlerMappings} bean.
  */
 @Component
 public class SqsMessageHandler {
@@ -23,6 +26,18 @@ public class SqsMessageHandler {
 
   @Resource private SnsMessageExtractor snsMessageExtractor;
 
+  /**
+   * Extracts the SNS notification from an SQS message and passes it to the matching handler.
+   *
+   * <p>Escaped quotes ({@code \"}) in the notification's message body are unescaped before it is
+   * handed to the handler.
+   *
+   * @param message the JMS text message received from SQS, whose body is an SNS notification
+   * @return {@code true} if the message should be acknowledged and removed from the queue: when its
+   *     body cannot be read, when no handler matches its subject, or when the handler returns
+   *     {@code true}. {@code false} if the subject is missing, the handler returns {@code false} or
+   *     the handler throws.
+   */
   public boolean handleMessage(Message message) {
 
     boolean deleteMessage = false;

@@ -10,6 +10,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+/**
+ * Spring configuration that detects an outbound proxy from the {@code https_proxy} environment
+ * variable.
+ */
 @Configuration
 public class ProxyConfig {
 
@@ -17,6 +21,12 @@ public class ProxyConfig {
 
   private static final String ENV_HTTPS_PROXY = "https_proxy";
 
+  /**
+   * Provides the proxy host and port parsed from the {@code https_proxy} environment variable.
+   *
+   * <p>When the variable is unset, empty or not a valid URL, the host is empty so that no proxy is
+   * detected. When the URL has no port, the port is -1.
+   */
   @Bean
   public ProxyDetails proxyDetails() {
 

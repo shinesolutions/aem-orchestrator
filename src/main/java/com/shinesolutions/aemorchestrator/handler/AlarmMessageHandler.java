@@ -13,6 +13,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
+/**
+ * Handles CloudWatch {@code ALARM} notifications raised by content health check alarms.
+ *
+ * <p>Reads the publish (or preview publish) instance ID from the alarm's {@code PairInstanceId}
+ * dimension and passes it to {@link AlarmContentHealthCheckAction}. Returns the action's result, or
+ * {@code false} (leaving the message on the queue) if the dimension is missing or the message
+ * cannot be processed.
+ */
 @Component
 public class AlarmMessageHandler implements MessageHandler {
 

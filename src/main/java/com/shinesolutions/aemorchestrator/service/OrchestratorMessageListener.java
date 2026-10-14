@@ -52,12 +52,24 @@ public class OrchestratorMessageListener implements MessageListener {
     }
   }
 
+  /**
+   * Registers this listener on the SQS message consumer and starts the SQS connection.
+   *
+   * <p>Called on application startup once the Author ELB is healthy.
+   *
+   * @throws Exception if the listener cannot be registered or the connection fails to start
+   */
   public void start() throws Exception {
     logger.debug("Initialising message receiver, starting SQS connection");
     consumer.setMessageListener(this);
     connection.start();
   }
 
+  /**
+   * Stops the SQS connection when the bean is destroyed.
+   *
+   * @throws Exception if the connection fails to stop
+   */
   @PreDestroy
   public void cleanUp() throws Exception {
     logger.debug("Destroying message receiver, stopping SQS connection");

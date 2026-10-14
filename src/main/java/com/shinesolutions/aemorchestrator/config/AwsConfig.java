@@ -33,6 +33,13 @@ import software.amazon.awssdk.services.elasticloadbalancingv2.ElasticLoadBalanci
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.sqs.SqsClient;
 
+/**
+ * Spring configuration, active in the {@code default} profile, for the AWS SDK v2 clients and the
+ * SQS JMS consumer that receives orchestration events.
+ *
+ * <p>All service clients share the same credentials provider, region, HTTP client and override
+ * configuration, configured by the {@code aws.*} properties.
+ */
 @Configuration
 @Profile("default")
 public class AwsConfig {
@@ -61,11 +68,19 @@ public class AwsConfig {
   // SDK v1 ClientConfiguration default; SDK v2's Apache client defaults to 30 seconds
   private static final Duration SOCKET_TIMEOUT = Duration.ofSeconds(50);
 
+  /** Provides credentials from the EC2 instance profile the orchestrator runs under. */
   @Bean
   public AwsCredentialsProvider awsCredentialsProvider() {
     return InstanceProfileCredentialsProvider.create();
   }
 
+  /**
+   * Provides the AWS region used by all clients.
+   *
+   * <p>Uses {@code aws.region} when set, otherwise the SDK default region provider chain.
+   *
+   * @throws BeanInitializationException if the region is unknown or cannot be determined
+   */
   @Bean
   public Region awsRegion() {
     Region region;
@@ -111,6 +126,14 @@ public class AwsConfig {
     return null;
   }
 
+  /**
+   * Provides the Apache HTTP client shared by all AWS clients.
+   *
+   * <p>The connection timeout is {@code aws.client.connection.timeout} milliseconds and the socket
+   * timeout is 50 seconds. A proxy is used when {@code aws.client.useProxy} is true ({@code
+   * aws.client.proxy.host} and {@code aws.client.proxy.port}), or otherwise when {@code
+   * proxyDetails} has a host, as detected from {@code https_proxy} by {@link ProxyConfig}.
+   */
   @Bean
   public SdkHttpClient httpClient(@Nullable final ProxyDetails proxyDetails) {
     return configureHttpClient(Apache5HttpClient.builder(), proxyDetails).build();
@@ -129,6 +152,10 @@ public class AwsConfig {
     return builder;
   }
 
+  /**
+   * Provides the override configuration shared by all AWS clients, which applies the legacy retry
+   * strategy with up to {@code aws.client.max.errorRetry} retries after the first attempt.
+   */
   @Bean
   public ClientOverrideConfiguration clientOverrideConfiguration() {
     ClientOverrideConfiguration.Builder builder = ClientOverrideConfiguration.builder();
@@ -142,6 +169,10 @@ public class AwsConfig {
     return builder.build();
   }
 
+  /**
+   * Provides the SQS client used by the JMS connection, configured with the shared AWS client
+   * settings.
+   */
   @Bean
   public SqsClient sqsClient(
       final AwsCredentialsProvider awsCredentialsProvider,
@@ -157,6 +188,11 @@ public class AwsConfig {
         .build();
   }
 
+  /**
+   * Provides the JMS connection to SQS, created with the default provider configuration.
+   *
+   * @throws JMSException if the connection cannot be created
+   */
   @Bean
   public SQSConnection sqsConnection(final SqsClient sqsClient) throws JMSException {
     SQSConnectionFactory connectionFactory =
@@ -165,14 +201,21 @@ public class AwsConfig {
     return connectionFactory.createConnection();
   }
 
+  /**
+   * Provides the JMS consumer for the {@code aws.sqs.queueName} queue, using a non-transacted
+   * session in unordered acknowledge mode so that each message is acknowledged individually.
+   *
+   * @throws JMSException if the session or consumer cannot be created
+   */
   @Bean
   public MessageConsumer sqsMessageConsumer(final SQSConnection connection) throws JMSException {
     Session session = connection.createSession(false, SQSSession.UNORDERED_ACKNOWLEDGE);
     return session.createConsumer(session.createQueue(queueName));
   }
 
+  /** Provides the EC2 client, configured with the shared AWS client settings. */
   @Bean
-  public Ec2Client amazonEC2Client(
+  public Ec2Client amazonEc2Client(
       final AwsCredentialsProvider awsCredentialsProvider,
       final SdkHttpClient httpClient,
       final ClientOverrideConfiguration overrideConfig,
@@ -186,6 +229,9 @@ public class AwsConfig {
         .build();
   }
 
+  /**
+   * Provides the Elastic Load Balancing v2 client, configured with the shared AWS client settings.
+   */
   @Bean
   public ElasticLoadBalancingV2Client amazonElbClient(
       final AwsCredentialsProvider awsCredentialsProvider,
@@ -201,6 +247,7 @@ public class AwsConfig {
         .build();
   }
 
+  /** Provides the Auto Scaling client, configured with the shared AWS client settings. */
   @Bean
   public AutoScalingClient amazonAutoScalingClient(
       final AwsCredentialsProvider awsCredentialsProvider,
@@ -216,6 +263,7 @@ public class AwsConfig {
         .build();
   }
 
+  /** Provides the CloudFormation client, configured with the shared AWS client settings. */
   @Bean
   public CloudFormationClient amazonCloudFormationClient(
       final AwsCredentialsProvider awsCredentialsProvider,
@@ -231,6 +279,7 @@ public class AwsConfig {
         .build();
   }
 
+  /** Provides the S3 client, configured with the shared AWS client settings. */
   @Bean
   public S3Client amazonS3Client(
       final AwsCredentialsProvider awsCredentialsProvider,
@@ -246,6 +295,7 @@ public class AwsConfig {
         .build();
   }
 
+  /** Provides the CloudWatch client, configured with the shared AWS client settings. */
   @Bean
   public CloudWatchClient amazonCloudWatchClient(
       final AwsCredentialsProvider awsCredentialsProvider,

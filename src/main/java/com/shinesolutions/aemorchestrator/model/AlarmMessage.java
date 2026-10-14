@@ -3,6 +3,12 @@ package com.shinesolutions.aemorchestrator.model;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+/**
+ * CloudWatch alarm state change notification, delivered as the {@code Message} of an SNS message.
+ *
+ * <p>Maps the alarm fields such as {@code AlarmName}, {@code NewStateValue} and {@code Trigger};
+ * unknown fields are ignored.
+ */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class AlarmMessage {
 

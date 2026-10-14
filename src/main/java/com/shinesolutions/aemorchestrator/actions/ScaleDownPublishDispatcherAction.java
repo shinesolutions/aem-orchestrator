@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
+/** Scale-down action run when a publish dispatcher instance is terminated. */
 @Component
 public class ScaleDownPublishDispatcherAction implements Action {
 
@@ -16,6 +17,16 @@ public class ScaleDownPublishDispatcherAction implements Action {
 
   @Resource private AwsHelperService awsHelperService;
 
+  /**
+   * Terminates the paired publish instance and realigns the publish Auto Scaling group capacity.
+   *
+   * <p>Terminates the publish instance paired with the dispatcher (if one is found), then sets the
+   * publish Auto Scaling group's desired capacity to the publish dispatcher group's desired
+   * capacity when the two differ.
+   *
+   * @param instanceId the EC2 instance ID of the terminated publish dispatcher
+   * @return always {@code true}, so the SQS message is removed from the queue
+   */
   public boolean execute(String instanceId) {
     logger.info("ScaleDownPublishDispatcherAction executing");
 

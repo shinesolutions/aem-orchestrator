@@ -1,5 +1,6 @@
 package com.shinesolutions.aemorchestrator.model;
 
+/** User name and password of an AEM user. */
 public class UserPasswordCredentials {
 
   private String userName;
@@ -13,6 +14,7 @@ public class UserPasswordCredentials {
     this.userName = userName;
   }
 
+  /** Sets the user name and returns this object for chaining. */
   public UserPasswordCredentials withUserName(String userName) {
     this.setUserName(userName);
     return this;
@@ -26,6 +28,7 @@ public class UserPasswordCredentials {
     this.password = password;
   }
 
+  /** Sets the password and returns this object for chaining. */
   public UserPasswordCredentials withPassword(String password) {
     this.setPassword(password);
     return this;
