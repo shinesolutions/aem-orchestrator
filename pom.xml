@@ -171,16 +171,23 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
         <configuration>
-          <argLine>@{argLine} -Xms512m -Xmx1500m -Dnet.bytebuddy.experimental=true</argLine>
+          <!-- Load Mockito as an agent; dynamic self-attach fails in the buildenv container -->
+          <argLine>@{argLine} -javaagent:${org.mockito:mockito-core:jar} -Xms512m -Xmx1500m -Dnet.bytebuddy.experimental=true</argLine>
           <reuseForks>false</reuseForks>
         </configuration>
       </plugin>
 
-      <!-- Dependency Copy Plugin -->
+      <!-- Dependency Plugin (resolve Mockito agent path, copy runtime dependencies) -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-dependency-plugin</artifactId>
         <executions>
+          <execution>
+            <id>resolve-mockito-agent-path</id>
+            <goals>
+              <goal>properties</goal>
+            </goals>
+          </execution>
           <execution>
             <phase>package</phase>
             <goals>
