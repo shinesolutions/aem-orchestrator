@@ -39,6 +39,7 @@
     <!-- Plugin Versions (overriding Spring Boot managed versions) -->
     <maven-compiler-plugin.version>3.16.0</maven-compiler-plugin.version>
     <maven-surefire-plugin.version>3.6.0</maven-surefire-plugin.version>
+    <maven-failsafe-plugin.version>3.6.0</maven-failsafe-plugin.version>
     <maven-dependency-plugin.version>3.11.0</maven-dependency-plugin.version>
 
     <!-- Plugin Versions (not managed by Spring Boot) -->
@@ -174,6 +175,34 @@
           <!-- Load Mockito as an agent; dynamic self-attach fails in the buildenv container -->
           <argLine>@{argLine} -javaagent:${org.mockito:mockito-core:jar} -Xms512m -Xmx1500m -Dnet.bytebuddy.experimental=true</argLine>
           <reuseForks>false</reuseForks>
+        </configuration>
+      </plugin>
+
+      <!-- Integration Tests (src/integration-test/java, *IT classes, run in integration-test/verify) -->
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>build-helper-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>add-integration-test-sources</id>
+            <phase>generate-test-sources</phase>
+            <goals>
+              <goal>add-test-source</goal>
+            </goals>
+            <configuration>
+              <sources>
+                <source>src/integration-test/java</source>
+              </sources>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-failsafe-plugin</artifactId>
+        <configuration>
+          <!-- Load Mockito as an agent; dynamic self-attach fails in the buildenv container -->
+          <argLine>@{argLine} -javaagent:${org.mockito:mockito-core:jar}</argLine>
         </configuration>
       </plugin>
 
