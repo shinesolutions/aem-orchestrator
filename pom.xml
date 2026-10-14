@@ -27,27 +27,29 @@
   </scm>
 
   <properties>
+    <!-- spring-boot-starter-parent derives maven.compiler.release and UTF-8 encodings from this -->
     <java.version>21</java.version>
-    <maven.compiler.release>21</maven.compiler.release>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
-    <!-- AWS SDK v2 -->
-    <aws-sdk.version>2.55.11</aws-sdk.version>
+    <!-- Dependency Versions -->
+    <aws-sdk.version>2.55.16</aws-sdk.version>
+    <amazon-sqs-java-messaging-lib.version>2.1.4</amazon-sqs-java-messaging-lib.version>
+    <spring-retry.version>2.0.13</spring-retry.version>
+    <swaggeraem4j.version>0.10.0</swaggeraem4j.version>
 
-    <!-- Plugin Versions -->
+    <!-- Plugin Versions (overriding Spring Boot managed versions) -->
     <maven-compiler-plugin.version>3.16.0</maven-compiler-plugin.version>
     <maven-surefire-plugin.version>3.6.0</maven-surefire-plugin.version>
     <maven-dependency-plugin.version>3.11.0</maven-dependency-plugin.version>
-    <maven-jar-plugin.version>3.5.1</maven-jar-plugin.version>
-    <maven-javadoc-plugin.version>3.12.0</maven-javadoc-plugin.version>
-    <maven-source-plugin.version>3.4.0</maven-source-plugin.version>
+
+    <!-- Plugin Versions (not managed by Spring Boot) -->
     <maven-gpg-plugin.version>3.2.8</maven-gpg-plugin.version>
-    <build-helper-maven-plugin.version>3.6.2</build-helper-maven-plugin.version>
-    <jacoco-maven-plugin.version>0.8.15</jacoco-maven-plugin.version>
-    <central-publishing-plugin.version>0.11.0</central-publishing-plugin.version>
     <maven-checkstyle-plugin.version>3.6.0</maven-checkstyle-plugin.version>
-    <spotbugs-maven-plugin.version>4.10.4.1</spotbugs-maven-plugin.version>
+    <checkstyle.version>14.3.0</checkstyle.version>
+    <spotless-maven-plugin.version>3.10.4</spotless-maven-plugin.version>
+    <google-java-format.version>1.36.1</google-java-format.version>
+    <spotbugs-maven-plugin.version>4.10.5.0</spotbugs-maven-plugin.version>
+    <jacoco-maven-plugin.version>0.8.15</jacoco-maven-plugin.version>
+    <central-publishing-plugin.version>0.12.0</central-publishing-plugin.version>
   </properties>
 
   <licenses>
@@ -85,11 +87,11 @@
     <dependency>
       <groupId>com.shinesolutions</groupId>
       <artifactId>swaggeraem4j</artifactId>
-      <version>0.10.0</version>
+      <version>${swaggeraem4j.version}</version>
     </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter-web</artifactId>
+      <artifactId>spring-boot-starter-webmvc</artifactId>
     </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>
@@ -102,7 +104,7 @@
     <dependency>
       <groupId>org.springframework.retry</groupId>
       <artifactId>spring-retry</artifactId>
-      <version>2.0.13</version>
+      <version>${spring-retry.version}</version>
     </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>
@@ -123,7 +125,7 @@
     <dependency>
       <groupId>com.amazonaws</groupId>
       <artifactId>amazon-sqs-java-messaging-lib</artifactId>
-      <version>2.1.2</version>
+      <version>${amazon-sqs-java-messaging-lib.version}</version>
     </dependency>
     <dependency>
       <groupId>software.amazon.awssdk</groupId>
@@ -163,56 +165,13 @@
   </dependencies>
 
   <build>
-    <pluginManagement>
-      <plugins>
-        <!-- Configure Eclipse m2e lifecycle mapping for VS Code -->
-        <plugin>
-          <groupId>org.eclipse.m2e</groupId>
-          <artifactId>lifecycle-mapping</artifactId>
-          <version>1.0.0</version>
-          <configuration>
-            <lifecycleMappingMetadata>
-              <pluginExecutions>
-                <!-- Ignore checkstyle during incremental background builds -->
-                <pluginExecution>
-                  <pluginExecutionFilter>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-checkstyle-plugin</artifactId>
-                    <versionRange>[3.0.0,)</versionRange>
-                    <goals>
-                      <goal>check</goal>
-                    </goals>
-                  </pluginExecutionFilter>
-                  <action>
-                    <ignore />
-                  </action>
-                </pluginExecution>
-              </pluginExecutions>
-            </lifecycleMappingMetadata>
-          </configuration>
-        </plugin>
-      </plugins>
-    </pluginManagement>
-  
     <plugins>
-      <!-- Compiler Plugin (Java 21 Target) -->
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-compiler-plugin</artifactId>
-        <version>${maven-compiler-plugin.version}</version>
-        <configuration>
-          <release>${maven.compiler.release}</release>
-        </configuration>
-      </plugin>
-
-      <!-- Surefire Plugin (Test Runner + ByteBuddy Flag for Java 21) -->
+      <!-- Surefire Plugin (Test Runner + ByteBuddy Flag for newer JDKs) -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
-        <version>${maven-surefire-plugin.version}</version>
         <configuration>
           <argLine>@{argLine} -Xms512m -Xmx1500m -Dnet.bytebuddy.experimental=true</argLine>
-          <forkCount>1</forkCount>
           <reuseForks>false</reuseForks>
         </configuration>
       </plugin>
@@ -221,7 +180,6 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-dependency-plugin</artifactId>
-        <version>${maven-dependency-plugin.version}</version>
         <executions>
           <execution>
             <phase>package</phase>
@@ -239,7 +197,6 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-jar-plugin</artifactId>
-        <version>${maven-jar-plugin.version}</version>
         <executions>
           <execution>
             <goals>
@@ -258,39 +215,6 @@
         </configuration>
       </plugin>
 
-      <!-- Source Directories Helper Plugin -->
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>build-helper-maven-plugin</artifactId>
-        <version>${build-helper-maven-plugin.version}</version>
-        <executions>
-          <execution>
-            <id>add_sources</id>
-            <phase>generate-sources</phase>
-            <goals>
-              <goal>add-source</goal>
-            </goals>
-            <configuration>
-              <sources>
-                <source>src/main/java</source>
-              </sources>
-            </configuration>
-          </execution>
-          <execution>
-            <id>add_test_sources</id>
-            <phase>generate-test-sources</phase>
-            <goals>
-              <goal>add-test-source</goal>
-            </goals>
-            <configuration>
-              <sources>
-                <source>src/test/java</source>
-              </sources>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-
       <!-- Checkstyle Plugin (Code Style Linting) -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -300,7 +224,7 @@
           <dependency>
             <groupId>com.puppycrawl.tools</groupId>
             <artifactId>checkstyle</artifactId>
-            <version>10.21.4</version>
+            <version>${checkstyle.version}</version>
           </dependency>
         </dependencies>
         <configuration>
@@ -312,6 +236,8 @@
         </configuration>
         <executions>
           <execution>
+            <!-- Ignore checkstyle during Eclipse m2e / VS Code incremental background builds -->
+            <?m2e ignore?>
             <id>validate</id>
             <phase>validate</phase>
             <goals>
@@ -324,11 +250,11 @@
       <plugin>
         <groupId>com.diffplug.spotless</groupId>
         <artifactId>spotless-maven-plugin</artifactId>
-        <version>3.10.3</version>
+        <version>${spotless-maven-plugin.version}</version>
         <configuration>
           <java>
             <googleJavaFormat>
-              <version>1.36.1</version>
+              <version>${google-java-format.version}</version>
               <style>GOOGLE</style>
             </googleJavaFormat>
             <removeUnusedImports />
@@ -363,7 +289,6 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-javadoc-plugin</artifactId>
-        <version>${maven-javadoc-plugin.version}</version>
         <executions>
           <execution>
             <id>attach-javadocs</id>
@@ -378,7 +303,6 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-source-plugin</artifactId>
-        <version>${maven-source-plugin.version}</version>
         <executions>
           <execution>
             <id>attach-sources</id>
@@ -404,11 +328,6 @@
           <includes>
             <include>com/shinesolutions/aemorchestrator/**</include>
           </includes>
-          <excludes>
-            <exclude>com/sun/tools/attach/**</exclude>
-            <exclude>jdk/internal/**</exclude>
-            <exclude>sun/**</exclude>
-          </excludes>
         </configuration>
         <executions>
           <execution>
@@ -440,7 +359,7 @@
         </configuration>
       </plugin>
 
-      <!-- Enforcer Plugin (Requires Java 21+ and Maven 3.9+) -->
+      <!-- Enforcer Plugin (Requires Java 21+ and Maven 3.10+) -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-enforcer-plugin</artifactId>
@@ -453,7 +372,7 @@
             <configuration>
               <rules>
                 <requireMavenVersion>
-                  <version>[3.9.0,)</version>
+                  <version>[3.10.0,)</version>
                 </requireMavenVersion>
                 <requireJavaVersion>
                   <version>[21,)</version>
@@ -463,39 +382,22 @@
           </execution>
         </executions>
       </plugin>
+
+      <!-- GPG Plugin (Artifact Signing for Maven Central) -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-gpg-plugin</artifactId>
+        <version>${maven-gpg-plugin.version}</version>
+        <executions>
+          <execution>
+            <id>sign-artifacts</id>
+            <phase>verify</phase>
+            <goals>
+              <goal>sign</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
     </plugins>
   </build>
-
-  <profiles>
-    <!-- Artifact Signing Profile for Maven Central -->
-    <profile>
-      <id>release</id>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-jar-plugin</artifactId>
-            <version>${maven-jar-plugin.version}</version>
-            <executions>
-              <execution>
-                <goals>
-                  <!-- Only include test-jar here; main jar is created automatically by lifecycle -->
-                  <goal>test-jar</goal>
-                </goals>
-              </execution>
-            </executions>
-            <configuration>
-              <archive>
-                <manifest>
-                  <addClasspath>true</addClasspath>
-                  <classpathPrefix>lib/</classpathPrefix>
-                  <mainClass>com.shinesolutions.aemorchestrator.AemOrchestrator</mainClass>
-                </manifest>
-              </archive>
-            </configuration>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-  </profiles>
 </project>
