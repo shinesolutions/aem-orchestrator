@@ -39,15 +39,22 @@ Versions follow [Semantic Versioning](https://semver.org/): use a major release 
 - A GPG key for signing, with its public key on a keyserver such as `keyserver.ubuntu.com`
   (Maven Central verifies signatures against it)
 - A Maven Central Portal user token for the `com.shinesolutions` namespace
-- Both are read from environment variables only, never from files. Set them in your shell,
-  `read -rs` keeps the values out of your shell history:
+- Both are read from environment variables only, never from files. Enter them in your shell, so
+  the values stay hidden and out of your shell history:
 
   ```
-  $ export MAVEN_GPG_KEY="$(gpg --export-secret-keys --armor <key-id>)"
+  # GPG private key: run this, paste the whole key including the
+  # -----BEGIN/END PGP PRIVATE KEY BLOCK----- lines, press Enter, then Ctrl-D
+  $ stty -echo; MAVEN_GPG_KEY="$(cat)"; stty echo; export MAVEN_GPG_KEY
+
+  # GPG passphrase and Central Portal user token: type or paste each value, then press Enter
   $ read -rs MAVEN_GPG_PASSPHRASE; export MAVEN_GPG_PASSPHRASE
   $ read -rs MAVEN_CENTRAL_USERNAME; export MAVEN_CENTRAL_USERNAME
   $ read -rs MAVEN_CENTRAL_PASSWORD; export MAVEN_CENTRAL_PASSWORD
   ```
+
+  Check the key arrived complete without printing it: `printf '%s\n' "$MAVEN_GPG_KEY" | head -1` and
+  `| tail -1` should show the BEGIN and END lines.
 
 Run the `make`, `mvn` and `git` commands below in aem-platform-buildenv, started from the directory
 above this repository. It passes the variables through by name, your git identity for the release
