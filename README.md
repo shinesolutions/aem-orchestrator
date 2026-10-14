@@ -18,6 +18,8 @@ This project requires Java 21 and Apache Maven 3.10+. Run the targets below insi
 | `make integration-test` | Integration tests only (`src/integration-test/java`) |
 | `make changelog-check` | Check CHANGELOG.md follows Keep a Changelog, with an `## [Unreleased]` section first. With `CHANGELOG_BASE=origin/master` (set by CI for pull requests) it also requires a new `## [Unreleased]` entry, so every pull request must describe its change |
 | `make release-check` | Offline release dry run: GPG-sign and bundle the committed `HEAD` for Maven Central at its release version, check the bundle and every signature, upload nothing. Signs with `MAVEN_GPG_KEY` (armored secret key) and `MAVEN_GPG_PASSPHRASE` from the environment, or your GPG keyring; bundle kept at `target/release-check/central-bundle.zip` |
+| `make release-status DEPLOYMENT_ID=<id>` | Show a Maven Central Portal deployment's state (e.g. `VALIDATED`, `PUBLISHED`, `FAILED`) and errors, using `MAVEN_CENTRAL_USERNAME` and `MAVEN_CENTRAL_PASSWORD` |
+| `make release-drop DEPLOYMENT_ID=<id>` | Drop (delete) a Maven Central Portal deployment that has not been published |
 | `make release-major`, `release-minor`, `release-patch` | Release the next major, minor or patch version with maven-release-plugin. Dates the `## [Unreleased]` CHANGELOG.md entries as the release, then commits and tags `aem-orchestrator-<version>` locally; push with `git push --follow-tags` |
 
 ### Create JAR file
@@ -99,6 +101,12 @@ $ docker run --rm -it -v "$(pwd)":/workspace -w /workspace/aem-orchestrator \
    [central.sonatype.com](https://central.sonatype.com) → Publishing → Deployments: click **Publish**
    to release it, or **Drop** to discard it without publishing. A published version can't be changed
    or removed. To publish automatically once validated, add `-DautoPublish=true` to `mvn`.
+
+   Without a Central Portal login, use the user token and the deployment ID printed by `mvn deploy`:
+   ```
+   $ make release-status DEPLOYMENT_ID=<id>
+   $ make release-drop DEPLOYMENT_ID=<id>
+   ```
 6. Unset the secrets when you are done:
    `unset MAVEN_GPG_KEY MAVEN_GPG_PASSPHRASE MAVEN_CENTRAL_USERNAME MAVEN_CENTRAL_PASSWORD`
 

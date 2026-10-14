@@ -133,6 +133,28 @@ release-check:
 	done; \
 	echo "Release check OK: target/release-check/central-bundle.zip"
 
+# Central Portal deployments (`mvn -Prelease deploy` prints the deployment ID). Uses the user token in
+# MAVEN_CENTRAL_USERNAME and MAVEN_CENTRAL_PASSWORD; the Authorization header is passed to curl on
+# stdin so the token is not visible in the process list.
+#   release-status: show a deployment's state (e.g. VALIDATED, PUBLISHED, FAILED) and any errors
+#   release-drop:   drop (delete) a deployment that has not been published
+define central_api
+	set -euo pipefail; \
+	test -n "$(DEPLOYMENT_ID)" || { echo "Set DEPLOYMENT_ID, e.g. make $@ DEPLOYMENT_ID=<id>"; exit 1; }; \
+	test -n "$${MAVEN_CENTRAL_USERNAME:-}" && test -n "$${MAVEN_CENTRAL_PASSWORD:-}" \
+	  || { echo "Set MAVEN_CENTRAL_USERNAME and MAVEN_CENTRAL_PASSWORD"; exit 1; }; \
+	token=$$(printf '%s:%s' "$$MAVEN_CENTRAL_USERNAME" "$$MAVEN_CENTRAL_PASSWORD" | base64 | tr -d '\n'); \
+	printf 'Authorization: Bearer %s\n' "$$token" \
+	  | curl -sS --fail-with-body -X $(1) -H @- -w '\nHTTP %{http_code}\n' \
+	      "https://central.sonatype.com/api/v1/publisher/$(2)"
+endef
+
+release-status:
+	@$(call central_api,POST,status?id=$(DEPLOYMENT_ID))
+
+release-drop:
+	@$(call central_api,DELETE,deployment/$(DEPLOYMENT_ID))
+
 release-major:
 	@$(call release,major)
 
@@ -143,4 +165,4 @@ release-patch:
 	@$(call release,patch)
 
 
-.PHONY: ci clean deps build test integration-test changelog-check release-check release-major release-minor release-patch
+.PHONY: ci clean deps build test integration-test changelog-check release-check release-status release-drop release-major release-minor release-patch
