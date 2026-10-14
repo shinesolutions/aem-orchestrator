@@ -16,6 +16,19 @@
     </server>
   </servers>
 
+  <!--
+    net.java:jvnet-parent (used by a checkstyle plugin dependency) declares the retired
+    maven.java.net repository, whose expired certificate made Maven warn while fetching its
+    prefix index. Its artifacts are on Maven Central, so resolve them from there instead.
+  -->
+  <mirrors>
+    <mirror>
+      <id>jvnet-nexus-releases-to-central</id>
+      <mirrorOf>jvnet-nexus-releases</mirrorOf>
+      <url>https://repo.maven.apache.org/maven2</url>
+    </mirror>
+  </mirrors>
+
   <!-- Explicitly route central to the official public registry -->
   <profiles>
     <profile>
