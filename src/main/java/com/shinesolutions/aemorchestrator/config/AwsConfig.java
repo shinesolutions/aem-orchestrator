@@ -21,8 +21,8 @@ import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.http.SdkHttpClient;
-import software.amazon.awssdk.http.apache.ApacheHttpClient;
-import software.amazon.awssdk.http.apache.ProxyConfiguration;
+import software.amazon.awssdk.http.apache5.Apache5HttpClient;
+import software.amazon.awssdk.http.apache5.ProxyConfiguration;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.regions.providers.DefaultAwsRegionProviderChain;
 import software.amazon.awssdk.services.autoscaling.AutoScalingClient;
@@ -109,7 +109,7 @@ public class AwsConfig {
 
   @Bean
   public SdkHttpClient httpClient(@Nullable final ProxyDetails proxyDetails) {
-    ApacheHttpClient.Builder builder = ApacheHttpClient.builder();
+    Apache5HttpClient.Builder builder = Apache5HttpClient.builder();
 
     ProxyConfiguration proxyConfig = proxyConfiguration(proxyDetails);
     if (proxyConfig != null) {
