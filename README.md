@@ -18,7 +18,7 @@ This project requires Java 21 and Apache Maven 3.10+. Run the targets below insi
 | `make integration-test` | Integration tests only (`src/integration-test/java`) |
 | `make changelog-check` | Check CHANGELOG.md follows Keep a Changelog, with an `## [Unreleased]` section first. With `CHANGELOG_BASE=origin/master` (set by CI for pull requests) it also requires a new `## [Unreleased]` entry, so every pull request must describe its change |
 | `make release-check` | Offline release dry run: GPG-sign and bundle the committed `HEAD` for Maven Central at its release version, check the bundle and every signature, upload nothing. Signs with `MAVEN_GPG_KEY` (armored secret key) and `MAVEN_GPG_PASSPHRASE` from the environment, or your GPG keyring; bundle kept at `target/release-check/central-bundle.zip` |
-| `make release` | Minor release with maven-release-plugin; also `release-major` and `release-patch`. Dates the `## [Unreleased]` CHANGELOG.md entries as the release, then commits and tags `aem-orchestrator-<version>` locally; push with `git push --follow-tags` |
+| `make release-major`, `release-minor`, `release-patch` | Release the next major, minor or patch version with maven-release-plugin. Dates the `## [Unreleased]` CHANGELOG.md entries as the release, then commits and tags `aem-orchestrator-<version>` locally; push with `git push --follow-tags` |
 
 ### Create JAR file
 ```
