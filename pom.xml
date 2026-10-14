@@ -280,6 +280,7 @@
           <xmlOutput>true</xmlOutput>
           <includeTests>true</includeTests>
           <maxHeap>1024</maxHeap>
+          <excludeFilterFile>spotbugs-exclude.xml</excludeFilterFile>
         </configuration>
         <executions>
           <execution>
@@ -389,22 +390,31 @@
           </execution>
         </executions>
       </plugin>
-
-      <!-- GPG Plugin (Artifact Signing for Maven Central) -->
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-gpg-plugin</artifactId>
-        <version>${maven-gpg-plugin.version}</version>
-        <executions>
-          <execution>
-            <id>sign-artifacts</id>
-            <phase>verify</phase>
-            <goals>
-              <goal>sign</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
     </plugins>
   </build>
+
+  <profiles>
+    <!-- Artifact Signing for Maven Central: mvn -Prelease deploy -->
+    <profile>
+      <id>release</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-gpg-plugin</artifactId>
+            <version>${maven-gpg-plugin.version}</version>
+            <executions>
+              <execution>
+                <id>sign-artifacts</id>
+                <phase>verify</phase>
+                <goals>
+                  <goal>sign</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
 </project>

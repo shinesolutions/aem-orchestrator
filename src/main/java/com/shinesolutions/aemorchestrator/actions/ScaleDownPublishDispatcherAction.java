@@ -29,8 +29,8 @@ public class ScaleDownPublishDispatcherAction implements Action {
       awsHelperService.terminateInstance(pairedPublishId);
     } else {
       logger.warn(
-          "Unable to terminate paired publish instance with ID: "
-              + pairedPublishId
+          "Unable to find paired publish instance for publish dispatcher with ID: "
+              + instanceId
               + ". It may already be terminated");
     }
 

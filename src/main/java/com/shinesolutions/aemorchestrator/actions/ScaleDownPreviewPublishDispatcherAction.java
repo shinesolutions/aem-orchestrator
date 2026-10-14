@@ -30,8 +30,8 @@ public class ScaleDownPreviewPublishDispatcherAction implements Action {
       awsHelperService.terminateInstance(pairedPreviewPublishId);
     } else {
       logger.warn(
-          "Unable to terminate paired previewPublish instance with ID: "
-              + pairedPreviewPublishId
+          "Unable to find paired previewPublish instance for previewPublish dispatcher with ID: "
+              + instanceId
               + ". It may already be terminated");
     }
 
