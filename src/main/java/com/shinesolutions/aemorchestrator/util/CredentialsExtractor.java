@@ -30,18 +30,9 @@ public class CredentialsExtractor {
     ObjectMapper mapper = MessageExtractor.newObjectMapper();
     JsonNode root = mapper.readTree(fileContents);
 
-    AemCredentials aemCredentials = new AemCredentials();
-    aemCredentials.setOrchestratorCredentials(
-        new UserPasswordCredentials()
-            .withUserName(ORCHESTRATOR_USER)
-            .withPassword(asText(root.path(ORCHESTRATOR_USER))));
-
-    aemCredentials.setReplicatorCredentials(
-        new UserPasswordCredentials()
-            .withUserName(REPLICATOR_USER)
-            .withPassword(asText(root.path(REPLICATOR_USER))));
-
-    return aemCredentials;
+    return new AemCredentials(
+        new UserPasswordCredentials(ORCHESTRATOR_USER, asText(root.path(ORCHESTRATOR_USER))),
+        new UserPasswordCredentials(REPLICATOR_USER, asText(root.path(REPLICATOR_USER))));
   }
 
   /** Jackson 2 JsonNode.asText(): "null" for a JSON null, "" for missing nodes and containers. */

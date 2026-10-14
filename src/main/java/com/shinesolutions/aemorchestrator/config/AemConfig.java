@@ -114,15 +114,10 @@ public class AemConfig {
 
     } else {
       logger.debug("Reading AEM credentials from application properties file");
-      aemCredentials = new AemCredentials();
-      aemCredentials.setOrchestratorCredentials(
-          new UserPasswordCredentials()
-              .withUserName(orchestratorUsername)
-              .withPassword(orchestratorPassword));
-      aemCredentials.setReplicatorCredentials(
-          new UserPasswordCredentials()
-              .withUserName(replicatorUsername)
-              .withPassword(replicatorPassword));
+      aemCredentials =
+          new AemCredentials(
+              new UserPasswordCredentials(orchestratorUsername, orchestratorPassword),
+              new UserPasswordCredentials(replicatorUsername, replicatorPassword));
     }
 
     return aemCredentials;

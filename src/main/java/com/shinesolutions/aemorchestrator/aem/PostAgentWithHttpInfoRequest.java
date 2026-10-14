@@ -1,6 +1,8 @@
 package com.shinesolutions.aemorchestrator.aem;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -251,12 +253,19 @@ public class PostAgentWithHttpInfoRequest {
     return this;
   }
 
+  /** Returns the agent's HTTP headers as an unmodifiable list, or {@code null} if unset. */
   public List<String> getJcrContentProtocolHttpHeaders() {
-    return jcrContentProtocolHttpHeaders;
+    return jcrContentProtocolHttpHeaders == null
+        ? null
+        : Collections.unmodifiableList(jcrContentProtocolHttpHeaders);
   }
 
+  /** Stores an unmodifiable copy of the given headers; {@code null} unsets them. */
   public void setJcrContentProtocolHttpHeaders(List<String> jcrContentProtocolHttpHeaders) {
-    this.jcrContentProtocolHttpHeaders = jcrContentProtocolHttpHeaders;
+    this.jcrContentProtocolHttpHeaders =
+        jcrContentProtocolHttpHeaders == null
+            ? null
+            : new ArrayList<>(jcrContentProtocolHttpHeaders);
   }
 
   /** Sets the agent's {@code jcr:content/protocolHTTPHeaders} property. */

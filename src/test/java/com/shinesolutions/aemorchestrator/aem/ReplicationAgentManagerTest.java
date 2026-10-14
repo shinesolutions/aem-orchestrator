@@ -297,9 +297,7 @@ class ReplicationAgentManagerTest {
 
   /** Create and resume requests carry the replicator user as the agent's transport user. */
   private void givenReplicatorCredentials() {
-    UserPasswordCredentials replicatorCredentials = new UserPasswordCredentials();
-    replicatorCredentials.setUserName(username);
-    replicatorCredentials.setPassword(password);
+    UserPasswordCredentials replicatorCredentials = new UserPasswordCredentials(username, password);
     when(aemCredentials.getReplicatorCredentials()).thenReturn(replicatorCredentials);
   }
 }

@@ -1,5 +1,6 @@
 package com.shinesolutions.aemorchestrator.model;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -8,27 +9,25 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * ID} and {@code Availability Zone}.
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class Details {
+public final class Details {
 
-  @JsonProperty("Subnet ID")
-  private String subnetId;
+  private final String subnetId;
+  private final String availabilityZone;
 
-  @JsonProperty("Availability Zone")
-  private String availabilityZone;
+  /** Creates the details; also used by Jackson to map the event message JSON. */
+  @JsonCreator
+  public Details(
+      @JsonProperty("Subnet ID") String subnetId,
+      @JsonProperty("Availability Zone") String availabilityZone) {
+    this.subnetId = subnetId;
+    this.availabilityZone = availabilityZone;
+  }
 
   public String getSubnetId() {
     return subnetId;
   }
 
-  public void setSubnetId(String subnetId) {
-    this.subnetId = subnetId;
-  }
-
   public String getAvailabilityZone() {
     return availabilityZone;
-  }
-
-  public void setAvailabilityZone(String availabilityZone) {
-    this.availabilityZone = availabilityZone;
   }
 }

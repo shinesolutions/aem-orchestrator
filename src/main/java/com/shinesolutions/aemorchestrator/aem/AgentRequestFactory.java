@@ -9,9 +9,6 @@ import java.util.concurrent.TimeUnit;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-// TODO: modify all methods here to use this.request
-// to allow the injection of a mock PostAgentWithHttpInfoRequest
-
 /**
  * Builds {@link PostAgentWithHttpInfoRequest}s for creating, pausing, resuming and deleting AEM
  * flush and replication agents.
@@ -49,21 +46,6 @@ public class AgentRequestFactory {
   private static final String TRANSPORT_URI_POSTFIX = "/bin/receive?sling:authRequestLogin=1";
   private static final String DEFAULT_LOG_LEVEL = "info";
   private static final String OPERATION_DELETE = "delete";
-
-  private PostAgentWithHttpInfoRequest request;
-
-  /** Creates a factory whose pause requests are built on a fresh request object. */
-  public AgentRequestFactory() {
-    this.request = new PostAgentWithHttpInfoRequest();
-  }
-
-  /**
-   * Creates a factory whose pause requests are built on the given request object, allowing tests to
-   * inject a mock.
-   */
-  public AgentRequestFactory(PostAgentWithHttpInfoRequest request) {
-    this.request = request;
-  }
 
   /**
    * Builds a request that creates an enabled flush agent which invalidates the dispatcher cache.
@@ -188,14 +170,11 @@ public class AgentRequestFactory {
   /**
    * Builds a request that effectively pauses a replication agent by setting its transport user to
    * an invalid user, so replication to the target fails and content queues until it is resumed.
-   *
-   * <p>Unlike the other methods, this populates and returns the factory's shared request object
-   * rather than a new one.
    */
   public PostAgentWithHttpInfoRequest getPauseReplicationAgentRequest(
       AgentRunMode runMode, String agentName) {
 
-    return this.request
+    return new PostAgentWithHttpInfoRequest()
         .withRunMode(runMode.getValue())
         .withName(agentName)
         .withJcrPrimaryType(JCR_PRIMARY_TYPE)

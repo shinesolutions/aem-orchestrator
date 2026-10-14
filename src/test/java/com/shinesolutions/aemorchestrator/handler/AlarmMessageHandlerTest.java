@@ -11,6 +11,7 @@ import com.shinesolutions.aemorchestrator.model.InstanceTags;
 import com.shinesolutions.aemorchestrator.model.Trigger;
 import com.shinesolutions.aemorchestrator.util.AlarmMessageExtractor;
 import java.util.Arrays;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -37,12 +38,8 @@ class AlarmMessageHandlerTest {
     pairInstanceId = "pairInstanceId";
 
     message = new AlarmMessage();
-    Trigger trigger = new Trigger();
-    Dimension dimension = new Dimension();
-    dimension.setName(InstanceTags.PAIR_INSTANCE_ID.getTagName());
-    dimension.setValue(pairInstanceId);
-    trigger.setDimensions(Arrays.asList(dimension));
-    message.setTrigger(trigger);
+    Dimension dimension = new Dimension(InstanceTags.PAIR_INSTANCE_ID.getTagName(), pairInstanceId);
+    message.setTrigger(triggerWithDimensions(Arrays.asList(dimension)));
 
     // This is called across all test cases
     when(alarmMessageExtractor.extractMessage(messageContent)).thenReturn(message);
@@ -59,7 +56,7 @@ class AlarmMessageHandlerTest {
 
   @Test
   void testNoPairInstanceIdTag() {
-    message.getTrigger().setDimensions(Arrays.asList());
+    message.setTrigger(triggerWithDimensions(Arrays.asList()));
 
     boolean result = alarmMessageHandler.handleEvent(messageContent);
 
@@ -68,10 +65,14 @@ class AlarmMessageHandlerTest {
 
   @Test
   void testWithException() {
-    message.getTrigger().setDimensions(null); // Will throw NullPointerException
+    message.setTrigger(triggerWithDimensions(null)); // Will throw NullPointerException
 
     boolean result = alarmMessageHandler.handleEvent(messageContent);
 
     assertThat(result, equalTo(false));
+  }
+
+  private static Trigger triggerWithDimensions(List<Dimension> dimensions) {
+    return new Trigger(null, null, null, null, null, null, null, null, 0, 0, 0, dimensions);
   }
 }

@@ -2,11 +2,9 @@ package com.shinesolutions.aemorchestrator.aem;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.sameInstance;
 import static org.hamcrest.Matchers.startsWith;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 import static org.springframework.test.util.ReflectionTestUtils.setField;
 
 import com.shinesolutions.aemorchestrator.model.AemSsl;
@@ -227,37 +225,23 @@ class AgentRequestFactoryTest {
 
   @Test
   void testGetPauseReplicationAgentRequest() {
+    PostAgentWithHttpInfoRequest request =
+        agentRequestFactory.getPauseReplicationAgentRequest(runMode, agentName);
 
-    PostAgentWithHttpInfoRequest request = new PostAgentWithHttpInfoRequest();
-    PostAgentWithHttpInfoRequest spy = spy(request);
+    assertThat(request.getRunMode(), equalTo(runMode.getValue()));
+    assertThat(request.getName(), equalTo(agentName));
+    assertThat(request.getJcrPrimaryType(), equalTo("cq:Page"));
+    assertThat(request.getJcrContentJcrTitle(), equalTo(agentName));
+    assertThat(
+        request.getJcrContentSlingResourceType(), equalTo("cq/replication/components/agent"));
+    assertThat(request.getJcrContentTransportUser(), equalTo("orchestrator-pause"));
+    assertThat(request.getJcrContentCqTemplate(), equalTo("/libs/cq/replication/templates/agent"));
+    assertThat(request.getJcrContentEnabled(), equalTo(true));
 
-    when(spy.withRunMode(AgentRunMode.AUTHOR.getValue())).thenReturn(request);
-    verify(spy, times(1)).withRunMode(AgentRunMode.AUTHOR.getValue());
-
-    when(spy.withName("some-agent")).thenReturn(request);
-    verify(spy, times(1)).withName("some-agent");
-
-    when(spy.withJcrPrimaryType("cq:Page")).thenReturn(request);
-    verify(spy, times(1)).withJcrPrimaryType("cq:Page");
-
-    when(spy.withJcrContentJcrTitle("some-agent")).thenReturn(request);
-    verify(spy, times(1)).withJcrContentJcrTitle("some-agent");
-
-    when(spy.withJcrContentSlingResourceType("cq/replication/components/agent"))
-        .thenReturn(request);
-    verify(spy, times(1)).withJcrContentSlingResourceType("cq/replication/components/agent");
-
-    when(spy.withJcrContentTransportUser("orchestrator-pause")).thenReturn(request);
-    verify(spy, times(1)).withJcrContentTransportUser("orchestrator-pause");
-
-    when(spy.withJcrContentCqTemplate("/libs/cq/replication/templates/agent")).thenReturn(request);
-    verify(spy, times(1)).withJcrContentCqTemplate("/libs/cq/replication/templates/agent");
-
-    when(spy.withJcrContentEnabled(true)).thenReturn(request);
-    verify(spy, times(1)).withJcrContentEnabled(true);
-
-    AgentRequestFactory factory = new AgentRequestFactory(request);
-    factory.getPauseReplicationAgentRequest(AgentRunMode.AUTHOR, "some-agent");
+    // Each call builds a new request rather than reusing shared state
+    assertThat(
+        agentRequestFactory.getPauseReplicationAgentRequest(runMode, agentName),
+        not(sameInstance(request)));
   }
 
   @Test

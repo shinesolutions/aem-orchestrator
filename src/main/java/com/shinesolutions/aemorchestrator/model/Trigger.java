@@ -1,7 +1,10 @@
 package com.shinesolutions.aemorchestrator.model;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -9,137 +12,102 @@ import java.util.List;
  * and evaluation, and its {@code Dimensions}.
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class Trigger {
+public final class Trigger {
 
-  @JsonProperty("MetricName")
-  private String metricName;
+  private final String metricName;
+  private final String namespace;
+  private final String statisticType;
+  private final String statistic;
+  private final String unit;
+  private final String comparisonOperator;
+  private final String treatMissingData;
+  private final String evaluateLowSampleCountPercentile;
+  private final int period;
+  private final int evaluationPeriods;
+  private final double threshold;
+  private final List<Dimension> dimensions;
 
-  @JsonProperty("Namespace")
-  private String namespace;
-
-  @JsonProperty("StatisticType")
-  private String statisticType;
-
-  @JsonProperty("Statistic")
-  private String statistic;
-
-  @JsonProperty("Unit")
-  private String unit;
-
-  @JsonProperty("ComparisonOperator")
-  private String comparisonOperator;
-
-  @JsonProperty("TreatMissingData")
-  private String treatMissingData;
-
-  @JsonProperty("EvaluateLowSampleCountPercentile")
-  private String evaluateLowSampleCountPercentile;
-
-  @JsonProperty("Period")
-  private int period;
-
-  @JsonProperty("EvaluationPeriods")
-  private int evaluationPeriods;
-
-  @JsonProperty("Threshold")
-  private double threshold;
-
-  @JsonProperty("Dimensions")
-  private List<Dimension> dimensions;
+  /**
+   * Creates a trigger; also used by Jackson to map the alarm message JSON.
+   *
+   * <p>{@code dimensions} is copied into an unmodifiable list; {@code null} is kept as {@code
+   * null}.
+   */
+  @JsonCreator
+  public Trigger(
+      @JsonProperty("MetricName") String metricName,
+      @JsonProperty("Namespace") String namespace,
+      @JsonProperty("StatisticType") String statisticType,
+      @JsonProperty("Statistic") String statistic,
+      @JsonProperty("Unit") String unit,
+      @JsonProperty("ComparisonOperator") String comparisonOperator,
+      @JsonProperty("TreatMissingData") String treatMissingData,
+      @JsonProperty("EvaluateLowSampleCountPercentile") String evaluateLowSampleCountPercentile,
+      @JsonProperty("Period") int period,
+      @JsonProperty("EvaluationPeriods") int evaluationPeriods,
+      @JsonProperty("Threshold") double threshold,
+      @JsonProperty("Dimensions") List<Dimension> dimensions) {
+    this.metricName = metricName;
+    this.namespace = namespace;
+    this.statisticType = statisticType;
+    this.statistic = statistic;
+    this.unit = unit;
+    this.comparisonOperator = comparisonOperator;
+    this.treatMissingData = treatMissingData;
+    this.evaluateLowSampleCountPercentile = evaluateLowSampleCountPercentile;
+    this.period = period;
+    this.evaluationPeriods = evaluationPeriods;
+    this.threshold = threshold;
+    this.dimensions =
+        dimensions == null ? null : Collections.unmodifiableList(new ArrayList<>(dimensions));
+  }
 
   public String getMetricName() {
     return metricName;
-  }
-
-  public void setMetricName(String metricName) {
-    this.metricName = metricName;
   }
 
   public String getNamespace() {
     return namespace;
   }
 
-  public void setNamespace(String namespace) {
-    this.namespace = namespace;
-  }
-
   public String getStatisticType() {
     return statisticType;
-  }
-
-  public void setStatisticType(String statisticType) {
-    this.statisticType = statisticType;
   }
 
   public String getStatistic() {
     return statistic;
   }
 
-  public void setStatistic(String statistic) {
-    this.statistic = statistic;
-  }
-
   public String getUnit() {
     return unit;
-  }
-
-  public void setUnit(String unit) {
-    this.unit = unit;
   }
 
   public String getComparisonOperator() {
     return comparisonOperator;
   }
 
-  public void setComparisonOperator(String comparisonOperator) {
-    this.comparisonOperator = comparisonOperator;
-  }
-
   public String getTreatMissingData() {
     return treatMissingData;
-  }
-
-  public void setTreatMissingData(String treatMissingData) {
-    this.treatMissingData = treatMissingData;
   }
 
   public String getEvaluateLowSampleCountPercentile() {
     return evaluateLowSampleCountPercentile;
   }
 
-  public void setEvaluateLowSampleCountPercentile(String evaluateLowSampleCountPercentile) {
-    this.evaluateLowSampleCountPercentile = evaluateLowSampleCountPercentile;
-  }
-
   public int getPeriod() {
     return period;
-  }
-
-  public void setPeriod(int period) {
-    this.period = period;
   }
 
   public int getEvaluationPeriods() {
     return evaluationPeriods;
   }
 
-  public void setEvaluationPeriods(int evaluationPeriods) {
-    this.evaluationPeriods = evaluationPeriods;
-  }
-
   public double getThreshold() {
     return threshold;
   }
 
-  public void setThreshold(double threshold) {
-    this.threshold = threshold;
-  }
-
+  /** Returns the alarm's dimensions as an unmodifiable list, or {@code null} if absent. */
   public List<Dimension> getDimensions() {
     return dimensions;
-  }
-
-  public void setDimensions(List<Dimension> dimensions) {
-    this.dimensions = dimensions;
   }
 }

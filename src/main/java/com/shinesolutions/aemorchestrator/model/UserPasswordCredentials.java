@@ -1,36 +1,22 @@
 package com.shinesolutions.aemorchestrator.model;
 
 /** User name and password of an AEM user. */
-public class UserPasswordCredentials {
+public final class UserPasswordCredentials {
 
-  private String userName;
-  private String password;
+  private final String userName;
+  private final String password;
+
+  /** Creates credentials for the given AEM user. */
+  public UserPasswordCredentials(String userName, String password) {
+    this.userName = userName;
+    this.password = password;
+  }
 
   public String getUserName() {
     return userName;
   }
 
-  public void setUserName(String userName) {
-    this.userName = userName;
-  }
-
-  /** Sets the user name and returns this object for chaining. */
-  public UserPasswordCredentials withUserName(String userName) {
-    this.setUserName(userName);
-    return this;
-  }
-
   public String getPassword() {
     return password;
-  }
-
-  public void setPassword(String password) {
-    this.password = password;
-  }
-
-  /** Sets the password and returns this object for chaining. */
-  public UserPasswordCredentials withPassword(String password) {
-    this.setPassword(password);
-    return this;
   }
 }

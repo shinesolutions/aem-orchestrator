@@ -46,9 +46,8 @@ class AemApiFactoryTest {
 
   @Test
   void testGetSlingApi_clientIsOrchestrator() {
-    UserPasswordCredentials orchestratorCredentials = new UserPasswordCredentials();
-    orchestratorCredentials.setUserName("orchestratorUsername");
-    orchestratorCredentials.setPassword("orchestratorPassword");
+    UserPasswordCredentials orchestratorCredentials =
+        new UserPasswordCredentials("orchestratorUsername", "orchestratorPassword");
     when(aemCredentials.getOrchestratorCredentials()).thenReturn(orchestratorCredentials);
 
     SlingApi result = aemApiFactory.getSlingApi(basePath, AgentAction.DELETE);
@@ -65,9 +64,8 @@ class AemApiFactoryTest {
 
   @Test
   void testGetSlingApi_clientIsReplicator() {
-    UserPasswordCredentials replicatorCredentials = new UserPasswordCredentials();
-    replicatorCredentials.setUserName("replicatorUsername");
-    replicatorCredentials.setPassword("replicatorPassword");
+    UserPasswordCredentials replicatorCredentials =
+        new UserPasswordCredentials("replicatorUsername", "replicatorPassword");
     when(aemCredentials.getReplicatorCredentials()).thenReturn(replicatorCredentials);
 
     SlingApi result = aemApiFactory.getSlingApi(basePath, AgentAction.CREATE);
