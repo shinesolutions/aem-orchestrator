@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added an end-to-end integration test that runs the orchestrator against mocked AWS and AEM
 - Added Makefile targets for ci, deps, build, test, integration-test, changelog-check, release-check and release
 - Added `make release-check` to sign and bundle a release for Maven Central without uploading it
+- Added Maven Central credentials to `.mvn/settings.xml`, read from environment variables
 
 ### Changed
 - Upgraded Java from 8 to 21 and requires Maven 3.10 or later
