@@ -2,6 +2,7 @@
 # (Java 21, Maven 3.10+), as CI does.
 SHELL := /bin/bash
 MVN ?= mvn -B -ntp
+BUILDENV_IMAGE ?= shinesolutions/aem-platform-buildenv:6.2.1
 
 # Changelog format, then checkstyle, unit tests, integration tests, SpotBugs and packaging, as run
 # by CI
@@ -90,18 +91,12 @@ define release
 	$(MVN) release:clean
 endef
 
-# Offline release dry run: build, GPG-sign and bundle the committed HEAD for Maven Central at its
-# release version (current version without -SNAPSHOT), without uploading anything (central-publishing
-# skipUpload). Runs in a temporary copy so pom.xml is untouched, then checks the bundle has the
-# pom, jar, sources and javadoc with signatures and checksums, and verifies every signature.
-# The bundle is kept at target/release-check/central-bundle.zip.
-# Signing key, either:
-#   - MAVEN_GPG_KEY (ASCII-armored secret key) and MAVEN_GPG_PASSPHRASE environment variables: signs
-#     with the Bouncy Castle signer and verifies with a temporary keyring in memory (/dev/shm), so
-#     no key file or keyring is needed, e.g. `docker run -e MAVEN_GPG_KEY -e MAVEN_GPG_PASSPHRASE ...`
-#   - otherwise the GPG secret key in your keyring, with MAVEN_GPG_PASSPHRASE or gpg-agent
-release-check:
-	@set -euo pipefail; \
+# Shared by release-check and release-test: extract the committed HEAD into a temporary directory and
+# cd into it, set $$current to its project version and $$signer to the GPG signer option (Bouncy
+# Castle with MAVEN_GPG_KEY in a temporary in-memory keyring, otherwise your GPG keyring), and remove
+# the directory and keyring on exit.
+define release_workdir
+	set -euo pipefail; \
 	work=$$(mktemp -d); keyring=""; \
 	trap 'rm -rf "$$work"; if [[ -n "$$keyring" ]]; then gpgconf --kill gpg-agent; rm -rf "$$keyring"; fi' EXIT; \
 	signer=""; \
@@ -114,7 +109,21 @@ release-check:
 	GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=safe.directory GIT_CONFIG_VALUE_0=$(CURDIR) \
 	  git archive HEAD | tar -x -C "$$work"; \
 	cd "$$work"; \
-	current=$$($(MVN) -q help:evaluate -Dexpression=project.version -DforceStdout); \
+	current=$$($(MVN) -q help:evaluate -Dexpression=project.version -DforceStdout)
+endef
+
+# Offline release dry run: build, GPG-sign and bundle the committed HEAD for Maven Central at its
+# release version (current version without -SNAPSHOT), without uploading anything (central-publishing
+# skipUpload). Runs in a temporary copy so pom.xml is untouched, then checks the bundle has the
+# pom, jar, sources and javadoc with signatures and checksums, and verifies every signature.
+# The bundle is kept at target/release-check/central-bundle.zip.
+# Signing key, either:
+#   - MAVEN_GPG_KEY (ASCII-armored secret key) and MAVEN_GPG_PASSPHRASE environment variables: signs
+#     with the Bouncy Castle signer and verifies with a temporary keyring in memory (/dev/shm), so
+#     no key file or keyring is needed, e.g. `docker run -e MAVEN_GPG_KEY -e MAVEN_GPG_PASSPHRASE ...`
+#   - otherwise the GPG secret key in your keyring, with MAVEN_GPG_PASSPHRASE or gpg-agent
+release-check:
+	@$(release_workdir); \
 	version="$${current%-SNAPSHOT}"; \
 	echo "Checking release bundle of HEAD as version $$version (nothing is uploaded)"; \
 	$(MVN) -q versions:set -DnewVersion="$$version" -DgenerateBackupPoms=false; \
@@ -132,6 +141,34 @@ release-check:
 	  gpg --verify "$$signature" "$${signature%.asc}"; \
 	done; \
 	echo "Release check OK: target/release-check/central-bundle.zip"
+
+# Upload test: sign the committed HEAD and upload it to the Central Portal as a pre-release test
+# version, never publishing it (-DautoPublish=false), then print the deployment ID to check with
+# release-status and drop with release-drop. Checks the GPG key, the Central token, the upload and
+# Central's validation. Only pre-release versions are accepted; a dropped version can be reused.
+#   make release-test RELEASE_TEST_VERSION=5.0.0-rc.0   (default: current version with -rc.0)
+# Run release-test on your machine: it runs release-test-run in BUILDENV_IMAGE with Docker, with
+# this repository mounted read-only and MAVEN_GPG_KEY, MAVEN_GPG_PASSPHRASE, MAVEN_CENTRAL_USERNAME
+# and MAVEN_CENTRAL_PASSWORD passed through from your environment.
+release-test:
+	docker run --rm -v "$(CURDIR)":/workspace/aem-orchestrator:ro -v aem-orch-m2:/root/.m2 \
+	  -w /workspace/aem-orchestrator \
+	  -e MAVEN_GPG_KEY -e MAVEN_GPG_PASSPHRASE -e MAVEN_CENTRAL_USERNAME -e MAVEN_CENTRAL_PASSWORD \
+	  $(BUILDENV_IMAGE) make release-test-run RELEASE_TEST_VERSION="$(RELEASE_TEST_VERSION)"
+
+release-test-run:
+	@$(release_workdir); \
+	version="$(RELEASE_TEST_VERSION)"; \
+	[[ -n "$$version" ]] || version="$${current%-SNAPSHOT}-rc.0"; \
+	[[ "$$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+-[0-9A-Za-z.-]+$$ && "$$version" != *SNAPSHOT* ]] \
+	  || { echo "release-test only uploads pre-release versions such as 5.0.0-rc.0, not $$version"; exit 1; }; \
+	echo "Uploading HEAD to the Central Portal as $$version (it is not published)"; \
+	$(MVN) -q versions:set -DnewVersion="$$version" -DgenerateBackupPoms=false; \
+	$(MVN) -Prelease deploy -DskipTests -DskipITs -DautoPublish=false $$signer | tee deploy.log; \
+	id=$$(sed -n 's/.*deploymentId: \([0-9a-f-]*\).*/\1/p' deploy.log | tail -1); \
+	echo "Deployment $$id ($$version) is validated and not published. Check and drop it with:"; \
+	echo "  make release-status DEPLOYMENT_ID=$$id"; \
+	echo "  make release-drop DEPLOYMENT_ID=$$id"
 
 # Central Portal deployments (`mvn -Prelease deploy` prints the deployment ID). Uses the user token in
 # MAVEN_CENTRAL_USERNAME and MAVEN_CENTRAL_PASSWORD; the Authorization header is passed to curl on
@@ -165,4 +202,4 @@ release-patch:
 	@$(call release,patch)
 
 
-.PHONY: ci clean deps build test integration-test changelog-check release-check release-status release-drop release-major release-minor release-patch
+.PHONY: ci clean deps build test integration-test changelog-check release-check release-test release-test-run release-status release-drop release-major release-minor release-patch
