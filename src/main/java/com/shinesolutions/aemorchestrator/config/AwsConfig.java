@@ -113,8 +113,11 @@ public class AwsConfig {
 
   @Bean
   public SdkHttpClient httpClient(@Nullable final ProxyDetails proxyDetails) {
-    Apache5HttpClient.Builder builder = Apache5HttpClient.builder();
+    return configureHttpClient(Apache5HttpClient.builder(), proxyDetails).build();
+  }
 
+  Apache5HttpClient.Builder configureHttpClient(
+      final Apache5HttpClient.Builder builder, @Nullable final ProxyDetails proxyDetails) {
     ProxyConfiguration proxyConfig = proxyConfiguration(proxyDetails);
     if (proxyConfig != null) {
       builder.proxyConfiguration(proxyConfig);
@@ -123,7 +126,7 @@ public class AwsConfig {
     builder.connectionTimeout(Duration.ofMillis(clientConnectionTimeout));
     builder.socketTimeout(SOCKET_TIMEOUT);
 
-    return builder.build();
+    return builder;
   }
 
   @Bean

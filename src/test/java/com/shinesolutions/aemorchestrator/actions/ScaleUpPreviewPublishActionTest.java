@@ -3,7 +3,6 @@ package com.shinesolutions.aemorchestrator.actions;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -56,27 +55,18 @@ public class ScaleUpPreviewPublishActionTest {
 
     setField(action, "awsDeviceName", awsDeviceName);
 
-    lenient().when(aemHelperService.getAemUrlForAuthorElb()).thenReturn(authorAemBaseUrl);
-    lenient()
-        .when(aemHelperService.getAemUrlForPreviewPublish(instanceId))
+    when(aemHelperService.getAemUrlForAuthorElb()).thenReturn(authorAemBaseUrl);
+    when(aemHelperService.getAemUrlForPreviewPublish(instanceId))
         .thenReturn(PreviewPublishAemBaseUrl);
-    lenient()
-        .when(aemHelperService.getPreviewPublishIdToSnapshotFrom(instanceId))
-        .thenReturn(activePreviewPublishId);
-    lenient()
-        .when(awsHelperService.getVolumeId(activePreviewPublishId, awsDeviceName))
-        .thenReturn(volumeId);
-    lenient()
-        .when(aemHelperService.createPreviewPublishSnapshot(activePreviewPublishId, volumeId))
-        .thenReturn(snapshotId);
-    lenient()
-        .when(aemHelperService.findUnpairedPreviewPublishDispatcher(instanceId))
+    when(aemHelperService.findUnpairedPreviewPublishDispatcher(instanceId))
         .thenReturn(unpairedDispatcherId);
-    lenient().when(aemHelperService.isFirstPreviewPublishInstance()).thenReturn(false);
   }
 
   @Test
   public void testExecuteSuccess() throws Exception {
+    givenActivePreviewPublishToSnapshotFrom();
+    givenActivePreviewPublishVolumeIsSnapshotted();
+
     boolean result = action.execute(instanceId);
 
     // Check replication agents
@@ -106,6 +96,9 @@ public class ScaleUpPreviewPublishActionTest {
 
   @Test
   public void testExecuteReverseReplicationSuccess() throws Exception {
+    givenActivePreviewPublishToSnapshotFrom();
+    givenActivePreviewPublishVolumeIsSnapshotted();
+
     enableReverseReplication();
 
     boolean result = action.execute(instanceId);
@@ -223,6 +216,8 @@ public class ScaleUpPreviewPublishActionTest {
 
   @Test
   public void testCantFindHealthyActivePreviewPublisher() throws Exception {
+    givenActivePreviewPublishToSnapshotFrom();
+
     doThrow(new InstanceNotInHealthyStateException(""))
         .when(aemHelperService)
         .waitForPreviewPublishToBeHealthy(activePreviewPublishId);
@@ -251,6 +246,8 @@ public class ScaleUpPreviewPublishActionTest {
 
   @Test
   public void testExceptionWhenPausingActiveReplicationAgent() throws Exception {
+    givenActivePreviewPublishToSnapshotFrom();
+
     doThrow(new ApiException("Test"))
         .when(replicationAgentManager)
         .pausePreviewReplicationAgent(
@@ -276,6 +273,8 @@ public class ScaleUpPreviewPublishActionTest {
 
   @Test
   public void testWithNullVolumeId() throws Exception {
+    givenActivePreviewPublishToSnapshotFrom();
+
     when(awsHelperService.getVolumeId(activePreviewPublishId, awsDeviceName)).thenReturn(null);
 
     boolean result = action.execute(instanceId);
@@ -302,6 +301,9 @@ public class ScaleUpPreviewPublishActionTest {
 
   @Test
   public void testFailedToResumeActivePreviewPublishReplicationAgent() throws Exception {
+    givenActivePreviewPublishToSnapshotFrom();
+    givenActivePreviewPublishVolumeIsSnapshotted();
+
     doThrow(new ApiException("Test"))
         .when(replicationAgentManager)
         .resumePreviewReplicationAgent(
@@ -379,6 +381,20 @@ public class ScaleUpPreviewPublishActionTest {
             activePreviewPublishId, authorAemBaseUrl, AgentRunMode.PREVIEWPUBLISH);
 
     assertThat(result, equalTo(false));
+  }
+
+  /** Not the first preview publish instance: an active one exists to snapshot from. */
+  private void givenActivePreviewPublishToSnapshotFrom() throws Exception {
+    when(aemHelperService.isFirstPreviewPublishInstance()).thenReturn(false);
+    when(aemHelperService.getPreviewPublishIdToSnapshotFrom(instanceId))
+        .thenReturn(activePreviewPublishId);
+  }
+
+  /** The active preview publish instance's data volume is found and snapshotted. */
+  private void givenActivePreviewPublishVolumeIsSnapshotted() {
+    when(awsHelperService.getVolumeId(activePreviewPublishId, awsDeviceName)).thenReturn(volumeId);
+    when(aemHelperService.createPreviewPublishSnapshot(activePreviewPublishId, volumeId))
+        .thenReturn(snapshotId);
   }
 
   private void enableReverseReplication() {

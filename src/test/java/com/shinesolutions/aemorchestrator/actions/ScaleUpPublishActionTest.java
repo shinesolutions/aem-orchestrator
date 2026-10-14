@@ -3,7 +3,6 @@ package com.shinesolutions.aemorchestrator.actions;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -56,25 +55,17 @@ public class ScaleUpPublishActionTest {
 
     setField(action, "awsDeviceName", awsDeviceName);
 
-    lenient().when(aemHelperService.getAemUrlForAuthorElb()).thenReturn(authorAemBaseUrl);
-    lenient().when(aemHelperService.getAemUrlForPublish(instanceId)).thenReturn(publishAemBaseUrl);
-    lenient()
-        .when(aemHelperService.getPublishIdToSnapshotFrom(instanceId))
-        .thenReturn(activePublishId);
-    lenient()
-        .when(awsHelperService.getVolumeId(activePublishId, awsDeviceName))
-        .thenReturn(volumeId);
-    lenient()
-        .when(aemHelperService.createPublishSnapshot(activePublishId, volumeId))
-        .thenReturn(snapshotId);
-    lenient()
-        .when(aemHelperService.findUnpairedPublishDispatcher(instanceId))
+    when(aemHelperService.getAemUrlForAuthorElb()).thenReturn(authorAemBaseUrl);
+    when(aemHelperService.getAemUrlForPublish(instanceId)).thenReturn(publishAemBaseUrl);
+    when(aemHelperService.findUnpairedPublishDispatcher(instanceId))
         .thenReturn(unpairedDispatcherId);
-    lenient().when(aemHelperService.isFirstPublishInstance()).thenReturn(false);
   }
 
   @Test
   public void testExecuteSuccess() throws Exception {
+    givenActivePublishToSnapshotFrom();
+    givenActivePublishVolumeIsSnapshotted();
+
     boolean result = action.execute(instanceId);
 
     // Check replication agents
@@ -101,6 +92,9 @@ public class ScaleUpPublishActionTest {
 
   @Test
   public void testExecuteReverseReplicationSuccess() throws Exception {
+    givenActivePublishToSnapshotFrom();
+    givenActivePublishVolumeIsSnapshotted();
+
     enableReverseReplication();
 
     boolean result = action.execute(instanceId);
@@ -206,6 +200,8 @@ public class ScaleUpPublishActionTest {
 
   @Test
   public void testCantFindHealthyActivePublisher() throws Exception {
+    givenActivePublishToSnapshotFrom();
+
     doThrow(new InstanceNotInHealthyStateException(""))
         .when(aemHelperService)
         .waitForPublishToBeHealthy(activePublishId);
@@ -231,6 +227,8 @@ public class ScaleUpPublishActionTest {
 
   @Test
   public void testExceptionWhenPausingActiveReplicationAgent() throws Exception {
+    givenActivePublishToSnapshotFrom();
+
     doThrow(new ApiException("Test"))
         .when(replicationAgentManager)
         .pauseReplicationAgent(activePublishId, authorAemBaseUrl, AgentRunMode.PUBLISH);
@@ -253,6 +251,8 @@ public class ScaleUpPublishActionTest {
 
   @Test
   public void testWithNullVolumeId() throws Exception {
+    givenActivePublishToSnapshotFrom();
+
     when(awsHelperService.getVolumeId(activePublishId, awsDeviceName)).thenReturn(null);
 
     boolean result = action.execute(instanceId);
@@ -276,6 +276,9 @@ public class ScaleUpPublishActionTest {
 
   @Test
   public void testFailedToResumeActivePublishReplicationAgent() throws Exception {
+    givenActivePublishToSnapshotFrom();
+    givenActivePublishVolumeIsSnapshotted();
+
     doThrow(new ApiException("Test"))
         .when(replicationAgentManager)
         .resumeReplicationAgent(activePublishId, authorAemBaseUrl, AgentRunMode.PUBLISH);
@@ -344,6 +347,18 @@ public class ScaleUpPublishActionTest {
         .resumeReplicationAgent(activePublishId, authorAemBaseUrl, AgentRunMode.PUBLISH);
 
     assertThat(result, equalTo(false));
+  }
+
+  /** Not the first publish instance: an active publish exists to snapshot from. */
+  private void givenActivePublishToSnapshotFrom() throws Exception {
+    when(aemHelperService.isFirstPublishInstance()).thenReturn(false);
+    when(aemHelperService.getPublishIdToSnapshotFrom(instanceId)).thenReturn(activePublishId);
+  }
+
+  /** The active publish instance's data volume is found and snapshotted. */
+  private void givenActivePublishVolumeIsSnapshotted() {
+    when(awsHelperService.getVolumeId(activePublishId, awsDeviceName)).thenReturn(volumeId);
+    when(aemHelperService.createPublishSnapshot(activePublishId, volumeId)).thenReturn(snapshotId);
   }
 
   private void enableReverseReplication() {

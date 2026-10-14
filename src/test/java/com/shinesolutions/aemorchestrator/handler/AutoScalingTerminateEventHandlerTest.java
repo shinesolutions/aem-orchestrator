@@ -3,7 +3,6 @@ package com.shinesolutions.aemorchestrator.handler;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -42,7 +41,7 @@ public class AutoScalingTerminateEventHandlerTest {
     message.setAutoScalingGroupName("testGroup");
     message.setEC2InstanceId("test-instance");
 
-    lenient().when(eventMessageExtractor.extractMessage(messageContent)).thenReturn(message);
+    when(eventMessageExtractor.extractMessage(messageContent)).thenReturn(message);
   }
 
   @Test

@@ -1,7 +1,6 @@
 package com.shinesolutions.aemorchestrator.service;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -35,7 +34,6 @@ class OrchestratorMessageListenerTest {
   @BeforeEach
   void setUp() throws Exception {
     message = mock(Message.class);
-    lenient().when(message.getJMSMessageID()).thenReturn("test1234");
   }
 
   @Test
@@ -46,6 +44,7 @@ class OrchestratorMessageListenerTest {
 
   @Test
   void testReceiveValidMessageButLeaveOnQueue() throws Exception {
+    when(message.getJMSMessageID()).thenReturn("test1234");
     when(messageHandler.handleMessage(message)).thenReturn(false);
 
     messageReceiver.onMessage(message);
@@ -56,6 +55,7 @@ class OrchestratorMessageListenerTest {
 
   @Test
   void testReceiveValidMessageAndRemoveFromQueue() throws Exception {
+    when(message.getJMSMessageID()).thenReturn("test1234");
     when(messageHandler.handleMessage(message)).thenReturn(true);
 
     messageReceiver.onMessage(message);
@@ -66,6 +66,7 @@ class OrchestratorMessageListenerTest {
 
   @Test
   void testReceiveValidMessageHandlerThrowsException() throws Exception {
+    when(message.getJMSMessageID()).thenReturn("test1234");
     when(messageHandler.handleMessage(message)).thenThrow(new RuntimeException("Test"));
 
     assertDoesNotThrow(

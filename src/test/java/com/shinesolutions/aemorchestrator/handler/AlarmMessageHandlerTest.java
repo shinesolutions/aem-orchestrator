@@ -2,7 +2,6 @@ package com.shinesolutions.aemorchestrator.handler;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
-import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
 import com.shinesolutions.aemorchestrator.actions.AlarmContentHealthCheckAction;
@@ -47,11 +46,12 @@ public class AlarmMessageHandlerTest {
 
     // This is called across all test cases
     when(alarmMessageExtractor.extractMessage(messageContent)).thenReturn(message);
-    lenient().when(alarmContentHealthCheckAction.execute(pairInstanceId)).thenReturn(true);
   }
 
   @Test
   public void testSuccess() {
+    when(alarmContentHealthCheckAction.execute(pairInstanceId)).thenReturn(true);
+
     boolean result = alarmMessageHandler.handleEvent(messageContent);
 
     assertThat(result, equalTo(true));

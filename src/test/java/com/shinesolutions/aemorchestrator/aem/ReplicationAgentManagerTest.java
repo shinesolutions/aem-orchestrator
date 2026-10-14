@@ -3,7 +3,6 @@ package com.shinesolutions.aemorchestrator.aem;
 import static org.mockito.ArgumentMatchers.endsWith;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
-import static org.mockito.Mockito.lenient;
 
 import com.shinesolutions.aemorchestrator.model.AemCredentials;
 import com.shinesolutions.aemorchestrator.model.UserPasswordCredentials;
@@ -53,11 +52,6 @@ public class ReplicationAgentManagerTest {
     username = "replicatorUsername";
     password = "replicatorPassword";
 
-    UserPasswordCredentials replicatorCredentials = new UserPasswordCredentials();
-    replicatorCredentials.setUserName(username);
-    replicatorCredentials.setPassword(password);
-    lenient().when(aemCredentials.getReplicatorCredentials()).thenReturn(replicatorCredentials);
-
     slingApi = new SlingApi();
     when(aemApiFactory.getSlingApi(anyString(), any(AgentAction.class))).thenReturn(slingApi);
 
@@ -69,6 +63,8 @@ public class ReplicationAgentManagerTest {
 
   @Test
   public void testCreateReplicationAgent() throws ApiException {
+    givenReplicatorCredentials();
+
     PostAgentWithHttpInfoRequest request = new PostAgentWithHttpInfoRequest();
     when(agentRequestFactory.getCreateReplicationAgentRequest(
             any(AgentRunMode.class),
@@ -96,6 +92,8 @@ public class ReplicationAgentManagerTest {
 
   @Test
   public void testPreviewCreateReplicationAgent() throws ApiException {
+    givenReplicatorCredentials();
+
     PostAgentWithHttpInfoRequest request = new PostAgentWithHttpInfoRequest();
     when(agentRequestFactory.getCreateReplicationAgentRequest(
             any(AgentRunMode.class),
@@ -123,6 +121,8 @@ public class ReplicationAgentManagerTest {
 
   @Test
   public void testCreateReverseReplicationAgent() throws ApiException {
+    givenReplicatorCredentials();
+
     PostAgentWithHttpInfoRequest request = new PostAgentWithHttpInfoRequest();
     when(agentRequestFactory.getCreateReverseReplicationAgentRequest(
             any(AgentRunMode.class),
@@ -150,6 +150,8 @@ public class ReplicationAgentManagerTest {
 
   @Test
   public void testCreatePreviewReverseReplicationAgent() throws ApiException {
+    givenReplicatorCredentials();
+
     PostAgentWithHttpInfoRequest request = new PostAgentWithHttpInfoRequest();
     when(agentRequestFactory.getCreateReverseReplicationAgentRequest(
             any(AgentRunMode.class),
@@ -256,6 +258,8 @@ public class ReplicationAgentManagerTest {
 
   @Test
   public void testResumeReplicationAgent() throws ApiException {
+    givenReplicatorCredentials();
+
     PostAgentWithHttpInfoRequest request = new PostAgentWithHttpInfoRequest();
     when(agentRequestFactory.getResumeReplicationAgentRequest(
             any(AgentRunMode.class), anyString(), anyString(), anyString()))
@@ -272,6 +276,8 @@ public class ReplicationAgentManagerTest {
 
   @Test
   public void testResumePreviewReplicationAgent() throws ApiException {
+    givenReplicatorCredentials();
+
     PostAgentWithHttpInfoRequest request = new PostAgentWithHttpInfoRequest();
     when(agentRequestFactory.getResumeReplicationAgentRequest(
             any(AgentRunMode.class), anyString(), anyString(), anyString()))
@@ -284,5 +290,13 @@ public class ReplicationAgentManagerTest {
             eq(runMode), endsWith(publishId), eq(username), eq(password));
     verify(aemApiFactory).getSlingApi(eq(authorAemBaseUrl), eq(AgentAction.RESTART));
     verify(aemApiHelper).postAgentWithHttpInfo(slingApi, request);
+  }
+
+  /** Create and resume requests carry the replicator user as the agent's transport user. */
+  private void givenReplicatorCredentials() {
+    UserPasswordCredentials replicatorCredentials = new UserPasswordCredentials();
+    replicatorCredentials.setUserName(username);
+    replicatorCredentials.setPassword(password);
+    when(aemCredentials.getReplicatorCredentials()).thenReturn(replicatorCredentials);
   }
 }

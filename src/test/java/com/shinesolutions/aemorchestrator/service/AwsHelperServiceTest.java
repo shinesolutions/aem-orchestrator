@@ -253,8 +253,6 @@ public class AwsHelperServiceTest {
 
     final String groupName = "testGroupName";
 
-    // Option A: Use original Hamcrest matchers (recommended if EC2Instance uses standard Java Beans
-    // getters)
     assertThat(
         awsHelperService.getInstancesForAutoScalingGroup(groupName).get(0),
         allOf(
@@ -504,6 +502,38 @@ public class AwsHelperServiceTest {
     verify(s3Client).getObject(argumentCaptor.capture());
     assertThat(argumentCaptor.getValue().bucket(), equalTo("bucket"));
     assertThat(argumentCaptor.getValue().key(), equalTo("test-key.txt"));
+  }
+
+  @Test
+  public void testReadFileFromS3_NoKey() {
+    // SDK v1 also rejected a missing key (IllegalArgumentException from AmazonS3Client.getObject)
+    when(s3Client.utilities()).thenReturn(S3Utilities.builder().region(Region.US_EAST_1).build());
+
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> awsHelperService.readFileFromS3("http://bucket.s3.amazonaws.com"));
+    verify(s3Client, never()).getObject(any(GetObjectRequest.class));
+  }
+
+  @Test
+  public void testReadFileFromS3_KeyWithReservedCharacters() throws IOException {
+    final ResponseInputStream<GetObjectResponse> responseInputStream =
+        new ResponseInputStream<>(
+            GetObjectResponse.builder().build(),
+            AbortableInputStream.create(
+                new ByteArrayInputStream("{}".getBytes(StandardCharsets.UTF_8))));
+
+    when(s3Client.utilities()).thenReturn(S3Utilities.builder().region(Region.US_EAST_1).build());
+    when(s3Client.getObject(any(GetObjectRequest.class))).thenReturn(responseInputStream);
+
+    // Like SDK v1's AmazonS3URI, spaces and '#' are part of the key, not a parse error or fragment
+    awsHelperService.readFileFromS3("s3://bucket/aem config/credentials #1.json");
+
+    final ArgumentCaptor<GetObjectRequest> argumentCaptor =
+        ArgumentCaptor.forClass(GetObjectRequest.class);
+    verify(s3Client).getObject(argumentCaptor.capture());
+    assertThat(argumentCaptor.getValue().bucket(), equalTo("bucket"));
+    assertThat(argumentCaptor.getValue().key(), equalTo("aem config/credentials #1.json"));
   }
 
   @Test
