@@ -32,6 +32,9 @@ public final class Trigger {
    *
    * <p>{@code dimensions} is copied into an unmodifiable list; {@code null} is kept as {@code
    * null}.
+   *
+   * <p>Immutable to fix SpotBugs EI_EXPOSE_REP: Jackson builds it through this constructor instead
+   * of setters, using the same JSON property names as before.
    */
   @JsonCreator
   public Trigger(

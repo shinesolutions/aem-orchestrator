@@ -50,6 +50,9 @@ public class AwsConfig {
   @Value("${aws.sqs.queueName}")
   private String queueName;
 
+  // No defaults for aws.client.*: a missing property fails at startup, as it did with SDK v1,
+  // rather
+  // than silently running without a proxy, timeout or retry limit
   @Value("${aws.client.useProxy}")
   private Boolean useProxy;
 
@@ -71,6 +74,8 @@ public class AwsConfig {
   /** Provides credentials from the EC2 instance profile the orchestrator runs under. */
   @Bean
   public AwsCredentialsProvider awsCredentialsProvider() {
+    // Instance profile only, as with SDK v1. SDK v2's DefaultCredentialsProvider would let
+    // environment variables or ~/.aws credentials on the host take precedence over the EC2 role
     return InstanceProfileCredentialsProvider.create();
   }
 
@@ -85,7 +90,8 @@ public class AwsConfig {
   public Region awsRegion() {
     Region region;
     if (regionString != null && !regionString.isEmpty()) {
-      // Unknown region names resolve to null, as RegionUtils.getRegion did in SDK v1
+      // Unknown region names resolve to null, as RegionUtils.getRegion did in SDK v1. Region.of()
+      // accepts any string, so a typo would otherwise only fail at the first AWS call
       region =
           Region.regions().stream()
               .filter(r -> r.id().equals(regionString))
@@ -118,7 +124,8 @@ public class AwsConfig {
 
     if (host != null && !host.isEmpty()) {
       // Proxies are reached over plain HTTP; aws.client.protocol only applied to AWS endpoints in
-      // SDK v1, and SDK v2 always calls AWS over HTTPS
+      // SDK v1, and SDK v2 always calls AWS over HTTPS. port.intValue() fails fast when
+      // aws.client.useProxy is true without aws.client.proxy.port, as SDK v1 did
       return ProxyConfiguration.builder()
           .endpoint(URI.create("http://" + host + ":" + port.intValue()))
           .build();
@@ -136,9 +143,13 @@ public class AwsConfig {
    */
   @Bean
   public SdkHttpClient httpClient(@Nullable final ProxyDetails proxyDetails) {
+    // SDK v2 transport on HttpClient 5 (apache5-client), so HttpClient 4 is no longer used. One
+    // client and connection pool is shared by all AWS clients; SDK v1 created one per client
     return configureHttpClient(Apache5HttpClient.builder(), proxyDetails).build();
   }
 
+  // Package-private so AwsConfigTest can check the timeouts and proxy on a mock builder: the built
+  // SDK v2 client has no getters for them
   Apache5HttpClient.Builder configureHttpClient(
       final Apache5HttpClient.Builder builder, @Nullable final ProxyDetails proxyDetails) {
     ProxyConfiguration proxyConfig = proxyConfiguration(proxyDetails);
@@ -160,7 +171,8 @@ public class AwsConfig {
   public ClientOverrideConfiguration clientOverrideConfiguration() {
     ClientOverrideConfiguration.Builder builder = ClientOverrideConfiguration.builder();
 
-    // Legacy retry mode matches SDK v1 backoff; maxAttempts counts the first attempt
+    // Legacy retry mode matches SDK v1 backoff; maxAttempts counts the first attempt. Replaces the
+    // deprecated RetryPolicy.numRetries(clientMaxErrorRetry) with the same number of retries
     builder.retryStrategy(
         AwsRetryStrategy.legacyRetryStrategy().toBuilder()
             .maxAttempts(clientMaxErrorRetry + 1)
@@ -195,6 +207,8 @@ public class AwsConfig {
    */
   @Bean
   public SQSConnection sqsConnection(final SqsClient sqsClient) throws JMSException {
+    // amazon-sqs-java-messaging-lib 2.x takes the SDK v2 SqsClient, so the JMS connection uses the
+    // same region, credentials, proxy, timeouts and retries as the other AWS clients
     SQSConnectionFactory connectionFactory =
         new SQSConnectionFactory(new ProviderConfiguration(), sqsClient);
 

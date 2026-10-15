@@ -12,7 +12,12 @@ public final class Dimension {
   private final String name;
   private final String value;
 
-  /** Creates a dimension; also used by Jackson to map the alarm message JSON. */
+  /**
+   * Creates a dimension; also used by Jackson to map the alarm message JSON.
+   *
+   * <p>Immutable to fix SpotBugs EI_EXPOSE_REP: Jackson builds it through this constructor instead
+   * of setters, using the same JSON property names as before.
+   */
   @JsonCreator
   public Dimension(@JsonProperty("name") String name, @JsonProperty("value") String value) {
     this.name = name;

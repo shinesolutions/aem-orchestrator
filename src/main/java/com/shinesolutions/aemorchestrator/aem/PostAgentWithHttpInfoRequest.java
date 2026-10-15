@@ -262,6 +262,8 @@ public class PostAgentWithHttpInfoRequest {
 
   /** Stores an unmodifiable copy of the given headers; {@code null} unsets them. */
   public void setJcrContentProtocolHttpHeaders(List<String> jcrContentProtocolHttpHeaders) {
+    // Copied on set and returned read-only so callers can't change a built request's headers
+    // afterwards (SpotBugs EI_EXPOSE_REP); the request itself still sends the same values
     this.jcrContentProtocolHttpHeaders =
         jcrContentProtocolHttpHeaders == null
             ? null

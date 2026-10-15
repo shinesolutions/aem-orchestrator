@@ -57,6 +57,8 @@ public class HttpUtil {
 
       HttpGet request = new HttpGet(url);
 
+      // HttpClient 5: execute with a response handler, which also closes the response; the
+      // HttpClient 4 style execute(request) is deprecated
       statusCode = client.execute(request, response -> response.getCode());
     }
 

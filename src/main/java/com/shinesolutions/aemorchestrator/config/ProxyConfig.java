@@ -36,6 +36,8 @@ public class ProxyConfig {
     if (httpsProxyEnvironmentVar != null && !httpsProxyEnvironmentVar.isEmpty()) {
       logger.debug(ENV_HTTPS_PROXY + " environment variable detected: " + httpsProxyEnvironmentVar);
       try {
+        // new URL(String) is deprecated since Java 20. URI.toURL() parses https_proxy the same way,
+        // and any parse failure is still only logged, leaving no proxy as before
         URL httpProxyUrl = new URI(httpsProxyEnvironmentVar).toURL();
         details =
             new ProxyDetails().withHost(httpProxyUrl.getHost()).withPort(httpProxyUrl.getPort());

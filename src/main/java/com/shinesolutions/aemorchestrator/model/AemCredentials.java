@@ -3,6 +3,8 @@ package com.shinesolutions.aemorchestrator.model;
 /**
  * Credentials for the AEM users the orchestrator needs: the orchestrator user it calls the AEM API
  * as, and the replicator user set on the replication agents it manages.
+ *
+ * <p>Immutable to fix SpotBugs EI_EXPOSE_REP; created once in AemConfig or CredentialsExtractor.
  */
 public final class AemCredentials {
 

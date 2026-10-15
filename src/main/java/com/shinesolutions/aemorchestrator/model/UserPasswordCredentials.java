@@ -1,6 +1,10 @@
 package com.shinesolutions.aemorchestrator.model;
 
-/** User name and password of an AEM user. */
+/**
+ * User name and password of an AEM user.
+ *
+ * <p>Immutable to fix SpotBugs EI_EXPOSE_REP; created once in AemConfig or CredentialsExtractor.
+ */
 public final class UserPasswordCredentials {
 
   private final String userName;

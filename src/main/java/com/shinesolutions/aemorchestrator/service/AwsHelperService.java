@@ -119,6 +119,9 @@ public class AwsHelperService {
         amazonEc2Client.describeInstances(
             DescribeInstancesRequest.builder().instanceIds(instanceId).build());
 
+    // SDK v2's AwsServiceException replaces v1's AmazonServiceException, so @Retryable still
+    // retries
+    // both EC2 errors and the missing-instance case wrapped below
     try {
       return result.reservations().get(0).instances().get(0).privateIpAddress();
     } catch (Exception e) {
@@ -149,6 +152,8 @@ public class AwsHelperService {
             DescribeInstancesRequest.builder().instanceIds(instanceId).build());
 
     try {
+      // SDK v2 returns an Instant. A missing launch time now fails in Date.from and is wrapped and
+      // retried like a missing instance; SDK v1 returned null
       Instant launchTime = result.reservations().get(0).instances().get(0).launchTime();
       return Date.from(launchTime);
     } catch (Exception e) {
@@ -191,6 +196,7 @@ public class AwsHelperService {
 
     try {
       InstanceStateName stateName = result.reservations().get(0).instances().get(0).state().name();
+      // States unknown to this SDK version map to UNKNOWN_TO_SDK_VERSION and count as not running
       isInstanceRunning = (stateName == InstanceStateName.RUNNING);
     } catch (IndexOutOfBoundsException e) {
       // Instance is long gone
@@ -370,6 +376,8 @@ public class AwsHelperService {
             .replace("%2F", "/")
             .replace("+", "%20");
     S3Uri s3FileUri = amazonS3Client.utilities().parseUri(URI.create(encodedS3Uri));
+    // A URI without a bucket or key now fails here; SDK v1 failed later in getObject with the same
+    // IllegalArgumentException
     String bucket =
         s3FileUri
             .bucket()
@@ -381,6 +389,7 @@ public class AwsHelperService {
 
     GetObjectRequest getObjectRequest = GetObjectRequest.builder().bucket(bucket).key(key).build();
 
+    // try-with-resources closes the S3 response stream, which the SDK v1 code left open
     try (ResponseInputStream<GetObjectResponse> s3object =
         amazonS3Client.getObject(getObjectRequest)) {
       return IoUtils.toUtf8String(s3object);

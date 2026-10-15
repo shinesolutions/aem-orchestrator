@@ -174,6 +174,8 @@ public class AgentRequestFactory {
   public PostAgentWithHttpInfoRequest getPauseReplicationAgentRequest(
       AgentRunMode runMode, String agentName) {
 
+    // A new request per call, like the other builders. This used to fill and return one request
+    // held by this singleton bean, so repeated or concurrent pauses could share fields
     return new PostAgentWithHttpInfoRequest()
         .withRunMode(runMode.getValue())
         .withName(agentName)

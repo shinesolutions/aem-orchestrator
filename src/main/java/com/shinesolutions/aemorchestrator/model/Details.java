@@ -14,7 +14,12 @@ public final class Details {
   private final String subnetId;
   private final String availabilityZone;
 
-  /** Creates the details; also used by Jackson to map the event message JSON. */
+  /**
+   * Creates the details; also used by Jackson to map the event message JSON.
+   *
+   * <p>Immutable to fix SpotBugs EI_EXPOSE_REP: Jackson builds it through this constructor instead
+   * of setters, using the same JSON property names as before.
+   */
   @JsonCreator
   public Details(
       @JsonProperty("Subnet ID") String subnetId,
