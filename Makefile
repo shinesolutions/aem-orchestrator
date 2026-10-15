@@ -3,6 +3,8 @@
 SHELL := /bin/bash
 MVN ?= mvn -B -ntp
 BUILDENV_IMAGE ?= shinesolutions/aem-platform-buildenv:6.2.1
+# Lets git run as root in the buildenv container on this repository, which is owned by your user
+GIT_SAFE_DIRECTORY := GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=safe.directory GIT_CONFIG_VALUE_0=$(CURDIR)
 
 # Changelog format, then checkstyle, unit tests, integration tests, SpotBugs and packaging, as run
 # by CI
@@ -29,18 +31,18 @@ integration-test:
 	$(MVN) verify -Dtest=none -Dsurefire.failIfNoSpecifiedTests=false
 
 # Check CHANGELOG.md follows Keep a Changelog: a single `## [Unreleased]` section first (the release
-# targets date its entries), then `## [x.y.z] - YYYY-MM-DD` releases (`unknown` dates are kept for
-# old releases), with only the standard Added/Changed/Deprecated/Removed/Fixed/Security subsections.
+# targets date its entries), then `## [x.y.z] - YYYY-MM-DD` releases, as rtk's keep-a-changelog
+# parser requires, with only the standard Added/Changed/Deprecated/Removed/Fixed/Security subsections.
 # With CHANGELOG_BASE (e.g. origin/master, set by CI for pull requests) it also requires at least
 # one `## [Unreleased]` entry that is not in the base branch's CHANGELOG.md.
 changelog-check:
 	@set -euo pipefail; \
-	export GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=safe.directory GIT_CONFIG_VALUE_0=$(CURDIR); \
+	export $(GIT_SAFE_DIRECTORY); \
 	awk ' \
 	  function bad(msg) { printf "CHANGELOG.md:%d: %s: %s\n", NR, msg, $$0; errors++ } \
 	  /^## / { \
 	    if ($$0 == "## [Unreleased]") { if (seen++ || releases) bad("[Unreleased] must appear once, before any release") } \
-	    else if ($$0 ~ /^## \[[0-9]+\.[0-9]+\.[0-9]+\] - ([0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]|unknown)$$/) { \
+	    else if ($$0 ~ /^## \[[0-9]+\.[0-9]+\.[0-9]+\] - [0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]$$/) { \
 	      if (!seen && !early++) bad("[Unreleased] must come before releases"); releases++ } \
 	    else bad("version heading must be ## [x.y.z] - YYYY-MM-DD") } \
 	  /^### / && $$0 !~ /^### (Added|Changed|Deprecated|Removed|Fixed|Security)$$/ { bad("unknown subsection") } \
@@ -57,39 +59,33 @@ changelog-check:
 	  echo "New ## [Unreleased] entries compared with $$CHANGELOG_BASE:"; echo "$$added"; \
 	fi
 
-# Release with maven-release-plugin. First moves the CHANGELOG.md `## [Unreleased]` entries under
-# `## [<version>] - <today>` and commits that, then commits the release version, tags it
-# aem-orchestrator-<version> and commits the next -SNAPSHOT version. Nothing is pushed; review,
-# then run `git push --follow-tags`. Needs a clean working tree and entries under [Unreleased].
-#   release-patch: 4.0.1-SNAPSHOT -> 4.0.1, next 4.0.2-SNAPSHOT
-#   release-minor: 4.0.1-SNAPSHOT -> 4.1.0, next 4.1.1-SNAPSHOT
-#   release-major: 4.0.1-SNAPSHOT -> 5.0.0, next 5.0.1-SNAPSHOT
+# Release with rtk (https://github.com/cliffano/rtk), configured in .rtk.json. Sets the release version
+# in pom.xml and CHANGELOG.md (the `## [Unreleased]` entries are dated as the release) and commits
+# that, tags it aem-orchestrator-<version>, then commits the next pre-release version in pom.xml and a
+# new empty `## [Unreleased]` section. Nothing is pushed; review, then run `git push --follow-tags`.
+# Needs a clean working tree and entries under [Unreleased].
+#   release-patch: 4.0.1-pre.0 -> 4.0.1, next 4.0.2-pre.0
+#   release-minor: 4.0.1-pre.0 -> 4.1.0, next 4.1.1-pre.0
+#   release-major: 4.0.1-pre.0 -> 5.0.0, next 5.0.1-pre.0
 define release
 	set -euo pipefail; \
-	export GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=safe.directory GIT_CONFIG_VALUE_0=$(CURDIR); \
+	export $(GIT_SAFE_DIRECTORY); \
 	git diff --quiet && git diff --cached --quiet \
 	  || { echo "Commit or stash your changes before releasing"; exit 1; }; \
 	awk '/^## \[Unreleased\]$$/ { found = 1; next } /^## / { found = 0 } found && /^- / { n++ } \
 	  END { exit n ? 0 : 1 }' CHANGELOG.md \
 	  || { echo "CHANGELOG.md has no entries under ## [Unreleased]"; exit 1; }; \
-	current=$$($(MVN) -q help:evaluate -Dexpression=project.version -DforceStdout); \
-	IFS=. read -r major minor patch <<< "$${current%-SNAPSHOT}"; \
-	case "$(1)" in \
-	  major) release="$$((major + 1)).0.0" ;; \
-	  minor) release="$$major.$$((minor + 1)).0" ;; \
-	  patch) release="$$major.$$minor.$$patch" ;; \
-	esac; \
-	IFS=. read -r major minor patch <<< "$$release"; \
-	next="$$major.$$minor.$$((patch + 1))-SNAPSHOT"; \
-	echo "Releasing $$current as $$release, next development version $$next"; \
-	awk -v heading="## [$$release] - $$(date +%Y-%m-%d)" \
-	  '{ print } /^## \[Unreleased\]$$/ && !done { print ""; print heading; done = 1 }' \
-	  CHANGELOG.md > CHANGELOG.md.tmp && mv CHANGELOG.md.tmp CHANGELOG.md; \
-	git commit -q -m "Update CHANGELOG for $$release" CHANGELOG.md; \
-	$(MVN) release:prepare -DreleaseVersion="$$release" -DdevelopmentVersion="$$next" \
-	  -DpushChanges=false; \
-	$(MVN) release:clean
+	rtk release --release-increment-type $(1)
 endef
+
+release-major:
+	@$(call release,major)
+
+release-minor:
+	@$(call release,minor)
+
+release-patch:
+	@$(call release,patch)
 
 # Shared by release-check and release-test: extract the committed HEAD into a temporary directory and
 # cd into it, set $$current to its project version and $$signer to the GPG signer option (Bouncy
@@ -106,16 +102,16 @@ define release_workdir
 	  export GNUPGHOME="$$keyring"; \
 	  gpg --batch --quiet --import <<< "$$MAVEN_GPG_KEY"; \
 	fi; \
-	GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=safe.directory GIT_CONFIG_VALUE_0=$(CURDIR) \
-	  git archive HEAD | tar -x -C "$$work"; \
+	$(GIT_SAFE_DIRECTORY) git archive HEAD | tar -x -C "$$work"; \
 	cd "$$work"; \
 	current=$$($(MVN) -q help:evaluate -Dexpression=project.version -DforceStdout)
 endef
 
 # Offline release dry run: build, GPG-sign and bundle the committed HEAD for Maven Central at its
-# release version (current version without -SNAPSHOT), without uploading anything (central-publishing
-# skipUpload). Runs in a temporary copy so pom.xml is untouched, then checks the bundle has the
-# pom, jar, sources and javadoc with signatures and checksums, and verifies every signature.
+# release version (current version without its pre-release suffix, e.g. 4.0.1-pre.0 -> 4.0.1),
+# without uploading anything (central-publishing skipUpload). Runs in a temporary copy so pom.xml is
+# untouched, then checks the bundle has the pom, jar, sources and javadoc with signatures and
+# checksums, and verifies every signature.
 # The bundle is kept at target/release-check/central-bundle.zip.
 # Signing key, either:
 #   - MAVEN_GPG_KEY (ASCII-armored secret key) and MAVEN_GPG_PASSPHRASE environment variables: signs
@@ -124,7 +120,7 @@ endef
 #   - otherwise the GPG secret key in your keyring, with MAVEN_GPG_PASSPHRASE or gpg-agent
 release-check:
 	@$(release_workdir); \
-	version="$${current%-SNAPSHOT}"; \
+	version="$${current%%-*}"; \
 	echo "Checking release bundle of HEAD as version $$version (nothing is uploaded)"; \
 	$(MVN) -q versions:set -DnewVersion="$$version" -DgenerateBackupPoms=false; \
 	$(MVN) -Prelease deploy -DskipTests -DskipITs -DskipUpload=true $$signer; \
@@ -146,7 +142,7 @@ release-check:
 # version, never publishing it (-DautoPublish=false), then print the deployment ID to check with
 # release-status and drop with release-drop. Checks the GPG key, the Central token, the upload and
 # Central's validation. Only pre-release versions are accepted; a dropped version can be reused.
-#   make release-test RELEASE_TEST_VERSION=5.0.0-rc.0   (default: current version with -rc.0)
+#   make release-test RELEASE_TEST_VERSION=5.0.0-rc.0   (default: current release version with -rc.0)
 # Run release-test on your machine: it runs release-test-run in BUILDENV_IMAGE with Docker, with
 # this repository mounted read-only and MAVEN_GPG_KEY, MAVEN_GPG_PASSPHRASE, MAVEN_CENTRAL_USERNAME
 # and MAVEN_CENTRAL_PASSWORD passed through from your environment.
@@ -159,7 +155,7 @@ release-test:
 release-test-run:
 	@$(release_workdir); \
 	version="$(RELEASE_TEST_VERSION)"; \
-	[[ -n "$$version" ]] || version="$${current%-SNAPSHOT}-rc.0"; \
+	[[ -n "$$version" ]] || version="$${current%%-*}-rc.0"; \
 	[[ "$$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+-[0-9A-Za-z.-]+$$ && "$$version" != *SNAPSHOT* ]] \
 	  || { echo "release-test only uploads pre-release versions such as 5.0.0-rc.0, not $$version"; exit 1; }; \
 	echo "Uploading HEAD to the Central Portal as $$version (it is not published)"; \
@@ -169,6 +165,13 @@ release-test-run:
 	echo "Deployment $$id ($$version) is validated and not published. Check and drop it with:"; \
 	echo "  make release-status DEPLOYMENT_ID=$$id"; \
 	echo "  make release-drop DEPLOYMENT_ID=$$id"
+
+# Upload the checked-out release version to the Central Portal, run by the publish workflow on a pushed
+# aem-orchestrator-<version> tag. Signs with MAVEN_GPG_KEY and MAVEN_GPG_PASSPHRASE and uploads with
+# MAVEN_CENTRAL_USERNAME and MAVEN_CENTRAL_PASSWORD. Waits until Central has validated the upload,
+# which then waits for Publish or Drop in the Central Portal.
+publish:
+	$(MVN) -Prelease deploy -DskipTests -DskipITs -Dgpg.signer=bc
 
 # Central Portal deployments (`mvn -Prelease deploy` prints the deployment ID). Uses the user token in
 # MAVEN_CENTRAL_USERNAME and MAVEN_CENTRAL_PASSWORD; the Authorization header is passed to curl on
@@ -192,14 +195,6 @@ release-status:
 release-drop:
 	@$(call central_api,DELETE,deployment/$(DEPLOYMENT_ID))
 
-release-major:
-	@$(call release,major)
-
-release-minor:
-	@$(call release,minor)
-
-release-patch:
-	@$(call release,patch)
-
-
-.PHONY: ci clean deps build test integration-test changelog-check release-check release-test release-test-run release-status release-drop release-major release-minor release-patch
+.PHONY: ci clean deps build test integration-test changelog-check \
+	release-major release-minor release-patch publish release-check release-test release-test-run \
+	release-status release-drop

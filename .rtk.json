@@ -1,0 +1,16 @@
+{
+  "tagFormat": "aem-orchestrator-{version}",
+  "resources": [
+    {
+      "path": "pom.xml",
+      "type": "text",
+      "params": {
+        "regex": "(?<=<artifactId>aem-orchestrator</artifactId>\\s*<version>)[^<]+"
+      }
+    },
+    {
+      "path": "CHANGELOG.md",
+      "type": "keep-a-changelog"
+    }
+  ]
+}
