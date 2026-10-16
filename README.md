@@ -177,7 +177,7 @@ then commits the next pre-release version.
 | Target | Description |
 |---|---|
 | `make release-check` | Offline release dry run: GPG-sign and bundle the committed `HEAD` for Maven Central at its release version, check the bundle and every signature, upload nothing. Signs with `MAVEN_GPG_KEY` (armored secret key) and `MAVEN_GPG_PASSPHRASE` from the environment, or your GPG keyring; bundle kept at `target/release-check/central-bundle.zip` |
-| `make release-test RELEASE_TEST_VERSION=<x.y.z-rc.n>` | Sign `HEAD` and upload it to the Maven Central Portal as a pre-release test version without publishing it, then print the deployment ID for `release-status` and `release-drop`. Only pre-release versions are accepted (default: current release version with `-rc.0`) |
+| `make release-test` | Sign `HEAD` and upload it to the Maven Central Portal as a pre-release test version without publishing it, then print the deployment ID for `release-status` and `release-drop`. Uploads the current release version with `-rc.0`, such as `4.0.1-rc.0` for `4.0.1-pre.0` |
 | `make release-status DEPLOYMENT_ID=<id>` | Show a Maven Central Portal deployment's state (e.g. `VALIDATED`, `PUBLISHED`, `FAILED`) and errors, using `MAVEN_CENTRAL_USERNAME` and `MAVEN_CENTRAL_PASSWORD` |
 | `make release-drop DEPLOYMENT_ID=<id>` | Drop (delete) a Maven Central Portal deployment that has not been published |
 | `make publish` | Sign the checked-out version and upload it to the Maven Central Portal, then wait until it is validated. Run by the **Publish to Maven Central** workflow on a pushed `aem-orchestrator-<version>` tag |

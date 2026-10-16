@@ -140,20 +140,17 @@ release-check:
 # Upload test: sign the committed HEAD and upload it to the Central Portal as a pre-release test
 # version, never publishing it (-DautoPublish=false), then print the deployment ID to check with
 # release-status and drop with release-drop. Checks the GPG key, the Central token, the upload and
-# Central's validation. Only pre-release versions are accepted; a dropped version can be reused.
+# Central's validation. Uploads the current release version with -rc.0 (e.g. 4.0.1-pre.0 -> 4.0.1-rc.0),
+# which can be uploaded again once dropped.
 # Signs with MAVEN_GPG_KEY and MAVEN_GPG_PASSPHRASE and uploads with MAVEN_CENTRAL_USERNAME and
 # MAVEN_CENTRAL_PASSWORD.
-#   make release-test RELEASE_TEST_VERSION=5.0.0-rc.0   (default: current release version with -rc.0)
 # For example, in aem-platform-buildenv with Docker, with this repository mounted read-only:
 #   docker run --rm -v "$(pwd)":/workspace/aem-orchestrator:ro -w /workspace/aem-orchestrator \
 #     -e MAVEN_GPG_KEY -e MAVEN_GPG_PASSPHRASE -e MAVEN_CENTRAL_USERNAME -e MAVEN_CENTRAL_PASSWORD \
-#     shinesolutions/aem-platform-buildenv:6.3.0 make release-test RELEASE_TEST_VERSION=5.0.0-rc.0
+#     shinesolutions/aem-platform-buildenv:6.3.0 make release-test
 release-test:
 	@$(release_workdir); \
-	version="$(RELEASE_TEST_VERSION)"; \
-	[[ -n "$$version" ]] || version="$${current%%-*}-rc.0"; \
-	[[ "$$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+-[0-9A-Za-z.-]+$$ && "$$version" != *SNAPSHOT* ]] \
-	  || { echo "release-test only uploads pre-release versions such as 5.0.0-rc.0, not $$version"; exit 1; }; \
+	version="$${current%%-*}-rc.0"; \
 	echo "Uploading HEAD to the Central Portal as $$version (it is not published)"; \
 	$(MVN) -q versions:set -DnewVersion="$$version" -DgenerateBackupPoms=false; \
 	$(MVN) -Prelease deploy -DskipTests -DskipITs -DautoPublish=false $$signer | tee deploy.log; \
