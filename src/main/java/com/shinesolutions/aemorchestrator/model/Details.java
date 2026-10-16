@@ -1,30 +1,38 @@
 package com.shinesolutions.aemorchestrator.model;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+/**
+ * The {@code Details} object of an Auto Scaling event message, holding the instance's {@code Subnet
+ * ID} and {@code Availability Zone}.
+ */
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class Details {
+public final class Details {
 
-    @JsonProperty("Subnet ID")
-    private String subnetID;
+  private final String subnetId;
+  private final String availabilityZone;
 
-    @JsonProperty("Availability Zone")
-    private String availabilityZone;
+  /**
+   * Creates the details; also used by Jackson to map the event message JSON.
+   *
+   * <p>Immutable to fix SpotBugs EI_EXPOSE_REP: Jackson builds it through this constructor instead
+   * of setters, using the same JSON property names as before.
+   */
+  @JsonCreator
+  public Details(
+      @JsonProperty("Subnet ID") String subnetId,
+      @JsonProperty("Availability Zone") String availabilityZone) {
+    this.subnetId = subnetId;
+    this.availabilityZone = availabilityZone;
+  }
 
-    public String getSubnetID() {
-        return subnetID;
-    }
+  public String getSubnetId() {
+    return subnetId;
+  }
 
-    public void setSubnetID(String subnetID) {
-        this.subnetID = subnetID;
-    }
-
-    public String getAvailabilityZone() {
-        return availabilityZone;
-    }
-
-    public void setAvailabilityZone(String availabilityZone) {
-        this.availabilityZone = availabilityZone;
-    }
+  public String getAvailabilityZone() {
+    return availabilityZone;
+  }
 }

@@ -1,1469 +1,1636 @@
 package com.shinesolutions.aemorchestrator.service;
 
+import static com.shinesolutions.aemorchestrator.model.InstanceTags.AEM_AUTHOR_HOST;
+import static com.shinesolutions.aemorchestrator.model.InstanceTags.AEM_PREVIEW_PUBLISH_DISPATCHER_HOST;
+import static com.shinesolutions.aemorchestrator.model.InstanceTags.AEM_PREVIEW_PUBLISH_HOST;
+import static com.shinesolutions.aemorchestrator.model.InstanceTags.AEM_PUBLISH_DISPATCHER_HOST;
+import static com.shinesolutions.aemorchestrator.model.InstanceTags.AEM_PUBLISH_HOST;
+import static com.shinesolutions.aemorchestrator.model.InstanceTags.COMPONENT_INIT_STATUS;
+import static com.shinesolutions.aemorchestrator.model.InstanceTags.NAME;
+import static com.shinesolutions.aemorchestrator.model.InstanceTags.PAIR_INSTANCE_ID;
+import static com.shinesolutions.aemorchestrator.model.InstanceTags.PREVIEW_PAIR_INSTANCE_ID;
+import static com.shinesolutions.aemorchestrator.model.InstanceTags.SNAPSHOT_ID;
+import static com.shinesolutions.aemorchestrator.model.InstanceTags.SNAPSHOT_TYPE;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.startsWith;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.util.ReflectionTestUtils.setField;
+
 import com.shinesolutions.aemorchestrator.exception.InstanceNotInHealthyStateException;
 import com.shinesolutions.aemorchestrator.exception.NoPairFoundException;
-import com.shinesolutions.aemorchestrator.model.EC2Instance;
+import com.shinesolutions.aemorchestrator.model.Ec2Instance;
 import com.shinesolutions.aemorchestrator.model.EnvironmentValues;
 import com.shinesolutions.aemorchestrator.model.InstanceTags;
 import com.shinesolutions.aemorchestrator.util.HttpUtil;
-import org.joda.time.DateTime;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
-
-import java.util.*;
-
-import static com.shinesolutions.aemorchestrator.model.InstanceTags.*;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.startsWith;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.is;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
-import static org.springframework.test.util.ReflectionTestUtils.setField;
-
-@RunWith(MockitoJUnitRunner.class)
-public class AemInstanceHelperServiceTest {
-
-    private String aemPublishDispatcherProtocol;
-    private String aemPublishProtocol;
-    private String aemPreviewPublishDispatcherProtocol;
-    private String aemPreviewPublishProtocol;
-    private String aemAuthorDispatcherProtocol;
-    private String aemAuthorProtocol;
-    private String awsPublishDispatcherStackName;
-    private Integer aemPublishDispatcherPort;
-    private Integer aemPublishPort;
-    private String awsPreviewPublishDispatcherStackName;
-    private Integer aemPreviewPublishDispatcherPort;
-    private Integer aemPreviewPublishPort;
-    private Integer aemAuthorDispatcherPort;
-    private Integer aemAuthorPort;
-
-    @Mock
-    private AwsHelperService awsHelperService;
-
-    @Mock
-    private HttpUtil httpUtil;
-
-    @InjectMocks
-    private AemInstanceHelperService aemHelperService;
-
-    @Captor
-    private ArgumentCaptor<Map<String, String>> mapCaptor;
-
-
-    private EnvironmentValues envValues;
-
-    private String instanceId;
-    private String privateIp;
-
-    @Before
-    public void setUp() {
-        instanceId = "test-123456789";
-        privateIp = "11.22.33.44";
-
-        envValues = new EnvironmentValues();
-        envValues.setAutoScaleGroupNameForPublishDispatcher("publishDispatcherTestName");
-        envValues.setAutoScaleGroupNameForPublish("publishTestName");
-        envValues.setAutoScaleGroupNameForPreviewPublishDispatcher("previewPublishDispatcherTestName");
-        envValues.setAutoScaleGroupNameForPreviewPublish("previewPublishTestName");
-        envValues.setAutoScaleGroupNameForAuthorDispatcher("authorTestName");
-        envValues.setElasticLoadBalancerNameForAuthor("elasticLoadBalancerNameForAuthor");
-        envValues.setElasticLoadBalancerAuthorDns("elasticLoadBalancerAuthorDns");
-        envValues.setTopicArn("topicArn");
-
-        aemPublishDispatcherProtocol = "pdpd";
-        aemPublishProtocol = "pppp";
-        aemPreviewPublishDispatcherProtocol = "ppdpd";
-        aemPreviewPublishProtocol = "ppppp";
-        aemAuthorDispatcherProtocol = "adad";
-        aemAuthorProtocol = "aaaa";
-        awsPublishDispatcherStackName = "awsPublishDispatcherStackName";
-        aemPublishDispatcherPort = 1111;
-        aemPublishPort = 2222;
-        awsPreviewPublishDispatcherStackName = "awsPreviewPublishDispatcherStackName";
-        aemPreviewPublishDispatcherPort = 3333;
-        aemPreviewPublishPort = 4444;
-        aemAuthorDispatcherPort = 5555;
-        aemAuthorPort = 5555;
-
-        setField(aemHelperService, "envValues", envValues);
-
-        setField(aemHelperService, "aemPublishDispatcherProtocol", aemPublishDispatcherProtocol);
-        setField(aemHelperService, "aemPublishProtocol", aemPublishProtocol);
-        setField(aemHelperService, "aemPreviewPublishDispatcherProtocol", aemPreviewPublishDispatcherProtocol);
-        setField(aemHelperService, "aemPreviewPublishProtocol", aemPreviewPublishProtocol);
-        setField(aemHelperService, "aemAuthorDispatcherProtocol", aemAuthorDispatcherProtocol);
-        setField(aemHelperService, "aemAuthorProtocol", aemAuthorProtocol);
-        setField(aemHelperService, "awsPublishDispatcherStackName", awsPublishDispatcherStackName);
-        setField(aemHelperService, "awsPreviewPublishDispatcherStackName", awsPreviewPublishDispatcherStackName);
-
-        setField(aemHelperService, "aemPublishDispatcherPort", aemPublishDispatcherPort);
-        setField(aemHelperService, "aemPublishPort", aemPublishPort);
-        setField(aemHelperService, "aemPreviewPublishDispatcherPort", aemPreviewPublishDispatcherPort);
-        setField(aemHelperService, "aemPreviewPublishPort", aemPreviewPublishPort);
-        setField(aemHelperService, "aemAuthorDispatcherPort", aemAuthorDispatcherPort);
-        setField(aemHelperService, "aemAuthorPort", aemAuthorPort);
-    }
-
-    @Test
-    public void testGetAemUrlForPublishDispatcher() {
-        when(awsHelperService.getPrivateIp(instanceId)).thenReturn(privateIp);
+import org.mockito.junit.jupiter.MockitoExtension;
+
+@ExtendWith(MockitoExtension.class)
+class AemInstanceHelperServiceTest {
+
+  private String aemPublishDispatcherProtocol;
+  private String aemPublishProtocol;
+  private String aemPreviewPublishDispatcherProtocol;
+  private String aemPreviewPublishProtocol;
+  private String aemAuthorDispatcherProtocol;
+  private String aemAuthorProtocol;
+  private String awsPublishDispatcherStackName;
+  private Integer aemPublishDispatcherPort;
+  private Integer aemPublishPort;
+  private String awsPreviewPublishDispatcherStackName;
+  private Integer aemPreviewPublishDispatcherPort;
+  private Integer aemPreviewPublishPort;
+  private Integer aemAuthorDispatcherPort;
+  private Integer aemAuthorPort;
+
+  @Mock private AwsHelperService awsHelperService;
+
+  @Mock private HttpUtil httpUtil;
+
+  @InjectMocks private AemInstanceHelperService aemHelperService;
+
+  @Captor private ArgumentCaptor<Map<String, String>> mapCaptor;
+
+  private EnvironmentValues envValues;
+
+  private String instanceId;
+  private String privateIp;
+
+  @BeforeEach
+  void setUp() {
+    instanceId = "test-123456789";
+    privateIp = "11.22.33.44";
+
+    envValues = new EnvironmentValues();
+    envValues.setAutoScaleGroupNameForPublishDispatcher("publishDispatcherTestName");
+    envValues.setAutoScaleGroupNameForPublish("publishTestName");
+    envValues.setAutoScaleGroupNameForPreviewPublishDispatcher("previewPublishDispatcherTestName");
+    envValues.setAutoScaleGroupNameForPreviewPublish("previewPublishTestName");
+    envValues.setAutoScaleGroupNameForAuthorDispatcher("authorTestName");
+    envValues.setElasticLoadBalancerNameForAuthor("elasticLoadBalancerNameForAuthor");
+    envValues.setElasticLoadBalancerAuthorDns("elasticLoadBalancerAuthorDns");
+    envValues.setTopicArn("topicArn");
+
+    aemPublishDispatcherProtocol = "pdpd";
+    aemPublishProtocol = "pppp";
+    aemPreviewPublishDispatcherProtocol = "ppdpd";
+    aemPreviewPublishProtocol = "ppppp";
+    aemAuthorDispatcherProtocol = "adad";
+    aemAuthorProtocol = "aaaa";
+    awsPublishDispatcherStackName = "awsPublishDispatcherStackName";
+    aemPublishDispatcherPort = 1111;
+    aemPublishPort = 2222;
+    awsPreviewPublishDispatcherStackName = "awsPreviewPublishDispatcherStackName";
+    aemPreviewPublishDispatcherPort = 3333;
+    aemPreviewPublishPort = 4444;
+    aemAuthorDispatcherPort = 5555;
+    aemAuthorPort = 5555;
+
+    setField(aemHelperService, "envValues", envValues);
+
+    setField(aemHelperService, "aemPublishDispatcherProtocol", aemPublishDispatcherProtocol);
+    setField(aemHelperService, "aemPublishProtocol", aemPublishProtocol);
+    setField(
+        aemHelperService,
+        "aemPreviewPublishDispatcherProtocol",
+        aemPreviewPublishDispatcherProtocol);
+    setField(aemHelperService, "aemPreviewPublishProtocol", aemPreviewPublishProtocol);
+    setField(aemHelperService, "aemAuthorDispatcherProtocol", aemAuthorDispatcherProtocol);
+    setField(aemHelperService, "aemAuthorProtocol", aemAuthorProtocol);
+    setField(aemHelperService, "awsPublishDispatcherStackName", awsPublishDispatcherStackName);
+    setField(
+        aemHelperService,
+        "awsPreviewPublishDispatcherStackName",
+        awsPreviewPublishDispatcherStackName);
+
+    setField(aemHelperService, "aemPublishDispatcherPort", aemPublishDispatcherPort);
+    setField(aemHelperService, "aemPublishPort", aemPublishPort);
+    setField(aemHelperService, "aemPreviewPublishDispatcherPort", aemPreviewPublishDispatcherPort);
+    setField(aemHelperService, "aemPreviewPublishPort", aemPreviewPublishPort);
+    setField(aemHelperService, "aemAuthorDispatcherPort", aemAuthorDispatcherPort);
+    setField(aemHelperService, "aemAuthorPort", aemAuthorPort);
+  }
+
+  @Test
+  void testGetAemUrlForPublishDispatcher() {
+    when(awsHelperService.getPrivateIp(instanceId)).thenReturn(privateIp);
+
+    String aemUrl = aemHelperService.getAemUrlForPublishDispatcher(instanceId);
+
+    assertThat(
+        aemUrl,
+        equalTo(aemPublishDispatcherProtocol + "://" + privateIp + ":" + aemPublishDispatcherPort));
+  }
+
+  @Test
+  void testGetAemUrlForPreviewPublishDispatcher() {
+    when(awsHelperService.getPrivateIp(instanceId)).thenReturn(privateIp);
 
-        String aemUrl = aemHelperService.getAemUrlForPublishDispatcher(instanceId);
+    String aemUrl = aemHelperService.getAemUrlForPreviewPublishDispatcher(instanceId);
 
-        assertThat(aemUrl, equalTo(aemPublishDispatcherProtocol + "://" + privateIp + ":" + aemPublishDispatcherPort));
-    }
+    assertThat(
+        aemUrl,
+        equalTo(
+            aemPreviewPublishDispatcherProtocol
+                + "://"
+                + privateIp
+                + ":"
+                + aemPreviewPublishDispatcherPort));
+  }
 
-    @Test
-    public void testGetAemUrlForPreviewPublishDispatcher() {
-        when(awsHelperService.getPrivateIp(instanceId)).thenReturn(privateIp);
+  @Test
+  void testGetAemUrlForPublish() {
+    when(awsHelperService.getPrivateIp(instanceId)).thenReturn(privateIp);
 
-        String aemUrl = aemHelperService.getAemUrlForPreviewPublishDispatcher(instanceId);
+    String aemUrl = aemHelperService.getAemUrlForPublish(instanceId);
 
-        assertThat(aemUrl, equalTo(aemPreviewPublishDispatcherProtocol + "://" + privateIp + ":" + aemPreviewPublishDispatcherPort));
-    }
+    assertThat(aemUrl, equalTo(aemPublishProtocol + "://" + privateIp + ":" + aemPublishPort));
+  }
 
-    @Test
-    public void testGetAemUrlForPublish() {
-        when(awsHelperService.getPrivateIp(instanceId)).thenReturn(privateIp);
+  @Test
+  void testGetAemUrlForPreviewPublish() {
+    when(awsHelperService.getPrivateIp(instanceId)).thenReturn(privateIp);
 
-        String aemUrl = aemHelperService.getAemUrlForPublish(instanceId);
+    String aemUrl = aemHelperService.getAemUrlForPreviewPublish(instanceId);
+
+    assertThat(
+        aemUrl,
+        equalTo(aemPreviewPublishProtocol + "://" + privateIp + ":" + aemPreviewPublishPort));
+  }
 
-        assertThat(aemUrl, equalTo(aemPublishProtocol + "://" + privateIp + ":" + aemPublishPort));
-    }
+  @Test
+  void testGetAemUrlForAuthorElb() {
+    String aemUrl = aemHelperService.getAemUrlForAuthorElb();
 
-    @Test
-    public void testGetAemUrlForPreviewPublish() {
-        when(awsHelperService.getPrivateIp(instanceId)).thenReturn(privateIp);
+    assertThat(
+        aemUrl,
+        equalTo(
+            aemAuthorProtocol
+                + "://"
+                + envValues.getElasticLoadBalancerAuthorDns()
+                + ":"
+                + aemAuthorPort));
+  }
 
-        String aemUrl = aemHelperService.getAemUrlForPreviewPublish(instanceId);
+  @Test
+  void testGetAemUrlForAuthorDispatcher() {
+    when(awsHelperService.getPrivateIp(instanceId)).thenReturn(privateIp);
 
-        assertThat(aemUrl, equalTo(aemPreviewPublishProtocol + "://" + privateIp + ":" + aemPreviewPublishPort));
-    }
+    String aemUrl = aemHelperService.getAemUrlForAuthorDispatcher(instanceId);
 
-    @Test
-    public void testGetAemUrlForAuthorElb() {
-        String aemUrl = aemHelperService.getAemUrlForAuthorElb();
+    assertThat(
+        aemUrl,
+        equalTo(aemAuthorDispatcherProtocol + "://" + privateIp + ":" + aemAuthorDispatcherPort));
+  }
 
-        assertThat(aemUrl, equalTo(aemAuthorProtocol + "://" +
-            envValues.getElasticLoadBalancerAuthorDns() + ":" + aemAuthorPort));
-    }
+  @Test
+  void testGetAemComponentInitStateOk() {
 
-    @Test
-    public void testGetAemUrlForAuthorDispatcher() {
-        when(awsHelperService.getPrivateIp(instanceId)).thenReturn(privateIp);
+    Map<String, String> tagsComponentInitStatusSuccess = new HashMap<>();
+    tagsComponentInitStatusSuccess.put(COMPONENT_INIT_STATUS.getTagName(), "Success");
 
-        String aemUrl = aemHelperService.getAemUrlForAuthorDispatcher(instanceId);
+    when(awsHelperService.getTags(instanceId)).thenReturn(tagsComponentInitStatusSuccess);
 
-        assertThat(aemUrl, equalTo(aemAuthorDispatcherProtocol + "://" + privateIp + ":" + aemAuthorDispatcherPort));
-    }
+    boolean result = aemHelperService.getAemComponentInitState(instanceId);
+    assertThat(result, equalTo(true));
+  }
 
-    @Test
-    public void testGetAemComponentInitStateOK() {
+  @Test
+  void testGetAemComponentInitStateNotOk() {
+    Map<String, String> tagsComponentInitStatusFailed = new HashMap<>();
+    tagsComponentInitStatusFailed.put(COMPONENT_INIT_STATUS.getTagName(), "Failed");
 
-      Map<String, String> tagsComponentInitStatusSuccess = new HashMap<>();
-      tagsComponentInitStatusSuccess.put(COMPONENT_INIT_STATUS.getTagName(), "Success");
+    when(awsHelperService.getTags(instanceId)).thenReturn(tagsComponentInitStatusFailed);
 
-      when(awsHelperService.getTags(instanceId)).thenReturn(tagsComponentInitStatusSuccess);
+    boolean result = aemHelperService.getAemComponentInitState(instanceId);
+    assertThat(result, equalTo(false));
+  }
 
-      boolean result = aemHelperService.getAemComponentInitState(instanceId);
-      assertThat(result, equalTo(true));
-    }
+  @Test
+  void testGetPublishIdToSnapshotFrom() throws Exception {
+    String excludeInstanceId = "exclude-352768";
+    List<String> instanceIds = new ArrayList<>();
+    instanceIds.add(excludeInstanceId);
+    instanceIds.add(instanceId);
+    instanceIds.add("extra-89351");
 
-    @Test
-    public void testGetAemComponentInitStateNotOK() {
-      Map<String, String> tagsComponentInitStatusFailed = new HashMap<>();
-      tagsComponentInitStatusFailed.put(COMPONENT_INIT_STATUS.getTagName(), "Failed");
+    when(awsHelperService.getInstanceIdsForAutoScalingGroup(
+            envValues.getAutoScaleGroupNameForPublish()))
+        .thenReturn(instanceIds);
 
-      when(awsHelperService.getTags(instanceId)).thenReturn(tagsComponentInitStatusFailed);
+    Map<String, String> instanceTags1 = new HashMap<>();
+    instanceTags1.put(InstanceTags.SNAPSHOT_ID.getTagName(), "");
 
-      boolean result = aemHelperService.getAemComponentInitState(instanceId);
-      assertThat(result, equalTo(false));
-    }
+    when(awsHelperService.getTags(anyString())).thenReturn(instanceTags1);
 
-    @Test
-    public void testGetPublishIdToSnapshotFrom() throws Exception {
-        String excludeInstanceId = "exclude-352768";
-        List<String> instanceIds = new ArrayList<>();
-        instanceIds.add(excludeInstanceId);
-        instanceIds.add(instanceId);
-        instanceIds.add("extra-89351");
+    Date dt = new Date();
 
-        Date dt = new Date();
+    ZonedDateTime originalDateTime = dt.toInstant().atZone(ZoneId.systemDefault());
+    Date originalDate = Date.from(originalDateTime.toInstant());
+    ZonedDateTime originalPlusOneDateTime = originalDateTime.plusDays(1);
+    Date originalPlusOneDate = Date.from(originalPlusOneDateTime.toInstant());
 
-        DateTime originalDateTime = new DateTime(dt);
-        Date originalDate = originalDateTime.toDate();
-        DateTime originalPlusOneDateTime = originalDateTime.plusDays(1);
-        Date originalPlusOneDate = originalPlusOneDateTime.toDate();
+    when(awsHelperService.getLaunchTime(instanceId)).thenReturn(originalDate);
+    when(awsHelperService.getLaunchTime("extra-89351")).thenReturn(originalPlusOneDate);
 
-        when(awsHelperService.getInstanceIdsForAutoScalingGroup(
-            envValues.getAutoScaleGroupNameForPublish())).thenReturn(instanceIds);
+    String resultInstanceId = aemHelperService.getPublishIdToSnapshotFrom(excludeInstanceId);
 
-        Map<String, String> instanceTags1 = new HashMap<>();
-        instanceTags1.put(InstanceTags.SNAPSHOT_ID.getTagName(), "");
+    assertThat(resultInstanceId, equalTo(instanceId));
+  }
 
-        when(awsHelperService.getTags(anyString())).thenReturn(instanceTags1);
+  @Test
+  void testGetPreviewPublishIdToSnapshotFrom() throws Exception {
+    String excludeInstanceId = "exclude-352768";
+    List<String> instanceIds = new ArrayList<>();
+    instanceIds.add(excludeInstanceId);
+    instanceIds.add(instanceId);
+    instanceIds.add("extra-89351");
 
-        when(awsHelperService.getLaunchTime(instanceId)).thenReturn(originalDate);
-        when(awsHelperService.getLaunchTime("extra-89351")).thenReturn(originalPlusOneDate);
+    when(awsHelperService.getInstanceIdsForAutoScalingGroup(
+            envValues.getAutoScaleGroupNameForPreviewPublish()))
+        .thenReturn(instanceIds);
 
-        String resultInstanceId = aemHelperService.getPublishIdToSnapshotFrom(excludeInstanceId);
+    Map<String, String> instanceTags1 = new HashMap<>();
+    instanceTags1.put(InstanceTags.SNAPSHOT_ID.getTagName(), "");
 
-        assertThat(resultInstanceId, equalTo(instanceId));
-    }
+    when(awsHelperService.getTags(anyString())).thenReturn(instanceTags1);
 
-    @Test
-    public void testGetPreviewPublishIdToSnapshotFrom() throws Exception {
-        String excludeInstanceId = "exclude-352768";
-        List<String> instanceIds = new ArrayList<>();
-        instanceIds.add(excludeInstanceId);
-        instanceIds.add(instanceId);
-        instanceIds.add("extra-89351");
+    Date dt = new Date();
 
-        Date dt = new Date();
+    ZonedDateTime originalDateTime = dt.toInstant().atZone(ZoneId.systemDefault());
+    Date originalDate = Date.from(originalDateTime.toInstant());
+    ZonedDateTime originalPlusOneDateTime = originalDateTime.plusDays(1);
+    Date originalPlusOneDate = Date.from(originalPlusOneDateTime.toInstant());
 
-        DateTime originalDateTime = new DateTime(dt);
-        Date originalDate = originalDateTime.toDate();
-        DateTime originalPlusOneDateTime = originalDateTime.plusDays(1);
-        Date originalPlusOneDate = originalPlusOneDateTime.toDate();
+    when(awsHelperService.getLaunchTime(instanceId)).thenReturn(originalDate);
+    when(awsHelperService.getLaunchTime("extra-89351")).thenReturn(originalPlusOneDate);
 
-        when(awsHelperService.getInstanceIdsForAutoScalingGroup(
-            envValues.getAutoScaleGroupNameForPreviewPublish())).thenReturn(instanceIds);
+    String resultInstanceId = aemHelperService.getPreviewPublishIdToSnapshotFrom(excludeInstanceId);
 
-        Map<String, String> instanceTags1 = new HashMap<>();
-        instanceTags1.put(InstanceTags.SNAPSHOT_ID.getTagName(), "");
+    assertThat(resultInstanceId, equalTo(instanceId));
+  }
 
-        when(awsHelperService.getTags(anyString())).thenReturn(instanceTags1);
+  @Test
+  void testGetPublishIdToSnapshotFromWithSameLaunchTime() throws Exception {
+    final String alphabeticallyFirst = "AAA";
+    final String alphabeticallySecond = "BBB";
+    List<String> instanceIds = new ArrayList<>();
+    instanceIds.add(alphabeticallySecond);
+    instanceIds.add(alphabeticallyFirst);
 
-        when(awsHelperService.getLaunchTime(instanceId)).thenReturn(originalDate);
-        when(awsHelperService.getLaunchTime("extra-89351")).thenReturn(originalPlusOneDate);
+    when(awsHelperService.getInstanceIdsForAutoScalingGroup(
+            envValues.getAutoScaleGroupNameForPublish()))
+        .thenReturn(instanceIds);
 
-        String resultInstanceId = aemHelperService.getPreviewPublishIdToSnapshotFrom(excludeInstanceId);
+    Map<String, String> instanceTags1 = new HashMap<>();
+    instanceTags1.put(InstanceTags.SNAPSHOT_ID.getTagName(), "");
 
-        assertThat(resultInstanceId, equalTo(instanceId));
-    }
+    when(awsHelperService.getTags(anyString())).thenReturn(instanceTags1);
 
-    @Test
-    public void testGetPublishIdToSnapshotFromWithSameLaunchTime() throws Exception {
-        final String alphabeticallyFirst = "AAA";
-        final String alphabeticallySecond = "BBB";
-        List<String> instanceIds = new ArrayList<>();
-        instanceIds.add(alphabeticallySecond);
-        instanceIds.add(alphabeticallyFirst);
+    Date originalDate = new Date();
+    when(awsHelperService.getLaunchTime(alphabeticallyFirst)).thenReturn(originalDate);
+    when(awsHelperService.getLaunchTime(alphabeticallySecond)).thenReturn(originalDate);
 
-        when(awsHelperService.getInstanceIdsForAutoScalingGroup(
-                envValues.getAutoScaleGroupNameForPublish())).thenReturn(instanceIds);
+    String resultInstanceId = aemHelperService.getPublishIdToSnapshotFrom("exclude-352768");
 
-        Map<String, String> instanceTags1 = new HashMap<>();
-        instanceTags1.put(InstanceTags.SNAPSHOT_ID.getTagName(), "");
+    assertThat(resultInstanceId, equalTo(alphabeticallyFirst));
+  }
 
-        when(awsHelperService.getTags(anyString())).thenReturn(instanceTags1);
+  @Test
+  void testGetPreviewPublishIdToSnapshotFromWithSameLaunchTime() throws Exception {
+    final String alphabeticallyFirst = "AAA";
+    final String alphabeticallySecond = "BBB";
+    List<String> instanceIds = new ArrayList<>();
+    instanceIds.add(alphabeticallySecond);
+    instanceIds.add(alphabeticallyFirst);
 
-        Date originalDate = new Date();
-        when(awsHelperService.getLaunchTime(alphabeticallyFirst)).thenReturn(originalDate);
-        when(awsHelperService.getLaunchTime(alphabeticallySecond)).thenReturn(originalDate);
+    when(awsHelperService.getInstanceIdsForAutoScalingGroup(
+            envValues.getAutoScaleGroupNameForPreviewPublish()))
+        .thenReturn(instanceIds);
 
-        String resultInstanceId = aemHelperService.getPublishIdToSnapshotFrom("exclude-352768");
+    Map<String, String> instanceTags1 = new HashMap<>();
+    instanceTags1.put(InstanceTags.SNAPSHOT_ID.getTagName(), "");
 
-        assertThat(resultInstanceId, equalTo(alphabeticallyFirst));
-    }
+    when(awsHelperService.getTags(anyString())).thenReturn(instanceTags1);
 
-    @Test
-    public void testGetPreviewPublishIdToSnapshotFromWithSameLaunchTime() throws Exception {
-        final String alphabeticallyFirst = "AAA";
-        final String alphabeticallySecond = "BBB";
-        List<String> instanceIds = new ArrayList<>();
-        instanceIds.add(alphabeticallySecond);
-        instanceIds.add(alphabeticallyFirst);
+    Date originalDate = new Date();
+    when(awsHelperService.getLaunchTime(alphabeticallyFirst)).thenReturn(originalDate);
+    when(awsHelperService.getLaunchTime(alphabeticallySecond)).thenReturn(originalDate);
 
-        when(awsHelperService.getInstanceIdsForAutoScalingGroup(
-                envValues.getAutoScaleGroupNameForPreviewPublish())).thenReturn(instanceIds);
+    String resultInstanceId = aemHelperService.getPreviewPublishIdToSnapshotFrom("exclude-352768");
 
-        Map<String, String> instanceTags1 = new HashMap<>();
-        instanceTags1.put(InstanceTags.SNAPSHOT_ID.getTagName(), "");
+    assertThat(resultInstanceId, equalTo(alphabeticallyFirst));
+  }
 
-        when(awsHelperService.getTags(anyString())).thenReturn(instanceTags1);
+  @Test
+  void testGetPublishIdToSnapshotFromWithOnlyExcludedInstance() {
+    String excludeInstanceId = "exclude-352768";
+    List<String> instanceIds = new ArrayList<>();
+    instanceIds.add(excludeInstanceId);
 
-        Date originalDate = new Date();
-        when(awsHelperService.getLaunchTime(alphabeticallyFirst)).thenReturn(originalDate);
-        when(awsHelperService.getLaunchTime(alphabeticallySecond)).thenReturn(originalDate);
+    when(awsHelperService.getInstanceIdsForAutoScalingGroup(
+            envValues.getAutoScaleGroupNameForPublish()))
+        .thenReturn(instanceIds);
 
-        String resultInstanceId = aemHelperService.getPreviewPublishIdToSnapshotFrom("exclude-352768");
+    String resultInstanceId = aemHelperService.getPublishIdToSnapshotFrom(excludeInstanceId);
 
-        assertThat(resultInstanceId, equalTo(alphabeticallyFirst));
-    }
+    assertThat(resultInstanceId, equalTo(null));
+  }
 
-    @Test
-    public void testGetPublishIdToSnapshotFromWithOnlyExcludedInstance() {
-        String excludeInstanceId = "exclude-352768";
-        List<String> instanceIds = new ArrayList<>();
-        instanceIds.add(excludeInstanceId);
+  @Test
+  void testGetPreviewPublishIdToSnapshotFromWithOnlyExcludedInstance() {
+    String excludeInstanceId = "exclude-352768";
+    List<String> instanceIds = new ArrayList<>();
+    instanceIds.add(excludeInstanceId);
 
-        when(awsHelperService.getInstanceIdsForAutoScalingGroup(
-                envValues.getAutoScaleGroupNameForPublish())).thenReturn(instanceIds);
+    when(awsHelperService.getInstanceIdsForAutoScalingGroup(
+            envValues.getAutoScaleGroupNameForPreviewPublish()))
+        .thenReturn(instanceIds);
 
-        String resultInstanceId = aemHelperService.getPublishIdToSnapshotFrom(excludeInstanceId);
+    String resultInstanceId = aemHelperService.getPreviewPublishIdToSnapshotFrom(excludeInstanceId);
 
-        assertThat(resultInstanceId, equalTo(null));
-    }
+    assertThat(resultInstanceId, equalTo(null));
+  }
 
-    @Test
-    public void testGetPreviewPublishIdToSnapshotFromWithOnlyExcludedInstance() {
-        String excludeInstanceId = "exclude-352768";
-        List<String> instanceIds = new ArrayList<>();
-        instanceIds.add(excludeInstanceId);
+  @Test
+  void testGetPublishIdToSnapshotFromWithNoTagName() {
+    List<String> instanceIds = new ArrayList<>();
+    instanceIds.add(instanceId);
 
-        when(awsHelperService.getInstanceIdsForAutoScalingGroup(
-                envValues.getAutoScaleGroupNameForPreviewPublish())).thenReturn(instanceIds);
+    when(awsHelperService.getInstanceIdsForAutoScalingGroup(
+            envValues.getAutoScaleGroupNameForPublish()))
+        .thenReturn(instanceIds);
 
-        String resultInstanceId = aemHelperService.getPreviewPublishIdToSnapshotFrom(excludeInstanceId);
+    when(awsHelperService.getTags(anyString())).thenReturn(new HashMap<>());
 
-        assertThat(resultInstanceId, equalTo(null));
-    }
+    String excludeInstanceId = "exclude-352768";
+    String resultInstanceId = aemHelperService.getPublishIdToSnapshotFrom(excludeInstanceId);
 
-    @Test
-    public void testGetPublishIdToSnapshotFromWithNoTagName() {
-        String excludeInstanceId = "exclude-352768";
-        List<String> instanceIds = new ArrayList<>();
-        instanceIds.add(instanceId);
+    assertThat(resultInstanceId, equalTo(null));
+  }
 
-        when(awsHelperService.getInstanceIdsForAutoScalingGroup(
-                envValues.getAutoScaleGroupNameForPublish())).thenReturn(instanceIds);
+  @Test
+  void testGetPreviewPublishIdToSnapshotFromWithNoTagName() {
+    List<String> instanceIds = new ArrayList<>();
+    instanceIds.add(instanceId);
 
-        when(awsHelperService.getTags(anyString())).thenReturn(new HashMap<>());
+    when(awsHelperService.getInstanceIdsForAutoScalingGroup(
+            envValues.getAutoScaleGroupNameForPreviewPublish()))
+        .thenReturn(instanceIds);
 
-        String resultInstanceId = aemHelperService.getPublishIdToSnapshotFrom(excludeInstanceId);
+    when(awsHelperService.getTags(anyString())).thenReturn(new HashMap<>());
 
-        assertThat(resultInstanceId, equalTo(null));
-    }
+    String excludeInstanceId = "exclude-352768";
+    String resultInstanceId = aemHelperService.getPreviewPublishIdToSnapshotFrom(excludeInstanceId);
 
-    @Test
-    public void testGetPreviewPublishIdToSnapshotFromWithNoTagName() {
-        String excludeInstanceId = "exclude-352768";
-        List<String> instanceIds = new ArrayList<>();
-        instanceIds.add(instanceId);
+    assertThat(resultInstanceId, equalTo(null));
+  }
 
-        when(awsHelperService.getInstanceIdsForAutoScalingGroup(
-                envValues.getAutoScaleGroupNameForPreviewPublish())).thenReturn(instanceIds);
+  @Test
+  void testGetPublishIdToSnapshotFromWithNoInstances() {
+    when(awsHelperService.getInstanceIdsForAutoScalingGroup(
+            envValues.getAutoScaleGroupNameForPublish()))
+        .thenReturn(new ArrayList<>());
 
-        when(awsHelperService.getTags(anyString())).thenReturn(new HashMap<>());
+    String resultInstanceId = aemHelperService.getPublishIdToSnapshotFrom("s-2397106");
 
-        String resultInstanceId = aemHelperService.getPreviewPublishIdToSnapshotFrom(excludeInstanceId);
+    assertThat(resultInstanceId, equalTo(null));
+  }
 
-        assertThat(resultInstanceId, equalTo(null));
-    }
+  @Test
+  void testGetPreviewPublishIdToSnapshotFromWithNoInstances() {
+    when(awsHelperService.getInstanceIdsForAutoScalingGroup(
+            envValues.getAutoScaleGroupNameForPreviewPublish()))
+        .thenReturn(new ArrayList<>());
 
-    @Test
-    public void testGetPublishIdToSnapshotFromWithNoInstances() {
-        when(awsHelperService.getInstanceIdsForAutoScalingGroup(
-            envValues.getAutoScaleGroupNameForPublish())).thenReturn(new ArrayList<>());
+    String resultInstanceId = aemHelperService.getPreviewPublishIdToSnapshotFrom("s-2397106");
 
-        String resultInstanceId = aemHelperService.getPublishIdToSnapshotFrom("s-2397106");
+    assertThat(resultInstanceId, equalTo(null));
+  }
 
-        assertThat(resultInstanceId, equalTo(null));
-    }
+  @Test
+  void testIsFirstPublishInstanceNoSnapshotTags() {
+    List<String> instanceIds = new ArrayList<>();
+    instanceIds.add("i-1");
+    instanceIds.add("i-2");
 
-    @Test
-    public void testGetPreviewPublishIdToSnapshotFromWithNoInstances() {
-        when(awsHelperService.getInstanceIdsForAutoScalingGroup(
-            envValues.getAutoScaleGroupNameForPreviewPublish())).thenReturn(new ArrayList<>());
+    when(awsHelperService.getInstanceIdsForAutoScalingGroup(
+            envValues.getAutoScaleGroupNameForPublish()))
+        .thenReturn(instanceIds);
 
-        String resultInstanceId = aemHelperService.getPreviewPublishIdToSnapshotFrom("s-2397106");
+    Map<String, String> instanceTags = new HashMap<>();
+    when(awsHelperService.getTags(anyString())).thenReturn(instanceTags);
 
-        assertThat(resultInstanceId, equalTo(null));
-    }
+    boolean result = aemHelperService.isFirstPublishInstance();
 
-    @Test
-    public void testIsFirstPublishInstanceNoSnapshotTags() {
-        Map<String, String> instanceTags = new HashMap<>();
+    assertThat(result, equalTo(true));
+  }
 
-        List<String> instanceIds = new ArrayList<>();
-        instanceIds.add("i-1");
-        instanceIds.add("i-2");
+  @Test
+  void testIsFirstPreviewPublishInstanceNoSnapshotTags() {
+    List<String> instanceIds = new ArrayList<>();
+    instanceIds.add("i-1");
+    instanceIds.add("i-2");
 
-        when(awsHelperService.getInstanceIdsForAutoScalingGroup(
-            envValues.getAutoScaleGroupNameForPublish())).thenReturn(instanceIds);
+    when(awsHelperService.getInstanceIdsForAutoScalingGroup(
+            envValues.getAutoScaleGroupNameForPreviewPublish()))
+        .thenReturn(instanceIds);
 
-        when(awsHelperService.getTags(anyString())).thenReturn(instanceTags);
+    Map<String, String> instanceTags = new HashMap<>();
+    when(awsHelperService.getTags(anyString())).thenReturn(instanceTags);
 
-        boolean result = aemHelperService.isFirstPublishInstance();
+    boolean result = aemHelperService.isFirstPreviewPublishInstance();
 
-        assertThat(result, equalTo(true));
-    }
+    assertThat(result, equalTo(true));
+  }
 
-    @Test
-    public void testIsFirstPreviewPublishInstanceNoSnapshotTags() {
-        Map<String, String> instanceTags = new HashMap<>();
+  @Test
+  @SuppressWarnings("unchecked")
+  void testIsFirstPublishInstanceOneSnapshotTag() {
+    List<String> instanceIds = new ArrayList<>();
+    instanceIds.add("i-1");
+    instanceIds.add("i-2");
 
-        List<String> instanceIds = new ArrayList<>();
-        instanceIds.add("i-1");
-        instanceIds.add("i-2");
+    when(awsHelperService.getInstanceIdsForAutoScalingGroup(
+            envValues.getAutoScaleGroupNameForPublish()))
+        .thenReturn(instanceIds);
 
-        when(awsHelperService.getInstanceIdsForAutoScalingGroup(
-            envValues.getAutoScaleGroupNameForPreviewPublish())).thenReturn(instanceIds);
+    Map<String, String> instanceTags1 = new HashMap<>();
+    Map<String, String> instanceTags2 = new HashMap<>();
+    instanceTags2.put(InstanceTags.SNAPSHOT_ID.getTagName(), "");
 
-        when(awsHelperService.getTags(anyString())).thenReturn(instanceTags);
+    when(awsHelperService.getTags(anyString())).thenReturn(instanceTags1, instanceTags2);
 
-        boolean result = aemHelperService.isFirstPreviewPublishInstance();
+    boolean result = aemHelperService.isFirstPublishInstance();
 
-        assertThat(result, equalTo(true));
-    }
+    assertThat(result, equalTo(false));
+  }
 
-    @Test
-    @SuppressWarnings("unchecked")
-    public void testIsFirstPublishInstanceOneSnapshotTag() {
-        Map<String, String> instanceTags1 = new HashMap<>();
-        Map<String, String> instanceTags2 = new HashMap<>();
-        instanceTags2.put(InstanceTags.SNAPSHOT_ID.getTagName(), "");
+  @Test
+  @SuppressWarnings("unchecked")
+  void testIsFirstPreviewPublishInstanceOneSnapshotTag() {
+    List<String> instanceIds = new ArrayList<>();
+    instanceIds.add("i-1");
+    instanceIds.add("i-2");
 
-        List<String> instanceIds = new ArrayList<>();
-        instanceIds.add("i-1");
-        instanceIds.add("i-2");
+    when(awsHelperService.getInstanceIdsForAutoScalingGroup(
+            envValues.getAutoScaleGroupNameForPreviewPublish()))
+        .thenReturn(instanceIds);
 
-        when(awsHelperService.getInstanceIdsForAutoScalingGroup(
-            envValues.getAutoScaleGroupNameForPublish())).thenReturn(instanceIds);
+    Map<String, String> instanceTags1 = new HashMap<>();
+    Map<String, String> instanceTags2 = new HashMap<>();
+    instanceTags2.put(InstanceTags.SNAPSHOT_ID.getTagName(), "");
 
-        when(awsHelperService.getTags(anyString())).thenReturn(instanceTags1, instanceTags2);
+    when(awsHelperService.getTags(anyString())).thenReturn(instanceTags1, instanceTags2);
 
-        boolean result = aemHelperService.isFirstPublishInstance();
+    boolean result = aemHelperService.isFirstPreviewPublishInstance();
 
-        assertThat(result, equalTo(false));
-    }
+    assertThat(result, equalTo(false));
+  }
 
-    @Test
-    @SuppressWarnings("unchecked")
-    public void testIsFirstPreviewPublishInstanceOneSnapshotTag() {
-        Map<String, String> instanceTags1 = new HashMap<>();
-        Map<String, String> instanceTags2 = new HashMap<>();
-        instanceTags2.put(InstanceTags.SNAPSHOT_ID.getTagName(), "");
+  @Test
+  void testIsFirstPublishInstanceWithNoInstances() {
+    List<String> instanceIds = new ArrayList<>();
 
-        List<String> instanceIds = new ArrayList<>();
-        instanceIds.add("i-1");
-        instanceIds.add("i-2");
+    when(awsHelperService.getInstanceIdsForAutoScalingGroup(
+            envValues.getAutoScaleGroupNameForPublish()))
+        .thenReturn(instanceIds);
 
-        when(awsHelperService.getInstanceIdsForAutoScalingGroup(
-            envValues.getAutoScaleGroupNameForPreviewPublish())).thenReturn(instanceIds);
+    boolean result = aemHelperService.isFirstPublishInstance();
 
-        when(awsHelperService.getTags(anyString())).thenReturn(instanceTags1, instanceTags2);
+    assertThat(result, equalTo(true));
+  }
 
-        boolean result = aemHelperService.isFirstPreviewPublishInstance();
+  @Test
+  void testIsFirstPreviewPublishInstanceWithNoInstances() {
+    List<String> instanceIds = new ArrayList<>();
 
-        assertThat(result, equalTo(false));
-    }
+    when(awsHelperService.getInstanceIdsForAutoScalingGroup(
+            envValues.getAutoScaleGroupNameForPreviewPublish()))
+        .thenReturn(instanceIds);
 
-    @Test
-    public void testIsFirstPublishInstanceWithNoInstances() {
-        List<String> instanceIds = new ArrayList<>();
+    boolean result = aemHelperService.isFirstPreviewPublishInstance();
 
-        when(awsHelperService.getInstanceIdsForAutoScalingGroup(
-            envValues.getAutoScaleGroupNameForPublish())).thenReturn(instanceIds);
+    assertThat(result, equalTo(true));
+  }
 
-        boolean result = aemHelperService.isFirstPublishInstance();
+  @Test
+  void testFindUnpairedPublishDispatcher() throws Exception {
+    String publishAz = "A";
+    Ec2Instance instance1 =
+        new Ec2Instance().withInstanceId("1st-324981").withAvailabilityZone(publishAz);
+    Ec2Instance instance2 =
+        new Ec2Instance().withInstanceId("2nd-111982").withAvailabilityZone(publishAz);
+    Ec2Instance instance3 =
+        new Ec2Instance().withInstanceId("3rd-222983").withAvailabilityZone(publishAz);
 
-        assertThat(result, equalTo(true));
-    }
+    List<Ec2Instance> instanceIds = new ArrayList<>();
+    instanceIds.add(instance1);
+    instanceIds.add(instance2);
+    instanceIds.add(instance3);
 
-    @Test
-    public void testIsFirstPreviewPublishInstanceWithNoInstances() {
-        List<String> instanceIds = new ArrayList<>();
+    when(awsHelperService.getInstancesForAutoScalingGroup(
+            envValues.getAutoScaleGroupNameForPublishDispatcher()))
+        .thenReturn(instanceIds);
 
-        when(awsHelperService.getInstanceIdsForAutoScalingGroup(
-            envValues.getAutoScaleGroupNameForPreviewPublish())).thenReturn(instanceIds);
+    Map<String, String> tagsWithPairName = new HashMap<>();
+    tagsWithPairName.put(PAIR_INSTANCE_ID.getTagName(), "testPair");
 
-        boolean result = aemHelperService.isFirstPreviewPublishInstance();
+    Map<String, String> tagsWithoutPairName = new HashMap<>();
 
-        assertThat(result, equalTo(true));
-    }
+    when(awsHelperService.getTags(instance1.getInstanceId())).thenReturn(tagsWithPairName);
+    when(awsHelperService.getTags(instance2.getInstanceId()))
+        .thenReturn(tagsWithoutPairName); // Instance 2 is the winner
+    when(awsHelperService.getTags(instance3.getInstanceId())).thenReturn(tagsWithPairName);
 
-    @Test
-    public void testFindUnpairedPublishDispatcher() throws Exception {
-        String publishAZ = "A";
-        EC2Instance instance1 = new EC2Instance().withInstanceId("1st-324981").withAvailabilityZone(publishAZ);
-        EC2Instance instance2 = new EC2Instance().withInstanceId("2nd-111982").withAvailabilityZone(publishAZ);
-        EC2Instance instance3 = new EC2Instance().withInstanceId("3rd-222983").withAvailabilityZone(publishAZ);
+    String resultInstanceId = aemHelperService.findUnpairedPublishDispatcher(instanceId);
 
-        Map<String, String> tagsWithPairName = new HashMap<>();
-        tagsWithPairName.put(PAIR_INSTANCE_ID.getTagName(), "testPair");
+    assertThat(resultInstanceId, equalTo(instance2.getInstanceId()));
+  }
 
-        Map<String, String> tagsWithoutPairName = new HashMap<>();
+  @Test
+  void testFindUnpairedPreviewPublishDispatcher() throws Exception {
+    String previewPublishAz = "A";
+    Ec2Instance instance1 =
+        new Ec2Instance().withInstanceId("1st-324981").withAvailabilityZone(previewPublishAz);
+    Ec2Instance instance2 =
+        new Ec2Instance().withInstanceId("2nd-111982").withAvailabilityZone(previewPublishAz);
+    Ec2Instance instance3 =
+        new Ec2Instance().withInstanceId("3rd-222983").withAvailabilityZone(previewPublishAz);
 
-        List<EC2Instance> instanceIds = new ArrayList<>();
-        instanceIds.add(instance1);
-        instanceIds.add(instance2);
-        instanceIds.add(instance3);
+    List<Ec2Instance> instanceIds = new ArrayList<>();
+    instanceIds.add(instance1);
+    instanceIds.add(instance2);
+    instanceIds.add(instance3);
 
-        when(awsHelperService.getInstancesForAutoScalingGroup(
-            envValues.getAutoScaleGroupNameForPublishDispatcher())).thenReturn(instanceIds);
+    when(awsHelperService.getInstancesForAutoScalingGroup(
+            envValues.getAutoScaleGroupNameForPreviewPublishDispatcher()))
+        .thenReturn(instanceIds);
 
-        when(awsHelperService.getTags(instance1.getInstanceId())).thenReturn(tagsWithPairName);
-        when(awsHelperService.getTags(instance2.getInstanceId())).thenReturn(tagsWithoutPairName); //Instance 2 is the winner
-        when(awsHelperService.getTags(instance3.getInstanceId())).thenReturn(tagsWithPairName);
+    Map<String, String> tagsWithPairName = new HashMap<>();
+    tagsWithPairName.put(PREVIEW_PAIR_INSTANCE_ID.getTagName(), "testPair");
 
-        String resultInstanceId = aemHelperService.findUnpairedPublishDispatcher(instanceId);
+    Map<String, String> tagsWithoutPairName = new HashMap<>();
 
-        assertThat(resultInstanceId, equalTo(instance2.getInstanceId()));
-    }
+    when(awsHelperService.getTags(instance1.getInstanceId())).thenReturn(tagsWithPairName);
+    when(awsHelperService.getTags(instance2.getInstanceId()))
+        .thenReturn(tagsWithoutPairName); // Instance 2 is the winner
+    when(awsHelperService.getTags(instance3.getInstanceId())).thenReturn(tagsWithPairName);
 
-    @Test
-    public void testFindUnpairedPreviewPublishDispatcher() throws Exception {
-        String previewPublishAZ = "A";
-        EC2Instance instance1 = new EC2Instance().withInstanceId("1st-324981").withAvailabilityZone(previewPublishAZ);
-        EC2Instance instance2 = new EC2Instance().withInstanceId("2nd-111982").withAvailabilityZone(previewPublishAZ);
-        EC2Instance instance3 = new EC2Instance().withInstanceId("3rd-222983").withAvailabilityZone(previewPublishAZ);
+    String resultInstanceId = aemHelperService.findUnpairedPreviewPublishDispatcher(instanceId);
 
-        Map<String, String> tagsWithPairName = new HashMap<>();
-        tagsWithPairName.put(PREVIEW_PAIR_INSTANCE_ID.getTagName(), "testPair");
+    assertThat(resultInstanceId, equalTo(instance2.getInstanceId()));
+  }
 
-        Map<String, String> tagsWithoutPairName = new HashMap<>();
+  @Test
+  void testFindUnpairedPublishDispatcherDiffAvailablityZone() throws Exception {
+    String publishAz = "A";
+    Ec2Instance instance1 =
+        new Ec2Instance().withInstanceId("1st-324981").withAvailabilityZone(publishAz);
+    Ec2Instance instance2 =
+        new Ec2Instance().withInstanceId("2nd-111982").withAvailabilityZone("B"); // Diff AZ
+    Ec2Instance instance3 =
+        new Ec2Instance().withInstanceId("3rd-222983").withAvailabilityZone(publishAz);
 
-        List<EC2Instance> instanceIds = new ArrayList<>();
-        instanceIds.add(instance1);
-        instanceIds.add(instance2);
-        instanceIds.add(instance3);
+    List<Ec2Instance> instanceIds = new ArrayList<>();
+    instanceIds.add(instance1);
+    instanceIds.add(instance2);
+    instanceIds.add(instance3);
 
-        when(awsHelperService.getInstancesForAutoScalingGroup(
-            envValues.getAutoScaleGroupNameForPreviewPublishDispatcher())).thenReturn(instanceIds);
+    when(awsHelperService.getInstancesForAutoScalingGroup(
+            envValues.getAutoScaleGroupNameForPublishDispatcher()))
+        .thenReturn(instanceIds);
+    when(awsHelperService.getAvailabilityZone(instanceId)).thenReturn(publishAz);
 
-        when(awsHelperService.getTags(instance1.getInstanceId())).thenReturn(tagsWithPairName);
-        when(awsHelperService.getTags(instance2.getInstanceId())).thenReturn(tagsWithoutPairName); //Instance 2 is the winner
-        when(awsHelperService.getTags(instance3.getInstanceId())).thenReturn(tagsWithPairName);
+    Map<String, String> tagsWithPairName = new HashMap<>();
+    tagsWithPairName.put(PAIR_INSTANCE_ID.getTagName(), "testPair");
 
-        String resultInstanceId = aemHelperService.findUnpairedPreviewPublishDispatcher(instanceId);
+    Map<String, String> tagsWithoutPairName = new HashMap<>();
 
-        assertThat(resultInstanceId, equalTo(instance2.getInstanceId()));
-    }
+    when(awsHelperService.getTags(instance1.getInstanceId())).thenReturn(tagsWithPairName);
+    when(awsHelperService.getTags(instance2.getInstanceId())).thenReturn(tagsWithoutPairName);
+    when(awsHelperService.getTags(instance3.getInstanceId())).thenReturn(tagsWithoutPairName);
 
-    @Test
-    public void testFindUnpairedPublishDispatcherDiffAvailablityZone() throws Exception {
-        String publishAZ = "A";
-        EC2Instance instance1 = new EC2Instance().withInstanceId("1st-324981").withAvailabilityZone(publishAZ);
-        EC2Instance instance2 = new EC2Instance().withInstanceId("2nd-111982").withAvailabilityZone("B"); //Diff AZ
-        EC2Instance instance3 = new EC2Instance().withInstanceId("3rd-222983").withAvailabilityZone(publishAZ);
+    String resultInstanceId = aemHelperService.findUnpairedPublishDispatcher(instanceId);
 
-        Map<String, String> tagsWithPairName = new HashMap<>();
-        tagsWithPairName.put(PAIR_INSTANCE_ID.getTagName(), "testPair");
+    // It should pick the one with same AZ
+    assertThat(resultInstanceId, equalTo(instance3.getInstanceId()));
+  }
 
-        Map<String, String> tagsWithoutPairName = new HashMap<>();
+  @Test
+  void testFindUnpairedPreviewPublishDispatcherDiffAvailablityZone() throws Exception {
+    String previewPublishAz = "A";
+    Ec2Instance instance1 =
+        new Ec2Instance().withInstanceId("1st-324981").withAvailabilityZone(previewPublishAz);
+    Ec2Instance instance2 =
+        new Ec2Instance().withInstanceId("2nd-111982").withAvailabilityZone("B"); // Diff AZ
+    Ec2Instance instance3 =
+        new Ec2Instance().withInstanceId("3rd-222983").withAvailabilityZone(previewPublishAz);
 
-        List<EC2Instance> instanceIds = new ArrayList<>();
-        instanceIds.add(instance1);
-        instanceIds.add(instance2);
-        instanceIds.add(instance3);
+    List<Ec2Instance> instanceIds = new ArrayList<>();
+    instanceIds.add(instance1);
+    instanceIds.add(instance2);
+    instanceIds.add(instance3);
 
-        when(awsHelperService.getInstancesForAutoScalingGroup(
-            envValues.getAutoScaleGroupNameForPublishDispatcher())).thenReturn(instanceIds);
-        when(awsHelperService.getAvailabilityZone(instanceId)).thenReturn(publishAZ);
-        when(awsHelperService.getTags(instance1.getInstanceId())).thenReturn(tagsWithPairName);
-        when(awsHelperService.getTags(instance2.getInstanceId())).thenReturn(tagsWithoutPairName);
-        when(awsHelperService.getTags(instance3.getInstanceId())).thenReturn(tagsWithoutPairName);
+    when(awsHelperService.getInstancesForAutoScalingGroup(
+            envValues.getAutoScaleGroupNameForPreviewPublishDispatcher()))
+        .thenReturn(instanceIds);
+    when(awsHelperService.getAvailabilityZone(instanceId)).thenReturn(previewPublishAz);
 
-        String resultInstanceId = aemHelperService.findUnpairedPublishDispatcher(instanceId);
+    Map<String, String> tagsWithPairName = new HashMap<>();
+    tagsWithPairName.put(PREVIEW_PAIR_INSTANCE_ID.getTagName(), "testPair");
 
-        //It should pick the one with same AZ
-        assertThat(resultInstanceId, equalTo(instance3.getInstanceId()));
-    }
+    Map<String, String> tagsWithoutPairName = new HashMap<>();
 
-    @Test
-    public void testFindUnpairedPreviewPublishDispatcherDiffAvailablityZone() throws Exception {
-        String previewPublishAZ = "A";
-        EC2Instance instance1 = new EC2Instance().withInstanceId("1st-324981").withAvailabilityZone(previewPublishAZ);
-        EC2Instance instance2 = new EC2Instance().withInstanceId("2nd-111982").withAvailabilityZone("B"); //Diff AZ
-        EC2Instance instance3 = new EC2Instance().withInstanceId("3rd-222983").withAvailabilityZone(previewPublishAZ);
+    when(awsHelperService.getTags(instance1.getInstanceId())).thenReturn(tagsWithPairName);
+    when(awsHelperService.getTags(instance2.getInstanceId())).thenReturn(tagsWithoutPairName);
+    when(awsHelperService.getTags(instance3.getInstanceId())).thenReturn(tagsWithoutPairName);
 
-        Map<String, String> tagsWithPairName = new HashMap<>();
-        tagsWithPairName.put(PREVIEW_PAIR_INSTANCE_ID.getTagName(), "testPair");
+    String resultInstanceId = aemHelperService.findUnpairedPreviewPublishDispatcher(instanceId);
 
-        Map<String, String> tagsWithoutPairName = new HashMap<>();
+    // It should pick the one with same AZ
+    assertThat(resultInstanceId, equalTo(instance3.getInstanceId()));
+  }
 
-        List<EC2Instance> instanceIds = new ArrayList<>();
-        instanceIds.add(instance1);
-        instanceIds.add(instance2);
-        instanceIds.add(instance3);
+  @Test
+  void testFindUnpairedPublishDispatcherSameAvailablityZone() throws Exception {
+    String publishAz = "A";
+    Ec2Instance instance1 =
+        new Ec2Instance().withInstanceId("1st-324981").withAvailabilityZone(publishAz);
+    Ec2Instance instance2 =
+        new Ec2Instance().withInstanceId("2nd-111982").withAvailabilityZone(publishAz);
+    Ec2Instance instance3 =
+        new Ec2Instance().withInstanceId("3rd-222983").withAvailabilityZone(publishAz);
 
-        when(awsHelperService.getInstancesForAutoScalingGroup(
-            envValues.getAutoScaleGroupNameForPreviewPublishDispatcher())).thenReturn(instanceIds);
-        when(awsHelperService.getAvailabilityZone(instanceId)).thenReturn(previewPublishAZ);
-        when(awsHelperService.getTags(instance1.getInstanceId())).thenReturn(tagsWithPairName);
-        when(awsHelperService.getTags(instance2.getInstanceId())).thenReturn(tagsWithoutPairName);
-        when(awsHelperService.getTags(instance3.getInstanceId())).thenReturn(tagsWithoutPairName);
+    List<Ec2Instance> instanceIds = new ArrayList<>();
+    instanceIds.add(instance1);
+    instanceIds.add(instance2);
+    instanceIds.add(instance3);
 
-        String resultInstanceId = aemHelperService.findUnpairedPreviewPublishDispatcher(instanceId);
+    when(awsHelperService.getInstancesForAutoScalingGroup(
+            envValues.getAutoScaleGroupNameForPublishDispatcher()))
+        .thenReturn(instanceIds);
+    when(awsHelperService.getAvailabilityZone(instanceId)).thenReturn(publishAz);
 
-        //It should pick the one with same AZ
-        assertThat(resultInstanceId, equalTo(instance3.getInstanceId()));
-    }
+    Map<String, String> tagsWithPairName = new HashMap<>();
+    tagsWithPairName.put(PAIR_INSTANCE_ID.getTagName(), "testPair");
 
-    @Test
-    public void testFindUnpairedPublishDispatcherSameAvailablityZone() throws Exception {
-        String publishAZ = "A";
-        EC2Instance instance1 = new EC2Instance().withInstanceId("1st-324981").withAvailabilityZone(publishAZ);
-        EC2Instance instance2 = new EC2Instance().withInstanceId("2nd-111982").withAvailabilityZone(publishAZ);
-        EC2Instance instance3 = new EC2Instance().withInstanceId("3rd-222983").withAvailabilityZone(publishAZ);
+    Map<String, String> tagsWithoutPairName = new HashMap<>();
 
-        Map<String, String> tagsWithPairName = new HashMap<>();
-        tagsWithPairName.put(PAIR_INSTANCE_ID.getTagName(), "testPair");
+    when(awsHelperService.getTags(instance1.getInstanceId())).thenReturn(tagsWithPairName);
+    when(awsHelperService.getTags(instance2.getInstanceId())).thenReturn(tagsWithoutPairName);
+    when(awsHelperService.getTags(instance3.getInstanceId())).thenReturn(tagsWithoutPairName);
 
-        Map<String, String> tagsWithoutPairName = new HashMap<>();
+    String resultInstanceId = aemHelperService.findUnpairedPublishDispatcher(instanceId);
 
-        List<EC2Instance> instanceIds = new ArrayList<>();
-        instanceIds.add(instance1);
-        instanceIds.add(instance2);
-        instanceIds.add(instance3);
+    // If AZ the same, then it should pick the first one
+    assertThat(resultInstanceId, equalTo(instance2.getInstanceId()));
+  }
 
-        when(awsHelperService.getInstancesForAutoScalingGroup(
-            envValues.getAutoScaleGroupNameForPublishDispatcher())).thenReturn(instanceIds);
-        when(awsHelperService.getAvailabilityZone(instanceId)).thenReturn(publishAZ);
-        when(awsHelperService.getTags(instance1.getInstanceId())).thenReturn(tagsWithPairName);
-        when(awsHelperService.getTags(instance2.getInstanceId())).thenReturn(tagsWithoutPairName);
-        when(awsHelperService.getTags(instance3.getInstanceId())).thenReturn(tagsWithoutPairName);
+  @Test
+  void testFindUnpairedPreviewPublishDispatcherSameAvailablityZone() throws Exception {
+    String previewPublishAz = "A";
+    Ec2Instance instance1 =
+        new Ec2Instance().withInstanceId("1st-324981").withAvailabilityZone(previewPublishAz);
+    Ec2Instance instance2 =
+        new Ec2Instance().withInstanceId("2nd-111982").withAvailabilityZone(previewPublishAz);
+    Ec2Instance instance3 =
+        new Ec2Instance().withInstanceId("3rd-222983").withAvailabilityZone(previewPublishAz);
 
-        String resultInstanceId = aemHelperService.findUnpairedPublishDispatcher(instanceId);
+    List<Ec2Instance> instanceIds = new ArrayList<>();
+    instanceIds.add(instance1);
+    instanceIds.add(instance2);
+    instanceIds.add(instance3);
 
-        //If AZ the same, then it should pick the first one
-        assertThat(resultInstanceId, equalTo(instance2.getInstanceId()));
-    }
+    when(awsHelperService.getInstancesForAutoScalingGroup(
+            envValues.getAutoScaleGroupNameForPreviewPublishDispatcher()))
+        .thenReturn(instanceIds);
+    when(awsHelperService.getAvailabilityZone(instanceId)).thenReturn(previewPublishAz);
 
-    @Test
-    public void testFindUnpairedPreviewPublishDispatcherSameAvailablityZone() throws Exception {
-        String previewPublishAZ = "A";
-        EC2Instance instance1 = new EC2Instance().withInstanceId("1st-324981").withAvailabilityZone(previewPublishAZ);
-        EC2Instance instance2 = new EC2Instance().withInstanceId("2nd-111982").withAvailabilityZone(previewPublishAZ);
-        EC2Instance instance3 = new EC2Instance().withInstanceId("3rd-222983").withAvailabilityZone(previewPublishAZ);
+    Map<String, String> tagsWithPairName = new HashMap<>();
+    tagsWithPairName.put(PREVIEW_PAIR_INSTANCE_ID.getTagName(), "testPair");
 
-        Map<String, String> tagsWithPairName = new HashMap<>();
-        tagsWithPairName.put(PREVIEW_PAIR_INSTANCE_ID.getTagName(), "testPair");
+    Map<String, String> tagsWithoutPairName = new HashMap<>();
 
-        Map<String, String> tagsWithoutPairName = new HashMap<>();
+    when(awsHelperService.getTags(instance1.getInstanceId())).thenReturn(tagsWithPairName);
+    when(awsHelperService.getTags(instance2.getInstanceId())).thenReturn(tagsWithoutPairName);
+    when(awsHelperService.getTags(instance3.getInstanceId())).thenReturn(tagsWithoutPairName);
 
-        List<EC2Instance> instanceIds = new ArrayList<>();
-        instanceIds.add(instance1);
-        instanceIds.add(instance2);
-        instanceIds.add(instance3);
+    String resultInstanceId = aemHelperService.findUnpairedPreviewPublishDispatcher(instanceId);
 
-        when(awsHelperService.getInstancesForAutoScalingGroup(
-            envValues.getAutoScaleGroupNameForPreviewPublishDispatcher())).thenReturn(instanceIds);
-        when(awsHelperService.getAvailabilityZone(instanceId)).thenReturn(previewPublishAZ);
-        when(awsHelperService.getTags(instance1.getInstanceId())).thenReturn(tagsWithPairName);
-        when(awsHelperService.getTags(instance2.getInstanceId())).thenReturn(tagsWithoutPairName);
-        when(awsHelperService.getTags(instance3.getInstanceId())).thenReturn(tagsWithoutPairName);
+    // If AZ the same, then it should pick the first one
+    assertThat(resultInstanceId, equalTo(instance2.getInstanceId()));
+  }
 
-        String resultInstanceId = aemHelperService.findUnpairedPreviewPublishDispatcher(instanceId);
+  @Test
+  void testFindUnpairedPublishDispatcherNoSameAvailablityZone() throws Exception {
+    String publishAz = "A";
+    Ec2Instance instance1 =
+        new Ec2Instance().withInstanceId("1st-324981").withAvailabilityZone(publishAz);
+    Ec2Instance instance2 =
+        new Ec2Instance().withInstanceId("2nd-111982").withAvailabilityZone("B");
+    Ec2Instance instance3 =
+        new Ec2Instance().withInstanceId("3rd-222983").withAvailabilityZone("B");
 
-        //If AZ the same, then it should pick the first one
-        assertThat(resultInstanceId, equalTo(instance2.getInstanceId()));
-    }
+    List<Ec2Instance> instanceIds = new ArrayList<>();
+    instanceIds.add(instance1);
+    instanceIds.add(instance2);
+    instanceIds.add(instance3);
 
-    @Test
-    public void testFindUnpairedPublishDispatcherNoSameAvailablityZone() throws Exception {
-        String publishAZ = "A";
-        EC2Instance instance1 = new EC2Instance().withInstanceId("1st-324981").withAvailabilityZone(publishAZ);
-        EC2Instance instance2 = new EC2Instance().withInstanceId("2nd-111982").withAvailabilityZone("B");
-        EC2Instance instance3 = new EC2Instance().withInstanceId("3rd-222983").withAvailabilityZone("B");
+    when(awsHelperService.getInstancesForAutoScalingGroup(
+            envValues.getAutoScaleGroupNameForPublishDispatcher()))
+        .thenReturn(instanceIds);
+    when(awsHelperService.getAvailabilityZone(instanceId)).thenReturn(publishAz);
 
-        Map<String, String> tagsWithPairName = new HashMap<>();
-        tagsWithPairName.put(PAIR_INSTANCE_ID.getTagName(), "testPair");
+    Map<String, String> tagsWithPairName = new HashMap<>();
+    tagsWithPairName.put(PAIR_INSTANCE_ID.getTagName(), "testPair");
 
-        Map<String, String> tagsWithoutPairName = new HashMap<>();
+    Map<String, String> tagsWithoutPairName = new HashMap<>();
 
-        List<EC2Instance> instanceIds = new ArrayList<>();
-        instanceIds.add(instance1);
-        instanceIds.add(instance2);
-        instanceIds.add(instance3);
+    when(awsHelperService.getTags(instance1.getInstanceId())).thenReturn(tagsWithPairName);
+    when(awsHelperService.getTags(instance2.getInstanceId())).thenReturn(tagsWithoutPairName);
+    when(awsHelperService.getTags(instance3.getInstanceId())).thenReturn(tagsWithoutPairName);
 
-        when(awsHelperService.getInstancesForAutoScalingGroup(
-            envValues.getAutoScaleGroupNameForPublishDispatcher())).thenReturn(instanceIds);
-        when(awsHelperService.getAvailabilityZone(instanceId)).thenReturn(publishAZ);
-        when(awsHelperService.getTags(instance1.getInstanceId())).thenReturn(tagsWithPairName);
-        when(awsHelperService.getTags(instance2.getInstanceId())).thenReturn(tagsWithoutPairName);
-        when(awsHelperService.getTags(instance3.getInstanceId())).thenReturn(tagsWithoutPairName);
+    String resultInstanceId = aemHelperService.findUnpairedPublishDispatcher(instanceId);
 
-        String resultInstanceId = aemHelperService.findUnpairedPublishDispatcher(instanceId);
+    // If all AZ are different, then it should pick the first one
+    assertThat(resultInstanceId, equalTo(instance2.getInstanceId()));
+  }
 
-        //If all AZ are different, then it should pick the first one
-        assertThat(resultInstanceId, equalTo(instance2.getInstanceId()));
-    }
+  @Test
+  void testFindUnpairedPreviewPublishDispatcherNoSameAvailablityZone() throws Exception {
+    String previewPublishAz = "A";
+    Ec2Instance instance1 =
+        new Ec2Instance().withInstanceId("1st-324981").withAvailabilityZone(previewPublishAz);
+    Ec2Instance instance2 =
+        new Ec2Instance().withInstanceId("2nd-111982").withAvailabilityZone("B");
+    Ec2Instance instance3 =
+        new Ec2Instance().withInstanceId("3rd-222983").withAvailabilityZone("B");
 
-    @Test
-    public void testFindUnpairedPreviewPublishDispatcherNoSameAvailablityZone() throws Exception {
-        String previewPublishAZ = "A";
-        EC2Instance instance1 = new EC2Instance().withInstanceId("1st-324981").withAvailabilityZone(previewPublishAZ);
-        EC2Instance instance2 = new EC2Instance().withInstanceId("2nd-111982").withAvailabilityZone("B");
-        EC2Instance instance3 = new EC2Instance().withInstanceId("3rd-222983").withAvailabilityZone("B");
+    List<Ec2Instance> instanceIds = new ArrayList<>();
+    instanceIds.add(instance1);
+    instanceIds.add(instance2);
+    instanceIds.add(instance3);
 
-        Map<String, String> tagsWithPairName = new HashMap<>();
-        tagsWithPairName.put(PREVIEW_PAIR_INSTANCE_ID.getTagName(), "testPair");
+    when(awsHelperService.getInstancesForAutoScalingGroup(
+            envValues.getAutoScaleGroupNameForPreviewPublishDispatcher()))
+        .thenReturn(instanceIds);
+    when(awsHelperService.getAvailabilityZone(instanceId)).thenReturn(previewPublishAz);
 
-        Map<String, String> tagsWithoutPairName = new HashMap<>();
+    Map<String, String> tagsWithPairName = new HashMap<>();
+    tagsWithPairName.put(PREVIEW_PAIR_INSTANCE_ID.getTagName(), "testPair");
 
-        List<EC2Instance> instanceIds = new ArrayList<>();
-        instanceIds.add(instance1);
-        instanceIds.add(instance2);
-        instanceIds.add(instance3);
+    Map<String, String> tagsWithoutPairName = new HashMap<>();
 
-        when(awsHelperService.getInstancesForAutoScalingGroup(
-            envValues.getAutoScaleGroupNameForPreviewPublishDispatcher())).thenReturn(instanceIds);
-        when(awsHelperService.getAvailabilityZone(instanceId)).thenReturn(previewPublishAZ);
-        when(awsHelperService.getTags(instance1.getInstanceId())).thenReturn(tagsWithPairName);
-        when(awsHelperService.getTags(instance2.getInstanceId())).thenReturn(tagsWithoutPairName);
-        when(awsHelperService.getTags(instance3.getInstanceId())).thenReturn(tagsWithoutPairName);
+    when(awsHelperService.getTags(instance1.getInstanceId())).thenReturn(tagsWithPairName);
+    when(awsHelperService.getTags(instance2.getInstanceId())).thenReturn(tagsWithoutPairName);
+    when(awsHelperService.getTags(instance3.getInstanceId())).thenReturn(tagsWithoutPairName);
 
-        String resultInstanceId = aemHelperService.findUnpairedPreviewPublishDispatcher(instanceId);
+    String resultInstanceId = aemHelperService.findUnpairedPreviewPublishDispatcher(instanceId);
 
-        //If all AZ are different, then it should pick the first one
-        assertThat(resultInstanceId, equalTo(instance2.getInstanceId()));
-    }
+    // If all AZ are different, then it should pick the first one
+    assertThat(resultInstanceId, equalTo(instance2.getInstanceId()));
+  }
 
-    @Test(expected=NoPairFoundException.class)
-    public void testFindUnpairedPublishFail() throws Exception {
-        List<EC2Instance> instanceIds = new ArrayList<>();
+  @Test
+  void testFindUnpairedPublishFail() throws Exception {
+    List<Ec2Instance> instanceIds = new ArrayList<>();
 
-        when(awsHelperService.getInstancesForAutoScalingGroup(
-            envValues.getAutoScaleGroupNameForPublishDispatcher())).thenReturn(instanceIds);
+    when(awsHelperService.getInstancesForAutoScalingGroup(
+            envValues.getAutoScaleGroupNameForPublishDispatcher()))
+        .thenReturn(instanceIds);
 
-        aemHelperService.findUnpairedPublishDispatcher(instanceId);
-    }
+    assertThrows(
+        NoPairFoundException.class,
+        () -> {
+          aemHelperService.findUnpairedPublishDispatcher(instanceId);
+        });
+  }
 
-    @Test(expected=NoPairFoundException.class)
-    public void testFindUnpairedPreviewPublishFail() throws Exception {
-        List<EC2Instance> instanceIds = new ArrayList<>();
+  @Test
+  void testFindUnpairedPreviewPublishFail() throws Exception {
+    List<Ec2Instance> instanceIds = new ArrayList<>();
 
-        when(awsHelperService.getInstancesForAutoScalingGroup(
-            envValues.getAutoScaleGroupNameForPreviewPublishDispatcher())).thenReturn(instanceIds);
+    when(awsHelperService.getInstancesForAutoScalingGroup(
+            envValues.getAutoScaleGroupNameForPreviewPublishDispatcher()))
+        .thenReturn(instanceIds);
 
-        aemHelperService.findUnpairedPreviewPublishDispatcher(instanceId);
-    }
+    assertThrows(
+        NoPairFoundException.class,
+        () -> {
+          aemHelperService.findUnpairedPreviewPublishDispatcher(instanceId);
+        });
+  }
 
-    @Test
-    public void testFindUnpairedPublishDispatcherAlreadyPaired() throws Exception {
-        String publishAZ = "A";
-        EC2Instance instance1 = new EC2Instance().withInstanceId("1st-324981").withAvailabilityZone(publishAZ);
-        EC2Instance instance2 = new EC2Instance().withInstanceId("2nd-111982").withAvailabilityZone(publishAZ);
+  @Test
+  void testFindUnpairedPublishDispatcherAlreadyPaired() throws Exception {
+    String publishAz = "A";
+    Ec2Instance instance1 =
+        new Ec2Instance().withInstanceId("1st-324981").withAvailabilityZone(publishAz);
+    Ec2Instance instance2 =
+        new Ec2Instance().withInstanceId("2nd-111982").withAvailabilityZone(publishAz);
 
-        Map<String, String> tagsWithPairName = new HashMap<>();
-        tagsWithPairName.put(PAIR_INSTANCE_ID.getTagName(), "testPair");
+    List<Ec2Instance> instanceIds = new ArrayList<>();
+    instanceIds.add(instance1);
+    instanceIds.add(instance2);
 
-        Map<String, String> tagsWithAlreadyPairedId = new HashMap<>();
-        tagsWithAlreadyPairedId.put(PAIR_INSTANCE_ID.getTagName(), instanceId);
+    when(awsHelperService.getInstancesForAutoScalingGroup(
+            envValues.getAutoScaleGroupNameForPublishDispatcher()))
+        .thenReturn(instanceIds);
 
-        List<EC2Instance> instanceIds = new ArrayList<>();
-        instanceIds.add(instance1);
-        instanceIds.add(instance2);
+    Map<String, String> tagsWithPairName = new HashMap<>();
+    tagsWithPairName.put(PAIR_INSTANCE_ID.getTagName(), "testPair");
 
-        when(awsHelperService.getInstancesForAutoScalingGroup(
-            envValues.getAutoScaleGroupNameForPublishDispatcher())).thenReturn(instanceIds);
+    Map<String, String> tagsWithAlreadyPairedId = new HashMap<>();
+    tagsWithAlreadyPairedId.put(PAIR_INSTANCE_ID.getTagName(), instanceId);
 
-        when(awsHelperService.getTags(instance1.getInstanceId())).thenReturn(tagsWithPairName);
-        when(awsHelperService.getTags(instance2.getInstanceId())).thenReturn(tagsWithAlreadyPairedId); //Instance 2 is the winner
+    when(awsHelperService.getTags(instance1.getInstanceId())).thenReturn(tagsWithPairName);
+    when(awsHelperService.getTags(instance2.getInstanceId()))
+        .thenReturn(tagsWithAlreadyPairedId); // Instance 2 is the winner
 
-        String resultInstanceId = aemHelperService.findUnpairedPublishDispatcher(instanceId);
+    String resultInstanceId = aemHelperService.findUnpairedPublishDispatcher(instanceId);
 
-        assertThat(resultInstanceId, equalTo(instance2.getInstanceId()));
-    }
+    assertThat(resultInstanceId, equalTo(instance2.getInstanceId()));
+  }
 
-    @Test
-    public void testFindUnpairedPreviewPublishDispatcherAlreadyPaired() throws Exception {
-        String previewPublishAZ = "A";
-        EC2Instance instance1 = new EC2Instance().withInstanceId("1st-324981").withAvailabilityZone(previewPublishAZ);
-        EC2Instance instance2 = new EC2Instance().withInstanceId("2nd-111982").withAvailabilityZone(previewPublishAZ);
+  @Test
+  void testFindUnpairedPreviewPublishDispatcherAlreadyPaired() throws Exception {
+    String previewPublishAz = "A";
+    Ec2Instance instance1 =
+        new Ec2Instance().withInstanceId("1st-324981").withAvailabilityZone(previewPublishAz);
+    Ec2Instance instance2 =
+        new Ec2Instance().withInstanceId("2nd-111982").withAvailabilityZone(previewPublishAz);
 
-        Map<String, String> tagsWithPairName = new HashMap<>();
-        tagsWithPairName.put(PREVIEW_PAIR_INSTANCE_ID.getTagName(), "testPair");
+    List<Ec2Instance> instanceIds = new ArrayList<>();
+    instanceIds.add(instance1);
+    instanceIds.add(instance2);
 
-        Map<String, String> tagsWithAlreadyPairedId = new HashMap<>();
-        tagsWithAlreadyPairedId.put(PAIR_INSTANCE_ID.getTagName(), instanceId);
+    when(awsHelperService.getInstancesForAutoScalingGroup(
+            envValues.getAutoScaleGroupNameForPreviewPublishDispatcher()))
+        .thenReturn(instanceIds);
 
-        List<EC2Instance> instanceIds = new ArrayList<>();
-        instanceIds.add(instance1);
-        instanceIds.add(instance2);
+    Map<String, String> tagsWithPairName = new HashMap<>();
+    tagsWithPairName.put(PREVIEW_PAIR_INSTANCE_ID.getTagName(), "testPair");
 
-        when(awsHelperService.getInstancesForAutoScalingGroup(
-            envValues.getAutoScaleGroupNameForPreviewPublishDispatcher())).thenReturn(instanceIds);
+    Map<String, String> tagsWithAlreadyPairedId = new HashMap<>();
+    tagsWithAlreadyPairedId.put(PAIR_INSTANCE_ID.getTagName(), instanceId);
 
-        when(awsHelperService.getTags(instance1.getInstanceId())).thenReturn(tagsWithPairName);
-        when(awsHelperService.getTags(instance2.getInstanceId())).thenReturn(tagsWithAlreadyPairedId); //Instance 2 is the winner
+    when(awsHelperService.getTags(instance1.getInstanceId())).thenReturn(tagsWithPairName);
+    when(awsHelperService.getTags(instance2.getInstanceId()))
+        .thenReturn(tagsWithAlreadyPairedId); // Instance 2 is the winner
 
-        String resultInstanceId = aemHelperService.findUnpairedPreviewPublishDispatcher(instanceId);
+    String resultInstanceId = aemHelperService.findUnpairedPreviewPublishDispatcher(instanceId);
 
-        assertThat(resultInstanceId, equalTo(instance2.getInstanceId()));
-    }
+    assertThat(resultInstanceId, equalTo(instance2.getInstanceId()));
+  }
 
+  @Test
+  void testGetPublishIdForPairedDispatcherWithFoundPair() {
+    String instance1 = "1st-876543";
+    String instance2 = "2nd-546424";
+    String instance3 = "3rd-134777";
+    String instance4 = "4th-736544";
 
-    @Test
-    public void testGetPublishIdForPairedDispatcherWithFoundPair() {
-        String instance1 = "1st-876543";
-        String instance2 = "2nd-546424";
-        String instance3 = "3rd-134777";
-        String instance4 = "4th-736544";
+    // Mock adding a bunch of instances to the auto sacling group
+    List<String> instanceIds = new ArrayList<>();
+    instanceIds.add(instance1);
+    instanceIds.add(instance2);
+    instanceIds.add(instance3);
+    instanceIds.add(instance4);
 
-        String dispatcherId = "dis-4385974";
+    String dispatcherId = "dis-4385974";
 
-        Map<String, String> tagsWithPair = new HashMap<>();
-        tagsWithPair.put(PAIR_INSTANCE_ID.getTagName(), dispatcherId);
+    Map<String, String> tagsWithPair = new HashMap<>();
+    tagsWithPair.put(PAIR_INSTANCE_ID.getTagName(), dispatcherId);
 
-        Map<String, String> tagsWithoutPair = new HashMap<>();
-        tagsWithoutPair.put(PAIR_INSTANCE_ID.getTagName(), "abc-35734685");
+    Map<String, String> tagsWithoutPair = new HashMap<>();
+    tagsWithoutPair.put(PAIR_INSTANCE_ID.getTagName(), "abc-35734685");
 
-        Map<String, String> tagsMissingPair = new HashMap<>();
+    Map<String, String> tagsMissingPair = new HashMap<>();
 
-        // Mock adding a bunch of instances to the auto sacling group
-        List<String> instanceIds = new ArrayList<>();
-        instanceIds.add(instance1);
-        instanceIds.add(instance2);
-        instanceIds.add(instance3);
-        instanceIds.add(instance4);
+    when(awsHelperService.getInstanceIdsForAutoScalingGroup(
+            envValues.getAutoScaleGroupNameForPublish()))
+        .thenReturn(instanceIds);
+    when(awsHelperService.getTags(instance1)).thenReturn(tagsWithoutPair);
+    when(awsHelperService.getTags(instance2)).thenReturn(tagsMissingPair);
+    when(awsHelperService.getTags(instance3)).thenReturn(tagsWithPair); // Instance 3 is the winner
 
-        when(awsHelperService.getInstanceIdsForAutoScalingGroup(envValues.getAutoScaleGroupNameForPublish())).thenReturn(instanceIds);
-        when(awsHelperService.getTags(instance1)).thenReturn(tagsWithoutPair);
-        when(awsHelperService.getTags(instance2)).thenReturn(tagsMissingPair);
-        when(awsHelperService.getTags(instance3)).thenReturn(tagsWithPair); //Instance 3 is the winner
+    String resultInstanceId = aemHelperService.getPublishIdForPairedDispatcher(dispatcherId);
 
-        String resultInstanceId = aemHelperService.getPublishIdForPairedDispatcher(dispatcherId);
+    verify(awsHelperService, never()).getTags(instance4);
+    assertThat(resultInstanceId, equalTo(instance3));
+  }
 
-        verify(awsHelperService, never()).getTags(instance4);
-        assertThat(resultInstanceId, equalTo(instance3));
-    }
+  @Test
+  void testGetPreviewPublishIdForPairedDispatcherWithFoundPair() {
+    String instance1 = "1st-876543";
+    String instance2 = "2nd-546424";
+    String instance3 = "3rd-134777";
+    String instance4 = "4th-736544";
 
+    // Mock adding a bunch of instances to the auto sacling group
+    List<String> instanceIds = new ArrayList<>();
+    instanceIds.add(instance1);
+    instanceIds.add(instance2);
+    instanceIds.add(instance3);
+    instanceIds.add(instance4);
 
-    @Test
-    public void testGetPreviewPublishIdForPairedDispatcherWithFoundPair() {
-        String instance1 = "1st-876543";
-        String instance2 = "2nd-546424";
-        String instance3 = "3rd-134777";
-        String instance4 = "4th-736544";
+    String dispatcherId = "dis-4385974";
 
-        String dispatcherId = "dis-4385974";
+    Map<String, String> tagsWithPair = new HashMap<>();
+    tagsWithPair.put(PREVIEW_PAIR_INSTANCE_ID.getTagName(), dispatcherId);
 
-        Map<String, String> tagsWithPair = new HashMap<>();
-        tagsWithPair.put(PREVIEW_PAIR_INSTANCE_ID.getTagName(), dispatcherId);
+    Map<String, String> tagsWithoutPair = new HashMap<>();
+    tagsWithoutPair.put(PREVIEW_PAIR_INSTANCE_ID.getTagName(), "abc-35734685");
 
-        Map<String, String> tagsWithoutPair = new HashMap<>();
-        tagsWithoutPair.put(PREVIEW_PAIR_INSTANCE_ID.getTagName(), "abc-35734685");
+    Map<String, String> tagsMissingPair = new HashMap<>();
 
-        Map<String, String> tagsMissingPair = new HashMap<>();
+    when(awsHelperService.getInstanceIdsForAutoScalingGroup(
+            envValues.getAutoScaleGroupNameForPreviewPublish()))
+        .thenReturn(instanceIds);
+    when(awsHelperService.getTags(instance1)).thenReturn(tagsWithoutPair);
+    when(awsHelperService.getTags(instance2)).thenReturn(tagsMissingPair);
+    when(awsHelperService.getTags(instance3)).thenReturn(tagsWithPair); // Instance 3 is the winner
 
-        // Mock adding a bunch of instances to the auto sacling group
-        List<String> instanceIds = new ArrayList<>();
-        instanceIds.add(instance1);
-        instanceIds.add(instance2);
-        instanceIds.add(instance3);
-        instanceIds.add(instance4);
+    String resultInstanceId = aemHelperService.getPreviewPublishIdForPairedDispatcher(dispatcherId);
 
-        when(awsHelperService.getInstanceIdsForAutoScalingGroup(envValues.getAutoScaleGroupNameForPreviewPublish())).thenReturn(instanceIds);
-        when(awsHelperService.getTags(instance1)).thenReturn(tagsWithoutPair);
-        when(awsHelperService.getTags(instance2)).thenReturn(tagsMissingPair);
-        when(awsHelperService.getTags(instance3)).thenReturn(tagsWithPair); //Instance 3 is the winner
+    verify(awsHelperService, never()).getTags(instance4);
+    assertThat(resultInstanceId, equalTo(instance3));
+  }
 
-        String resultInstanceId = aemHelperService.getPreviewPublishIdForPairedDispatcher(dispatcherId);
+  @Test
+  void testGetPublishIdForPairedDispatcherWithNoPair() {
+    String instance1 = "1st-876543";
+    Map<String, String> tagsMissingPair = new HashMap<>();
 
-        verify(awsHelperService, never()).getTags(instance4);
-        assertThat(resultInstanceId, equalTo(instance3));
-    }
+    List<String> instanceIds = new ArrayList<>();
+    instanceIds.add("1st-876543");
 
-    @Test
-    public void testGetPublishIdForPairedDispatcherWithNoPair() {
-        String instance1 = "1st-876543";
-        Map<String, String> tagsMissingPair = new HashMap<>();
+    when(awsHelperService.getInstanceIdsForAutoScalingGroup(
+            envValues.getAutoScaleGroupNameForPublish()))
+        .thenReturn(instanceIds);
+    when(awsHelperService.getTags(instance1)).thenReturn(tagsMissingPair);
 
-        List<String> instanceIds = new ArrayList<>();
-        instanceIds.add("1st-876543");
+    String resultInstanceId = aemHelperService.getPublishIdForPairedDispatcher("irrelevant-id");
 
-        when(awsHelperService.getInstanceIdsForAutoScalingGroup(envValues.getAutoScaleGroupNameForPublish())).thenReturn(instanceIds);
-        when(awsHelperService.getTags(instance1)).thenReturn(tagsMissingPair);
+    // If can't find pair, then should return null
+    assertThat(resultInstanceId, equalTo(null));
+  }
 
-        String resultInstanceId = aemHelperService.getPublishIdForPairedDispatcher("irrelevant-id");
+  @Test
+  void testGetPreviewPublishIdForPairedDispatcherWithNoPair() {
+    String instance1 = "1st-876543";
+    Map<String, String> tagsMissingPair = new HashMap<>();
 
-        // If can't find pair, then should return null
-        assertThat(resultInstanceId, equalTo(null));
-    }
+    List<String> instanceIds = new ArrayList<>();
+    instanceIds.add("1st-876543");
 
-    @Test
-    public void testGetPreviewPublishIdForPairedDispatcherWithNoPair() {
-        String instance1 = "1st-876543";
-        Map<String, String> tagsMissingPair = new HashMap<>();
+    when(awsHelperService.getInstanceIdsForAutoScalingGroup(
+            envValues.getAutoScaleGroupNameForPreviewPublish()))
+        .thenReturn(instanceIds);
+    when(awsHelperService.getTags(instance1)).thenReturn(tagsMissingPair);
 
-        List<String> instanceIds = new ArrayList<>();
-        instanceIds.add("1st-876543");
+    String resultInstanceId =
+        aemHelperService.getPreviewPublishIdForPairedDispatcher("irrelevant-id");
 
-        when(awsHelperService.getInstanceIdsForAutoScalingGroup(envValues.getAutoScaleGroupNameForPreviewPublish())).thenReturn(instanceIds);
-        when(awsHelperService.getTags(instance1)).thenReturn(tagsMissingPair);
+    // If can't find pair, then should return null
+    assertThat(resultInstanceId, equalTo(null));
+  }
 
-        String resultInstanceId = aemHelperService.getPreviewPublishIdForPairedDispatcher("irrelevant-id");
+  @Test
+  void testGetDispatcherIdForPairedPublishWithFoundPair() {
+    String instance1 = "1st-876543";
+    String instance2 = "2nd-546424";
+    String instance3 = "3rd-134777";
+    String instance4 = "4th-736544";
 
-        // If can't find pair, then should return null
-        assertThat(resultInstanceId, equalTo(null));
-    }
+    // Mock adding a bunch of instances to the auto sacling group
+    List<String> instanceIds = new ArrayList<>();
+    instanceIds.add(instance1);
+    instanceIds.add(instance2);
+    instanceIds.add(instance3);
+    instanceIds.add(instance4);
 
-    @Test
-    public void testGetDispatcherIdForPairedPublishWithFoundPair() {
-        String instance1 = "1st-876543";
-        String instance2 = "2nd-546424";
-        String instance3 = "3rd-134777";
-        String instance4 = "4th-736544";
+    String publishId = "dis-4385974";
 
-        String publishId = "dis-4385974";
+    Map<String, String> tagsWithPair = new HashMap<>();
+    tagsWithPair.put(PAIR_INSTANCE_ID.getTagName(), publishId);
 
-        Map<String, String> tagsWithPair = new HashMap<>();
-        tagsWithPair.put(PAIR_INSTANCE_ID.getTagName(), publishId);
+    Map<String, String> tagsWithoutPair = new HashMap<>();
+    tagsWithoutPair.put(PAIR_INSTANCE_ID.getTagName(), "abc-35734685");
 
-        Map<String, String> tagsWithoutPair = new HashMap<>();
-        tagsWithoutPair.put(PAIR_INSTANCE_ID.getTagName(), "abc-35734685");
+    Map<String, String> tagsMissingPair = new HashMap<>();
 
-        Map<String, String> tagsMissingPair = new HashMap<>();
+    when(awsHelperService.getInstanceIdsForAutoScalingGroup(
+            envValues.getAutoScaleGroupNameForPublishDispatcher()))
+        .thenReturn(instanceIds);
+    when(awsHelperService.getTags(instance1)).thenReturn(tagsWithoutPair);
+    when(awsHelperService.getTags(instance2)).thenReturn(tagsMissingPair);
+    when(awsHelperService.getTags(instance3)).thenReturn(tagsWithoutPair);
+    when(awsHelperService.getTags(instance4)).thenReturn(tagsWithPair); // Instance 4 is the winner
 
-        // Mock adding a bunch of instances to the auto sacling group
-        List<String> instanceIds = new ArrayList<>();
-        instanceIds.add(instance1);
-        instanceIds.add(instance2);
-        instanceIds.add(instance3);
-        instanceIds.add(instance4);
+    String resultInstanceId = aemHelperService.getDispatcherIdForPairedPublish(publishId);
 
-        when(awsHelperService.getInstanceIdsForAutoScalingGroup(envValues.getAutoScaleGroupNameForPublishDispatcher())).thenReturn(instanceIds);
-        when(awsHelperService.getTags(instance1)).thenReturn(tagsWithoutPair);
-        when(awsHelperService.getTags(instance2)).thenReturn(tagsMissingPair);
-        when(awsHelperService.getTags(instance3)).thenReturn(tagsWithoutPair);
-        when(awsHelperService.getTags(instance4)).thenReturn(tagsWithPair); //Instance 4 is the winner
+    assertThat(resultInstanceId, equalTo(instance4));
+  }
 
-        String resultInstanceId = aemHelperService.getDispatcherIdForPairedPublish(publishId);
+  @Test
+  void testGetDispatcherIdForPairedPreviewPublishWithFoundPair() {
+    String instance1 = "1st-876543";
+    String instance2 = "2nd-546424";
+    String instance3 = "3rd-134777";
+    String instance4 = "4th-736544";
+
+    // Mock adding a bunch of instances to the auto sacling group
+    List<String> instanceIds = new ArrayList<>();
+    instanceIds.add(instance1);
+    instanceIds.add(instance2);
+    instanceIds.add(instance3);
+    instanceIds.add(instance4);
 
-        assertThat(resultInstanceId, equalTo(instance4));
-    }
-
-    @Test
-    public void testGetDispatcherIdForPairedPreviewPublishWithFoundPair() {
-        String instance1 = "1st-876543";
-        String instance2 = "2nd-546424";
-        String instance3 = "3rd-134777";
-        String instance4 = "4th-736544";
-
-        String previewPublishId = "dis-4385974";
-
-        Map<String, String> tagsWithPair = new HashMap<>();
-        tagsWithPair.put(PREVIEW_PAIR_INSTANCE_ID.getTagName(), previewPublishId);
-
-        Map<String, String> tagsWithoutPair = new HashMap<>();
-        tagsWithoutPair.put(PREVIEW_PAIR_INSTANCE_ID.getTagName(), "abc-35734685");
-
-        Map<String, String> tagsMissingPair = new HashMap<>();
-
-        // Mock adding a bunch of instances to the auto sacling group
-        List<String> instanceIds = new ArrayList<>();
-        instanceIds.add(instance1);
-        instanceIds.add(instance2);
-        instanceIds.add(instance3);
-        instanceIds.add(instance4);
-
-        when(awsHelperService.getInstanceIdsForAutoScalingGroup(envValues.getAutoScaleGroupNameForPreviewPublishDispatcher())).thenReturn(instanceIds);
-        when(awsHelperService.getTags(instance1)).thenReturn(tagsWithoutPair);
-        when(awsHelperService.getTags(instance2)).thenReturn(tagsMissingPair);
-        when(awsHelperService.getTags(instance3)).thenReturn(tagsWithoutPair);
-        when(awsHelperService.getTags(instance4)).thenReturn(tagsWithPair); //Instance 4 is the winner
-
-        String resultInstanceId = aemHelperService.getDispatcherIdForPairedPreviewPublish(previewPublishId);
-
-        assertThat(resultInstanceId, equalTo(instance4));
-    }
-
-    @Test
-    public void testGetDispatcherIdForPairedPublishWithNoPair() {
-        String instance1 = "1st-876543";
-        Map<String, String> tagsMissingPair = new HashMap<>();
-
-        List<String> instanceIds = new ArrayList<>();
-        instanceIds.add("1st-876543");
-
-        when(awsHelperService.getInstanceIdsForAutoScalingGroup(anyString())).thenReturn(instanceIds);
-        when(awsHelperService.getTags(instance1)).thenReturn(tagsMissingPair);
-
-        String resultInstanceId = aemHelperService.getDispatcherIdForPairedPublish("irrelevant-id");
-
-        // If can't find pair, then should return null
-        assertThat(resultInstanceId, equalTo(null));
-    }
-
-    @Test
-    public void testGetDispatcherIdForPairedPreviewPublishWithNoPair() {
-        String instance1 = "1st-876543";
-        Map<String, String> tagsMissingPair = new HashMap<>();
-
-        List<String> instanceIds = new ArrayList<>();
-        instanceIds.add("1st-876543");
-
-        when(awsHelperService.getInstanceIdsForAutoScalingGroup(anyString())).thenReturn(instanceIds);
-        when(awsHelperService.getTags(instance1)).thenReturn(tagsMissingPair);
-
-        String resultInstanceId = aemHelperService.getDispatcherIdForPairedPreviewPublish("irrelevant-id");
-
-        // If can't find pair, then should return null
-        assertThat(resultInstanceId, equalTo(null));
-    }
-
-    @Test
-    public void testGetAutoScalingGroupDesiredCapacityForPublish() {
-        int capacityToReturn = 1337;
-        when(awsHelperService.getAutoScalingGroupDesiredCapacity(
-            envValues.getAutoScaleGroupNameForPublish())).thenReturn(capacityToReturn);
-
-        int desiredCapacity = aemHelperService.getAutoScalingGroupDesiredCapacityForPublish();
-        assertThat(desiredCapacity, equalTo(capacityToReturn));
-        verify(awsHelperService, times(1)).getAutoScalingGroupDesiredCapacity(
-            envValues.getAutoScaleGroupNameForPublish());
-    }
-
-    @Test
-    public void testGetAutoScalingGroupDesiredCapacityForPreviewPublish() {
-        int capacityToReturn = 1337;
-        when(awsHelperService.getAutoScalingGroupDesiredCapacity(
-            envValues.getAutoScaleGroupNameForPreviewPublish())).thenReturn(capacityToReturn);
-
-        int desiredCapacity = aemHelperService.getAutoScalingGroupDesiredCapacityForPreviewPublish();
-        assertThat(desiredCapacity, equalTo(capacityToReturn));
-        verify(awsHelperService, times(1)).getAutoScalingGroupDesiredCapacity(
-            envValues.getAutoScaleGroupNameForPreviewPublish());
-    }
-
-    @Test
-    public void testGetAutoScalingGroupDesiredCapacityForPublishDispatcher() {
-         int capacityToReturn = 1338;
-         when(awsHelperService.getAutoScalingGroupDesiredCapacity(
-             envValues.getAutoScaleGroupNameForPublishDispatcher())).thenReturn(capacityToReturn);
-
-         int desiredCapacity = aemHelperService.getAutoScalingGroupDesiredCapacityForPublishDispatcher();
-         assertThat(desiredCapacity, equalTo(capacityToReturn));
-
-         verify(awsHelperService, times(1)).getAutoScalingGroupDesiredCapacity(
-             envValues.getAutoScaleGroupNameForPublishDispatcher());
-    }
-
-    @Test
-    public void testGetAutoScalingGroupDesiredCapacityForPreviewPublishDispatcher() {
-         int capacityToReturn = 1338;
-         when(awsHelperService.getAutoScalingGroupDesiredCapacity(
-             envValues.getAutoScaleGroupNameForPreviewPublishDispatcher())).thenReturn(capacityToReturn);
-
-         int desiredCapacity = aemHelperService.getAutoScalingGroupDesiredCapacityForPreviewPublishDispatcher();
-         assertThat(desiredCapacity, equalTo(capacityToReturn));
-
-         verify(awsHelperService, times(1)).getAutoScalingGroupDesiredCapacity(
-             envValues.getAutoScaleGroupNameForPreviewPublishDispatcher());
-    }
-
-    @Test
-    public void testSetAutoScalingGroupDesiredCapacityForPublish() {
-        int desiredCapacity = 1339;
-
-        aemHelperService.setAutoScalingGroupDesiredCapacityForPublish(desiredCapacity);
-
-        verify(awsHelperService, times(1)).setAutoScalingGroupDesiredCapacity(
+    String previewPublishId = "dis-4385974";
+
+    Map<String, String> tagsWithPair = new HashMap<>();
+    tagsWithPair.put(PREVIEW_PAIR_INSTANCE_ID.getTagName(), previewPublishId);
+
+    Map<String, String> tagsWithoutPair = new HashMap<>();
+    tagsWithoutPair.put(PREVIEW_PAIR_INSTANCE_ID.getTagName(), "abc-35734685");
+
+    Map<String, String> tagsMissingPair = new HashMap<>();
+
+    when(awsHelperService.getInstanceIdsForAutoScalingGroup(
+            envValues.getAutoScaleGroupNameForPreviewPublishDispatcher()))
+        .thenReturn(instanceIds);
+    when(awsHelperService.getTags(instance1)).thenReturn(tagsWithoutPair);
+    when(awsHelperService.getTags(instance2)).thenReturn(tagsMissingPair);
+    when(awsHelperService.getTags(instance3)).thenReturn(tagsWithoutPair);
+    when(awsHelperService.getTags(instance4)).thenReturn(tagsWithPair); // Instance 4 is the winner
+
+    String resultInstanceId =
+        aemHelperService.getDispatcherIdForPairedPreviewPublish(previewPublishId);
+
+    assertThat(resultInstanceId, equalTo(instance4));
+  }
+
+  @Test
+  void testGetDispatcherIdForPairedPublishWithNoPair() {
+    String instance1 = "1st-876543";
+    Map<String, String> tagsMissingPair = new HashMap<>();
+
+    List<String> instanceIds = new ArrayList<>();
+    instanceIds.add("1st-876543");
+
+    when(awsHelperService.getInstanceIdsForAutoScalingGroup(anyString())).thenReturn(instanceIds);
+    when(awsHelperService.getTags(instance1)).thenReturn(tagsMissingPair);
+
+    String resultInstanceId = aemHelperService.getDispatcherIdForPairedPublish("irrelevant-id");
+
+    // If can't find pair, then should return null
+    assertThat(resultInstanceId, equalTo(null));
+  }
+
+  @Test
+  void testGetDispatcherIdForPairedPreviewPublishWithNoPair() {
+    String instance1 = "1st-876543";
+    Map<String, String> tagsMissingPair = new HashMap<>();
+
+    List<String> instanceIds = new ArrayList<>();
+    instanceIds.add("1st-876543");
+
+    when(awsHelperService.getInstanceIdsForAutoScalingGroup(anyString())).thenReturn(instanceIds);
+    when(awsHelperService.getTags(instance1)).thenReturn(tagsMissingPair);
+
+    String resultInstanceId =
+        aemHelperService.getDispatcherIdForPairedPreviewPublish("irrelevant-id");
+
+    // If can't find pair, then should return null
+    assertThat(resultInstanceId, equalTo(null));
+  }
+
+  @Test
+  void testGetAutoScalingGroupDesiredCapacityForPublish() {
+    int capacityToReturn = 1337;
+    when(awsHelperService.getAutoScalingGroupDesiredCapacity(
+            envValues.getAutoScaleGroupNameForPublish()))
+        .thenReturn(capacityToReturn);
+
+    int desiredCapacity = aemHelperService.getAutoScalingGroupDesiredCapacityForPublish();
+    assertThat(desiredCapacity, equalTo(capacityToReturn));
+    verify(awsHelperService, times(1))
+        .getAutoScalingGroupDesiredCapacity(envValues.getAutoScaleGroupNameForPublish());
+  }
+
+  @Test
+  void testGetAutoScalingGroupDesiredCapacityForPreviewPublish() {
+    int capacityToReturn = 1337;
+    when(awsHelperService.getAutoScalingGroupDesiredCapacity(
+            envValues.getAutoScaleGroupNameForPreviewPublish()))
+        .thenReturn(capacityToReturn);
+
+    int desiredCapacity = aemHelperService.getAutoScalingGroupDesiredCapacityForPreviewPublish();
+    assertThat(desiredCapacity, equalTo(capacityToReturn));
+    verify(awsHelperService, times(1))
+        .getAutoScalingGroupDesiredCapacity(envValues.getAutoScaleGroupNameForPreviewPublish());
+  }
+
+  @Test
+  void testGetAutoScalingGroupDesiredCapacityForPublishDispatcher() {
+    int capacityToReturn = 1338;
+    when(awsHelperService.getAutoScalingGroupDesiredCapacity(
+            envValues.getAutoScaleGroupNameForPublishDispatcher()))
+        .thenReturn(capacityToReturn);
+
+    int desiredCapacity = aemHelperService.getAutoScalingGroupDesiredCapacityForPublishDispatcher();
+    assertThat(desiredCapacity, equalTo(capacityToReturn));
+
+    verify(awsHelperService, times(1))
+        .getAutoScalingGroupDesiredCapacity(envValues.getAutoScaleGroupNameForPublishDispatcher());
+  }
+
+  @Test
+  void testGetAutoScalingGroupDesiredCapacityForPreviewPublishDispatcher() {
+    int capacityToReturn = 1338;
+    when(awsHelperService.getAutoScalingGroupDesiredCapacity(
+            envValues.getAutoScaleGroupNameForPreviewPublishDispatcher()))
+        .thenReturn(capacityToReturn);
+
+    int desiredCapacity =
+        aemHelperService.getAutoScalingGroupDesiredCapacityForPreviewPublishDispatcher();
+    assertThat(desiredCapacity, equalTo(capacityToReturn));
+
+    verify(awsHelperService, times(1))
+        .getAutoScalingGroupDesiredCapacity(
+            envValues.getAutoScaleGroupNameForPreviewPublishDispatcher());
+  }
+
+  @Test
+  void testSetAutoScalingGroupDesiredCapacityForPublish() {
+    int desiredCapacity = 1339;
+
+    aemHelperService.setAutoScalingGroupDesiredCapacityForPublish(desiredCapacity);
+
+    verify(awsHelperService, times(1))
+        .setAutoScalingGroupDesiredCapacity(
             envValues.getAutoScaleGroupNameForPublish(), desiredCapacity);
-    }
+  }
 
-    @Test
-    public void testSetAutoScalingGroupDesiredCapacityForPreviewPublish() {
-        int desiredCapacity = 1339;
+  @Test
+  void testSetAutoScalingGroupDesiredCapacityForPreviewPublish() {
+    int desiredCapacity = 1339;
 
-        aemHelperService.setAutoScalingGroupDesiredCapacityForPreviewPublish(desiredCapacity);
+    aemHelperService.setAutoScalingGroupDesiredCapacityForPreviewPublish(desiredCapacity);
 
-        verify(awsHelperService, times(1)).setAutoScalingGroupDesiredCapacity(
+    verify(awsHelperService, times(1))
+        .setAutoScalingGroupDesiredCapacity(
             envValues.getAutoScaleGroupNameForPreviewPublish(), desiredCapacity);
-    }
+  }
 
-    @Test
-    public void testPairPublishWithDispatcher() {
-        String publishId = "pub-1";
-        String dispatcherId = "dis-1";
+  @Test
+  void testPairPublishWithDispatcher() {
+    String publishId = "pub-1";
+    String dispatcherId = "dis-1";
 
-        String publishHost = "pub-host";
-        String dispatcherHost = "dis-host";
+    String publishHost = "pub-host";
+    String dispatcherHost = "dis-host";
 
-        when(awsHelperService.getPrivateIp(dispatcherId)).thenReturn(dispatcherHost);
-        when(awsHelperService.getPrivateIp(publishId)).thenReturn(publishHost);
+    when(awsHelperService.getPrivateIp(dispatcherId)).thenReturn(dispatcherHost);
+    when(awsHelperService.getPrivateIp(publishId)).thenReturn(publishHost);
 
-        aemHelperService.pairPublishWithDispatcher(publishId, dispatcherId);
+    aemHelperService.pairPublishWithDispatcher(publishId, dispatcherId);
 
-        verify(awsHelperService, times(1)).addTags(eq(publishId), mapCaptor.capture());
-        verify(awsHelperService, times(1)).addTags(eq(dispatcherId), mapCaptor.capture());
+    verify(awsHelperService, times(1)).addTags(eq(publishId), mapCaptor.capture());
+    verify(awsHelperService, times(1)).addTags(eq(dispatcherId), mapCaptor.capture());
 
-        Map<String, String> publishTags = mapCaptor.getAllValues().get(0);
+    Map<String, String> publishTags = mapCaptor.getAllValues().get(0);
 
-        //Confirm that the correct tags and their values are set for publish instance
-        assertThat(publishTags.get(AEM_PUBLISH_DISPATCHER_HOST.getTagName()), equalTo(dispatcherHost));
-        assertThat(publishTags.get(PAIR_INSTANCE_ID.getTagName()), equalTo(dispatcherId));
+    // Confirm that the correct tags and their values are set for publish instance
+    assertThat(publishTags.get(AEM_PUBLISH_DISPATCHER_HOST.getTagName()), equalTo(dispatcherHost));
+    assertThat(publishTags.get(PAIR_INSTANCE_ID.getTagName()), equalTo(dispatcherId));
 
-        Map<String, String> dispatcherTags = mapCaptor.getAllValues().get(1);
+    Map<String, String> dispatcherTags = mapCaptor.getAllValues().get(1);
 
-        //Confirm that the correct tags and their values are set for publish dispatcher
-        assertThat(dispatcherTags.get(AEM_PUBLISH_HOST.getTagName()), equalTo(publishHost));
-        assertThat(dispatcherTags.get(PAIR_INSTANCE_ID.getTagName()), equalTo(publishId));
-    }
+    // Confirm that the correct tags and their values are set for publish dispatcher
+    assertThat(dispatcherTags.get(AEM_PUBLISH_HOST.getTagName()), equalTo(publishHost));
+    assertThat(dispatcherTags.get(PAIR_INSTANCE_ID.getTagName()), equalTo(publishId));
+  }
 
-    @Test
-    public void testPairPreviewPublishWithDispatcher() {
-        String previewPublishId = "pub-1";
-        String dispatcherId = "dis-1";
+  @Test
+  void testPairPreviewPublishWithDispatcher() {
+    String previewPublishId = "pub-1";
+    String dispatcherId = "dis-1";
 
-        String previewPublishHost = "pub-host";
-        String dispatcherHost = "dis-host";
+    String previewPublishHost = "pub-host";
+    String dispatcherHost = "dis-host";
 
-        when(awsHelperService.getPrivateIp(dispatcherId)).thenReturn(dispatcherHost);
-        when(awsHelperService.getPrivateIp(previewPublishId)).thenReturn(previewPublishHost);
+    when(awsHelperService.getPrivateIp(dispatcherId)).thenReturn(dispatcherHost);
+    when(awsHelperService.getPrivateIp(previewPublishId)).thenReturn(previewPublishHost);
 
-        aemHelperService.pairPreviewPublishWithDispatcher(previewPublishId, dispatcherId);
+    aemHelperService.pairPreviewPublishWithDispatcher(previewPublishId, dispatcherId);
 
-        verify(awsHelperService, times(1)).addTags(eq(previewPublishId), mapCaptor.capture());
-        verify(awsHelperService, times(1)).addTags(eq(dispatcherId), mapCaptor.capture());
+    verify(awsHelperService, times(1)).addTags(eq(previewPublishId), mapCaptor.capture());
+    verify(awsHelperService, times(1)).addTags(eq(dispatcherId), mapCaptor.capture());
 
-        Map<String, String> previewPublishTags = mapCaptor.getAllValues().get(0);
+    Map<String, String> previewPublishTags = mapCaptor.getAllValues().get(0);
 
-        //Confirm that the correct tags and their values are set for previewPublish instance
-        assertThat(previewPublishTags.get(AEM_PREVIEW_PUBLISH_DISPATCHER_HOST.getTagName()), equalTo(dispatcherHost));
-        assertThat(previewPublishTags.get(PREVIEW_PAIR_INSTANCE_ID.getTagName()), equalTo(dispatcherId));
+    // Confirm that the correct tags and their values are set for previewPublish instance
+    assertThat(
+        previewPublishTags.get(AEM_PREVIEW_PUBLISH_DISPATCHER_HOST.getTagName()),
+        equalTo(dispatcherHost));
+    assertThat(
+        previewPublishTags.get(PREVIEW_PAIR_INSTANCE_ID.getTagName()), equalTo(dispatcherId));
 
-        Map<String, String> previewDispatcherTags = mapCaptor.getAllValues().get(1);
+    Map<String, String> previewDispatcherTags = mapCaptor.getAllValues().get(1);
 
-        //Confirm that the correct tags and their values are set for previewPublish dispatcher
-        assertThat(previewDispatcherTags.get(AEM_PREVIEW_PUBLISH_HOST.getTagName()), equalTo(previewPublishHost));
-        assertThat(previewDispatcherTags.get(PREVIEW_PAIR_INSTANCE_ID.getTagName()), equalTo(previewPublishId));
-    }
+    // Confirm that the correct tags and their values are set for previewPublish dispatcher
+    assertThat(
+        previewDispatcherTags.get(AEM_PREVIEW_PUBLISH_HOST.getTagName()),
+        equalTo(previewPublishHost));
+    assertThat(
+        previewDispatcherTags.get(PREVIEW_PAIR_INSTANCE_ID.getTagName()),
+        equalTo(previewPublishId));
+  }
 
-    @Test
-    public void testTagInstanceWithSnapshotId() {
-        String instanceId = "instance-1";
-        String snapshotId = "snapshot-1";
+  @Test
+  void testTagInstanceWithSnapshotId() {
+    String instanceId = "instance-1";
+    String snapshotId = "snapshot-1";
 
-        aemHelperService.tagInstanceWithSnapshotId(instanceId, snapshotId);
+    aemHelperService.tagInstanceWithSnapshotId(instanceId, snapshotId);
 
-        verify(awsHelperService, times(1)).addTags(eq(instanceId), mapCaptor.capture());
+    verify(awsHelperService, times(1)).addTags(eq(instanceId), mapCaptor.capture());
 
-        Map<String, String> tags = mapCaptor.getValue();
+    Map<String, String> tags = mapCaptor.getValue();
 
-        assertThat(tags.get(SNAPSHOT_ID.getTagName()), equalTo(snapshotId));
-    }
+    assertThat(tags.get(SNAPSHOT_ID.getTagName()), equalTo(snapshotId));
+  }
 
-    @Test
-    public void testTagAuthorDispatcherWithAuthorHost() {
-        String authorDispatcherInstanceId = "auth-dis-1";
+  @Test
+  void testTagAuthorDispatcherWithAuthorHost() {
+    String authorDispatcherInstanceId = "auth-dis-1";
 
-        aemHelperService.tagAuthorDispatcherWithAuthorHost(authorDispatcherInstanceId);
+    aemHelperService.tagAuthorDispatcherWithAuthorHost(authorDispatcherInstanceId);
 
-        verify(awsHelperService, times(1)).addTags(eq(authorDispatcherInstanceId), mapCaptor.capture());
+    verify(awsHelperService, times(1)).addTags(eq(authorDispatcherInstanceId), mapCaptor.capture());
 
-        Map<String, String> tags = mapCaptor.getValue();
+    Map<String, String> tags = mapCaptor.getValue();
 
-        assertThat(tags.get(AEM_AUTHOR_HOST.getTagName()), equalTo(envValues.getElasticLoadBalancerAuthorDns()));
-    }
+    assertThat(
+        tags.get(AEM_AUTHOR_HOST.getTagName()),
+        equalTo(envValues.getElasticLoadBalancerAuthorDns()));
+  }
 
-    @Test
-    public void testIsAuthorElbHealthyOk() throws Exception {
-        ArgumentCaptor<String> urlCaptor = ArgumentCaptor.forClass(String.class);
-        when(httpUtil.isHttpGetResponseOk(urlCaptor.capture())).thenReturn(true);
+  @Test
+  void testIsAuthorElbHealthyOk() throws Exception {
+    ArgumentCaptor<String> urlCaptor = ArgumentCaptor.forClass(String.class);
+    when(httpUtil.isHttpGetResponseOk(urlCaptor.capture())).thenReturn(true);
 
-        boolean result = aemHelperService.isAuthorElbHealthy();
+    boolean result = aemHelperService.isAuthorElbHealthy();
 
-        String url = urlCaptor.getValue();
+    String url = urlCaptor.getValue();
 
-        assertThat(url, startsWith(aemAuthorProtocol + "://" +
-            envValues.getElasticLoadBalancerAuthorDns() + ":" + aemAuthorPort));
-        assertThat(result, equalTo(true));
-    }
+    assertThat(
+        url,
+        startsWith(
+            aemAuthorProtocol
+                + "://"
+                + envValues.getElasticLoadBalancerAuthorDns()
+                + ":"
+                + aemAuthorPort));
+    assertThat(result, equalTo(true));
+  }
 
-    @Test
-    public void testIsAuthorElbHealthyNotOk() throws Exception {
-        when(httpUtil.isHttpGetResponseOk(anyString())).thenReturn(false);
+  @Test
+  void testIsAuthorElbHealthyNotOk() throws Exception {
+    when(httpUtil.isHttpGetResponseOk(anyString())).thenReturn(false);
 
-        boolean result = aemHelperService.isAuthorElbHealthy();
+    boolean result = aemHelperService.isAuthorElbHealthy();
 
-        assertThat(result, equalTo(false));
-    }
+    assertThat(result, equalTo(false));
+  }
 
-    @Test
-    public void testIsPublishHealthyOk() {
-        Map<String, String> tagsComponentInitStatusSuccess = new HashMap<>();
-        tagsComponentInitStatusSuccess.put(COMPONENT_INIT_STATUS.getTagName(), "Success");
+  @Test
+  void testIsPublishHealthyOk() {
+    Map<String, String> tagsComponentInitStatusSuccess = new HashMap<>();
+    tagsComponentInitStatusSuccess.put(COMPONENT_INIT_STATUS.getTagName(), "Success");
 
-        when(awsHelperService.getTags(instanceId)).thenReturn(tagsComponentInitStatusSuccess);
+    when(awsHelperService.getTags(instanceId)).thenReturn(tagsComponentInitStatusSuccess);
 
-        boolean result = aemHelperService.isPublishHealthy(instanceId);
+    boolean result = aemHelperService.isPublishHealthy(instanceId);
 
-        assertThat(result, equalTo(true));
-    }
+    assertThat(result, equalTo(true));
+  }
 
-    @Test
-    public void testIsPreviewPublishHealthyOk() {
-        Map<String, String> tagsComponentInitStatusSuccess = new HashMap<>();
-        tagsComponentInitStatusSuccess.put(COMPONENT_INIT_STATUS.getTagName(), "Success");
+  @Test
+  void testIsPreviewPublishHealthyOk() {
+    Map<String, String> tagsComponentInitStatusSuccess = new HashMap<>();
+    tagsComponentInitStatusSuccess.put(COMPONENT_INIT_STATUS.getTagName(), "Success");
 
-        when(awsHelperService.getTags(instanceId)).thenReturn(tagsComponentInitStatusSuccess);
+    when(awsHelperService.getTags(instanceId)).thenReturn(tagsComponentInitStatusSuccess);
 
-        boolean result = aemHelperService.isPreviewPublishHealthy(instanceId);
+    boolean result = aemHelperService.isPreviewPublishHealthy(instanceId);
 
-        assertThat(result, equalTo(true));
-    }
+    assertThat(result, equalTo(true));
+  }
 
-    @Test
-    public void testIsPublishHealthyNotOk() {
-        Map<String, String> tagsComponentInitStatusRunning = new HashMap<>();
-        tagsComponentInitStatusRunning.put(COMPONENT_INIT_STATUS.getTagName(), "InProgress");
+  @Test
+  void testIsPublishHealthyNotOk() {
+    Map<String, String> tagsComponentInitStatusRunning = new HashMap<>();
+    tagsComponentInitStatusRunning.put(COMPONENT_INIT_STATUS.getTagName(), "InProgress");
 
-        when(awsHelperService.getTags(instanceId)).thenReturn(tagsComponentInitStatusRunning);
+    when(awsHelperService.getTags(instanceId)).thenReturn(tagsComponentInitStatusRunning);
 
-        boolean result = aemHelperService.isPublishHealthy(instanceId);
+    boolean result = aemHelperService.isPublishHealthy(instanceId);
 
-        assertThat(result, equalTo(false));
-    }
+    assertThat(result, equalTo(false));
+  }
 
-    @Test
-    public void testIsPreviewPublishHealthyNotOk() {
-        Map<String, String> tagsComponentInitStatusRunning = new HashMap<>();
-        tagsComponentInitStatusRunning.put(COMPONENT_INIT_STATUS.getTagName(), "InProgress");
+  @Test
+  void testIsPreviewPublishHealthyNotOk() {
+    Map<String, String> tagsComponentInitStatusRunning = new HashMap<>();
+    tagsComponentInitStatusRunning.put(COMPONENT_INIT_STATUS.getTagName(), "InProgress");
 
-        when(awsHelperService.getTags(instanceId)).thenReturn(tagsComponentInitStatusRunning);
+    when(awsHelperService.getTags(instanceId)).thenReturn(tagsComponentInitStatusRunning);
 
-        boolean result = aemHelperService.isPreviewPublishHealthy(instanceId);
+    boolean result = aemHelperService.isPreviewPublishHealthy(instanceId);
 
-        assertThat(result, equalTo(false));
-    }
+    assertThat(result, equalTo(false));
+  }
 
-    @Test
-    public void testWaitForPublishToBeHealthyOk() throws Exception {
-        Map<String, String> tagsComponentInitStatusSuccess = new HashMap<>();
-        tagsComponentInitStatusSuccess.put(COMPONENT_INIT_STATUS.getTagName(), "Success");
+  @Test
+  void testWaitForPublishToBeHealthyOk() throws Exception {
+    Map<String, String> tagsComponentInitStatusSuccess = new HashMap<>();
+    tagsComponentInitStatusSuccess.put(COMPONENT_INIT_STATUS.getTagName(), "Success");
 
-        when(awsHelperService.getTags(instanceId)).thenReturn(tagsComponentInitStatusSuccess);
+    when(awsHelperService.getTags(instanceId)).thenReturn(tagsComponentInitStatusSuccess);
 
-        aemHelperService.waitForPublishToBeHealthy(instanceId);
-    }
+    aemHelperService.waitForPublishToBeHealthy(instanceId);
+  }
 
-    @Test
-    public void testWaitForPreviewPublishToBeHealthyOk() throws Exception {
-        Map<String, String> tagsComponentInitStatusSuccess = new HashMap<>();
-        tagsComponentInitStatusSuccess.put(COMPONENT_INIT_STATUS.getTagName(), "Success");
+  @Test
+  void testWaitForPreviewPublishToBeHealthyOk() throws Exception {
+    Map<String, String> tagsComponentInitStatusSuccess = new HashMap<>();
+    tagsComponentInitStatusSuccess.put(COMPONENT_INIT_STATUS.getTagName(), "Success");
 
-        when(awsHelperService.getTags(instanceId)).thenReturn(tagsComponentInitStatusSuccess);
+    when(awsHelperService.getTags(instanceId)).thenReturn(tagsComponentInitStatusSuccess);
 
-        aemHelperService.waitForPreviewPublishToBeHealthy(instanceId);
-    }
+    aemHelperService.waitForPreviewPublishToBeHealthy(instanceId);
+  }
 
-    @Test(expected=InstanceNotInHealthyStateException.class)
-    public void testWaitForPublishToBeHealthyNotOk() throws Exception {
-        Map<String, String> tagsComponentInitStatusFailed = new HashMap<>();
-        tagsComponentInitStatusFailed.put(COMPONENT_INIT_STATUS.getTagName(), "Failed");
+  @Test
+  void testWaitForPublishToBeHealthyNotOk() throws Exception {
+    Map<String, String> tagsComponentInitStatusFailed = new HashMap<>();
+    tagsComponentInitStatusFailed.put(COMPONENT_INIT_STATUS.getTagName(), "Failed");
 
-        when(awsHelperService.getTags(instanceId)).thenReturn(tagsComponentInitStatusFailed);
+    when(awsHelperService.getTags(instanceId)).thenReturn(tagsComponentInitStatusFailed);
 
-        aemHelperService.waitForPublishToBeHealthy(instanceId);
-    }
+    assertThrows(
+        InstanceNotInHealthyStateException.class,
+        () -> {
+          aemHelperService.waitForPublishToBeHealthy(instanceId);
+        });
+  }
 
-    @Test(expected=InstanceNotInHealthyStateException.class)
-    public void testWaitForPreviewPublishToBeHealthyNotOk() throws Exception {
-        Map<String, String> tagsComponentInitStatusFailed = new HashMap<>();
-        tagsComponentInitStatusFailed.put(COMPONENT_INIT_STATUS.getTagName(), "Failed");
+  @Test
+  void testWaitForPreviewPublishToBeHealthyNotOk() throws Exception {
+    Map<String, String> tagsComponentInitStatusFailed = new HashMap<>();
+    tagsComponentInitStatusFailed.put(COMPONENT_INIT_STATUS.getTagName(), "Failed");
 
-        when(awsHelperService.getTags(instanceId)).thenReturn(tagsComponentInitStatusFailed);
+    when(awsHelperService.getTags(instanceId)).thenReturn(tagsComponentInitStatusFailed);
 
-        aemHelperService.waitForPreviewPublishToBeHealthy(instanceId);
-    }
+    assertThrows(
+        InstanceNotInHealthyStateException.class,
+        () -> {
+          aemHelperService.waitForPreviewPublishToBeHealthy(instanceId);
+        });
+  }
 
-    @Test(expected=InstanceNotInHealthyStateException.class)
-    public void testWaitForPublishToBeHealthyWithIOException() throws Exception {
-        Map<String, String> tagsComponentInitStatusFailed = new HashMap<>();
-        tagsComponentInitStatusFailed.put(COMPONENT_INIT_STATUS.getTagName(), "Failed");
+  @Test
+  void testWaitForPublishToBeHealthyWithIoException() throws Exception {
+    Map<String, String> tagsComponentInitStatusFailed = new HashMap<>();
+    tagsComponentInitStatusFailed.put(COMPONENT_INIT_STATUS.getTagName(), "Failed");
 
-        when(awsHelperService.getTags(instanceId)).thenReturn(tagsComponentInitStatusFailed);
+    when(awsHelperService.getTags(instanceId)).thenReturn(tagsComponentInitStatusFailed);
 
-        aemHelperService.waitForPublishToBeHealthy(instanceId);
-    }
+    assertThrows(
+        InstanceNotInHealthyStateException.class,
+        () -> {
+          aemHelperService.waitForPublishToBeHealthy(instanceId);
+        });
+  }
 
-    @Test(expected=InstanceNotInHealthyStateException.class)
-    public void testWaitForPreviewPublishToBeHealthyWithIOException() throws Exception {
-        Map<String, String> tagsComponentInitStatusFailed = new HashMap<>();
-        tagsComponentInitStatusFailed.put(COMPONENT_INIT_STATUS.getTagName(), "Failed");
+  @Test
+  void testWaitForPreviewPublishToBeHealthyWithIoException() throws Exception {
+    Map<String, String> tagsComponentInitStatusFailed = new HashMap<>();
+    tagsComponentInitStatusFailed.put(COMPONENT_INIT_STATUS.getTagName(), "Failed");
 
-        when(awsHelperService.getTags(instanceId)).thenReturn(tagsComponentInitStatusFailed);
+    when(awsHelperService.getTags(instanceId)).thenReturn(tagsComponentInitStatusFailed);
 
-        aemHelperService.waitForPreviewPublishToBeHealthy(instanceId);
-    }
+    assertThrows(
+        InstanceNotInHealthyStateException.class,
+        () -> {
+          aemHelperService.waitForPreviewPublishToBeHealthy(instanceId);
+        });
+  }
 
-    @Test
-    public void testCreatePublishSnapshotWithSelectedTags() {
-        String tag1 = "testTag1";
-        String tag2 = "testTag2";
+  @Test
+  void testCreatePublishSnapshotWithSelectedTags() {
+    String tag1 = "testTag1";
+    String tag2 = "testTag2";
 
-        String snapshotId = "x3289751048";
+    List<String> tagsToApplyToSnapshot = Arrays.asList(tag1, tag2);
 
-        List <String> tagsToApplyToSnapshot = Arrays.asList(tag1, tag2);
+    setField(aemHelperService, "tagsToApplyToSnapshot", tagsToApplyToSnapshot);
 
-        setField(aemHelperService, "tagsToApplyToSnapshot", tagsToApplyToSnapshot);
+    Map<String, String> activePublishTags = new HashMap<>();
+    activePublishTags.put("someRandomTag1", "someRandomTag1");
+    activePublishTags.put(tag1, tag1);
+    activePublishTags.put("someRandomTag2", "someRandomTag2");
+    activePublishTags.put(tag2, tag2);
+    activePublishTags.put("someRandomTag3", "someRandomTag3");
 
-        Map<String, String> activePublishTags = new HashMap<>();
-        activePublishTags.put("someRandomTag1", "someRandomTag1");
-        activePublishTags.put(tag1, tag1);
-        activePublishTags.put("someRandomTag2", "someRandomTag2");
-        activePublishTags.put(tag2, tag2);
-        activePublishTags.put("someRandomTag3", "someRandomTag3");
+    when(awsHelperService.getTags(instanceId)).thenReturn(activePublishTags);
 
-        when(awsHelperService.getTags(instanceId)).thenReturn(activePublishTags);
+    String snapshotId = "x3289751048";
+    when(awsHelperService.createSnapshot(anyString(), anyString())).thenReturn(snapshotId);
 
-        when(awsHelperService.createSnapshot(anyString(), anyString())).thenReturn(snapshotId);
+    String resultId = aemHelperService.createPublishSnapshot(instanceId, "volumeId");
+    assertThat(resultId, equalTo(snapshotId));
 
-        String resultId = aemHelperService.createPublishSnapshot(instanceId, "volumeId");
+    verify(awsHelperService, times(1)).addTags(anyString(), mapCaptor.capture());
 
-        verify(awsHelperService, times(1)).addTags(anyString(), mapCaptor.capture());
+    Map<String, String> capturedTags = mapCaptor.getValue();
 
-        Map<String, String> capturedTags = mapCaptor.getValue();
+    // Ensure that it only uses the specified tags on the snapshot
+    assertThat(capturedTags.size(), equalTo(tagsToApplyToSnapshot.size() + 2));
+    assertThat(capturedTags.get(tag1), equalTo(tag1));
+    assertThat(capturedTags.get(tag2), equalTo(tag2));
+    assertThat(capturedTags.get(SNAPSHOT_TYPE.getTagName()), equalTo("orchestration"));
+    assertThat(capturedTags.containsKey(NAME.getTagName()), equalTo(true));
+  }
 
-        //Ensure that it only uses the specified tags on the snapshot
-        assertThat(capturedTags.size(), equalTo(tagsToApplyToSnapshot.size() + 2));
-        assertThat(capturedTags.get(tag1), equalTo(tag1));
-        assertThat(capturedTags.get(tag2), equalTo(tag2));
-        assertThat(capturedTags.get(SNAPSHOT_TYPE.getTagName()), equalTo("orchestration"));
-        assertThat(capturedTags.containsKey(NAME.getTagName()), equalTo(true));
+  @Test
+  void testCreatePreviewPublishSnapshotWithSelectedTags() {
+    String tag1 = "testTag1";
+    String tag2 = "testTag2";
 
-        assertThat(resultId, equalTo(snapshotId));
-    }
+    List<String> tagsToApplyToSnapshot = Arrays.asList(tag1, tag2);
 
-    @Test
-    public void testCreatePreviewPublishSnapshotWithSelectedTags() {
-        String tag1 = "testTag1";
-        String tag2 = "testTag2";
+    setField(aemHelperService, "tagsToApplyToSnapshot", tagsToApplyToSnapshot);
 
-        String snapshotId = "x3289751048";
+    Map<String, String> activePreviewPublishTags = new HashMap<>();
+    activePreviewPublishTags.put("someRandomTag1", "someRandomTag1");
+    activePreviewPublishTags.put(tag1, tag1);
+    activePreviewPublishTags.put("someRandomTag2", "someRandomTag2");
+    activePreviewPublishTags.put(tag2, tag2);
+    activePreviewPublishTags.put("someRandomTag3", "someRandomTag3");
 
-        List <String> tagsToApplyToSnapshot = Arrays.asList(tag1, tag2);
+    when(awsHelperService.getTags(instanceId)).thenReturn(activePreviewPublishTags);
 
-        setField(aemHelperService, "tagsToApplyToSnapshot", tagsToApplyToSnapshot);
+    String snapshotId = "x3289751048";
+    when(awsHelperService.createSnapshot(anyString(), anyString())).thenReturn(snapshotId);
 
-        Map<String, String> activePreviewPublishTags = new HashMap<>();
-        activePreviewPublishTags.put("someRandomTag1", "someRandomTag1");
-        activePreviewPublishTags.put(tag1, tag1);
-        activePreviewPublishTags.put("someRandomTag2", "someRandomTag2");
-        activePreviewPublishTags.put(tag2, tag2);
-        activePreviewPublishTags.put("someRandomTag3", "someRandomTag3");
+    String resultId = aemHelperService.createPreviewPublishSnapshot(instanceId, "volumeId");
+    assertThat(resultId, equalTo(snapshotId));
 
-        when(awsHelperService.getTags(instanceId)).thenReturn(activePreviewPublishTags);
+    verify(awsHelperService, times(1)).addTags(anyString(), mapCaptor.capture());
 
-        when(awsHelperService.createSnapshot(anyString(), anyString())).thenReturn(snapshotId);
+    Map<String, String> capturedTags = mapCaptor.getValue();
 
-        String resultId = aemHelperService.createPreviewPublishSnapshot(instanceId, "volumeId");
+    // Ensure that it only uses the specified tags on the snapshot
+    assertThat(capturedTags.size(), equalTo(tagsToApplyToSnapshot.size() + 2));
+    assertThat(capturedTags.get(tag1), equalTo(tag1));
+    assertThat(capturedTags.get(tag2), equalTo(tag2));
+    assertThat(capturedTags.get(SNAPSHOT_TYPE.getTagName()), equalTo("orchestration"));
+    assertThat(capturedTags.containsKey(NAME.getTagName()), equalTo(true));
+  }
 
-        verify(awsHelperService, times(1)).addTags(anyString(), mapCaptor.capture());
+  @Test
+  void testCreatePublishSnapshotWithNoSelectedTags() {
+    List<String> tagsToApplyToSnapshot = new ArrayList<>();
 
-        Map<String, String> capturedTags = mapCaptor.getValue();
+    setField(aemHelperService, "tagsToApplyToSnapshot", tagsToApplyToSnapshot);
 
-        //Ensure that it only uses the specified tags on the snapshot
-        assertThat(capturedTags.size(), equalTo(tagsToApplyToSnapshot.size() + 2));
-        assertThat(capturedTags.get(tag1), equalTo(tag1));
-        assertThat(capturedTags.get(tag2), equalTo(tag2));
-        assertThat(capturedTags.get(SNAPSHOT_TYPE.getTagName()), equalTo("orchestration"));
-        assertThat(capturedTags.containsKey(NAME.getTagName()), equalTo(true));
+    Map<String, String> activePublishTags = new HashMap<>();
+    activePublishTags.put("someRandomTag1", "someRandomTag1");
+    activePublishTags.put("someRandomTag2", "someRandomTag2");
+    activePublishTags.put("someRandomTag3", "someRandomTag3");
 
-        assertThat(resultId, equalTo(snapshotId));
-    }
+    when(awsHelperService.getTags(instanceId)).thenReturn(activePublishTags);
 
+    String snapshotId = "x3289751048";
+    when(awsHelperService.createSnapshot(anyString(), anyString())).thenReturn(snapshotId);
 
-    @Test
-    public void testCreatePublishSnapshotWithNoSelectedTags() {
-        String snapshotId = "x3289751048";
+    String resultId = aemHelperService.createPublishSnapshot(instanceId, "volumeId");
+    assertThat(resultId, equalTo(snapshotId));
 
-        List <String> tagsToApplyToSnapshot = new ArrayList<>();
+    verify(awsHelperService, times(1)).addTags(anyString(), mapCaptor.capture());
 
-        setField(aemHelperService, "tagsToApplyToSnapshot", tagsToApplyToSnapshot);
+    Map<String, String> capturedTags = mapCaptor.getValue();
 
-        Map<String, String> activePublishTags = new HashMap<>();
-        activePublishTags.put("someRandomTag1", "someRandomTag1");
-        activePublishTags.put("someRandomTag2", "someRandomTag2");
-        activePublishTags.put("someRandomTag3", "someRandomTag3");
+    // Ensure that it only uses the specified tags on the snapshot
+    assertThat(capturedTags.size(), equalTo(2));
+    assertThat(capturedTags.get(SNAPSHOT_TYPE.getTagName()), equalTo("orchestration"));
+    assertThat(capturedTags.containsKey(NAME.getTagName()), equalTo(true));
+  }
 
-        when(awsHelperService.getTags(instanceId)).thenReturn(activePublishTags);
+  @Test
+  void testCreatePreviewPublishSnapshotWithNoSelectedTags() {
+    List<String> tagsToApplyToSnapshot = new ArrayList<>();
 
-        when(awsHelperService.createSnapshot(anyString(), anyString())).thenReturn(snapshotId);
+    setField(aemHelperService, "tagsToApplyToSnapshot", tagsToApplyToSnapshot);
 
-        String resultId = aemHelperService.createPublishSnapshot(instanceId, "volumeId");
+    Map<String, String> activePreviewPublishTags = new HashMap<>();
+    activePreviewPublishTags.put("someRandomTag1", "someRandomTag1");
+    activePreviewPublishTags.put("someRandomTag2", "someRandomTag2");
+    activePreviewPublishTags.put("someRandomTag3", "someRandomTag3");
 
-        verify(awsHelperService, times(1)).addTags(anyString(), mapCaptor.capture());
+    when(awsHelperService.getTags(instanceId)).thenReturn(activePreviewPublishTags);
 
-        Map<String, String> capturedTags = mapCaptor.getValue();
+    String snapshotId = "x3289751048";
+    when(awsHelperService.createSnapshot(anyString(), anyString())).thenReturn(snapshotId);
 
-        //Ensure that it only uses the specified tags on the snapshot
-        assertThat(capturedTags.size(), equalTo(2));
-        assertThat(capturedTags.get(SNAPSHOT_TYPE.getTagName()), equalTo("orchestration"));
-        assertThat(capturedTags.containsKey(NAME.getTagName()), equalTo(true));
+    String resultId = aemHelperService.createPreviewPublishSnapshot(instanceId, "volumeId");
+    assertThat(resultId, equalTo(snapshotId));
 
-        assertThat(resultId, equalTo(snapshotId));
-    }
+    verify(awsHelperService, times(1)).addTags(anyString(), mapCaptor.capture());
 
+    Map<String, String> capturedTags = mapCaptor.getValue();
 
-    @Test
-    public void testCreatePreviewPublishSnapshotWithNoSelectedTags() {
-        String snapshotId = "x3289751048";
+    // Ensure that it only uses the specified tags on the snapshot
+    assertThat(capturedTags.size(), equalTo(2));
+    assertThat(capturedTags.get(SNAPSHOT_TYPE.getTagName()), equalTo("orchestration"));
+    assertThat(capturedTags.containsKey(NAME.getTagName()), equalTo(true));
+  }
 
-        List <String> tagsToApplyToSnapshot = new ArrayList<>();
+  @Test
+  void testCreateContentHealthAlarmForPublisher() {
+    aemHelperService.createContentHealthAlarmForPublisher(instanceId);
 
-        setField(aemHelperService, "tagsToApplyToSnapshot", tagsToApplyToSnapshot);
+    final ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
+    verify(awsHelperService)
+        .createContentHealthCheckAlarm(
+            captor.capture(),
+            captor.capture(),
+            eq(instanceId),
+            eq(awsPublishDispatcherStackName),
+            eq(envValues.getTopicArn()));
+    assertThat(
+        captor.getAllValues().stream().allMatch(param -> param.endsWith(instanceId)), is(true));
+  }
 
-        Map<String, String> activePreviewPublishTags = new HashMap<>();
-        activePreviewPublishTags.put("someRandomTag1", "someRandomTag1");
-        activePreviewPublishTags.put("someRandomTag2", "someRandomTag2");
-        activePreviewPublishTags.put("someRandomTag3", "someRandomTag3");
+  @Test
+  void testCreateContentHealthAlarmForPreviewPublisher() {
+    aemHelperService.createContentHealthAlarmForPreviewPublisher(instanceId);
 
-        when(awsHelperService.getTags(instanceId)).thenReturn(activePreviewPublishTags);
+    final ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
+    verify(awsHelperService)
+        .createContentHealthCheckAlarm(
+            captor.capture(),
+            captor.capture(),
+            eq(instanceId),
+            eq(awsPreviewPublishDispatcherStackName),
+            eq(envValues.getTopicArn()));
+    assertThat(
+        captor.getAllValues().stream().allMatch(param -> param.endsWith(instanceId)), is(true));
+  }
 
-        when(awsHelperService.createSnapshot(anyString(), anyString())).thenReturn(snapshotId);
+  @Test
+  void testDeleteContentHealthAlarmForPublisher() {
+    aemHelperService.deleteContentHealthAlarmForPublisher(instanceId);
 
-        String resultId = aemHelperService.createPreviewPublishSnapshot(instanceId, "volumeId");
+    final ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
+    verify(awsHelperService).deleteAlarm(captor.capture());
+    assertThat(captor.getValue().endsWith(instanceId), is(true));
+  }
 
-        verify(awsHelperService, times(1)).addTags(anyString(), mapCaptor.capture());
+  @Test
+  void testDeleteContentHealthAlarmForPreviewPublisher() {
+    aemHelperService.deleteContentHealthAlarmForPreviewPublisher(instanceId);
 
-        Map<String, String> capturedTags = mapCaptor.getValue();
-
-        //Ensure that it only uses the specified tags on the snapshot
-        assertThat(capturedTags.size(), equalTo(2));
-        assertThat(capturedTags.get(SNAPSHOT_TYPE.getTagName()), equalTo("orchestration"));
-        assertThat(capturedTags.containsKey(NAME.getTagName()), equalTo(true));
-
-        assertThat(resultId, equalTo(snapshotId));
-    }
-
-    @Test
-    public void testCreateContentHealthAlarmForPublisher() {
-        aemHelperService.createContentHealthAlarmForPublisher(instanceId);
-
-        final ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
-        verify(awsHelperService).createContentHealthCheckAlarm(captor.capture(), captor.capture(), eq(instanceId), eq(awsPublishDispatcherStackName), eq(envValues.getTopicArn()));
-        assertThat(captor.getAllValues().stream().allMatch(param -> param.endsWith(instanceId)), is(true));
-    }
-
-    @Test
-    public void testCreateContentHealthAlarmForPreviewPublisher() {
-        aemHelperService.createContentHealthAlarmForPreviewPublisher(instanceId);
-
-        final ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
-        verify(awsHelperService).createContentHealthCheckAlarm(captor.capture(), captor.capture(), eq(instanceId), eq(awsPreviewPublishDispatcherStackName), eq(envValues.getTopicArn()));
-        assertThat(captor.getAllValues().stream().allMatch(param -> param.endsWith(instanceId)), is(true));
-    }
-
-    @Test
-    public void testDeleteContentHealthAlarmForPublisher() {
-        aemHelperService.deleteContentHealthAlarmForPublisher(instanceId);
-
-        final ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
-        verify(awsHelperService).deleteAlarm(captor.capture());
-        assertThat(captor.getValue().endsWith(instanceId), is(true));
-    }
-
-    @Test
-    public void testDeleteContentHealthAlarmForPreviewPublisher() {
-        aemHelperService.deleteContentHealthAlarmForPreviewPublisher(instanceId);
-
-        final ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
-        verify(awsHelperService).deleteAlarm(captor.capture());
-        assertThat(captor.getValue().endsWith(instanceId), is(true));
-    }
+    final ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
+    verify(awsHelperService).deleteAlarm(captor.capture());
+    assertThat(captor.getValue().endsWith(instanceId), is(true));
+  }
 }

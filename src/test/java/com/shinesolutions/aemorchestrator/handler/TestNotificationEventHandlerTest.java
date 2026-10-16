@@ -3,22 +3,21 @@ package com.shinesolutions.aemorchestrator.handler;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-public class TestNotificationEventHandlerTest {
-    
-    private TestNotificationEventHandler handler;
+class TestNotificationEventHandlerTest {
 
-    @Before
-    public void setUp() throws Exception {
-        handler = new TestNotificationEventHandler();
-    }
+  private TestNotificationEventHandler handler;
 
-    @Test
-    public void testHandleEventSuccess() {
-        boolean result = handler.handleEvent("Some text");
-        assertThat(result, equalTo(true));
-    }
+  @BeforeEach
+  void setUp() throws Exception {
+    handler = new TestNotificationEventHandler();
+  }
 
+  @Test
+  void testHandleEventSuccess() {
+    boolean result = handler.handleEvent("Some text");
+    assertThat(result, equalTo(true));
+  }
 }
