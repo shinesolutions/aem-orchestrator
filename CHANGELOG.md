@@ -30,6 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Releases are now made with RTK, by `make release-major|minor|patch` or the Release Major/Minor/Patch GitHub workflows, replacing maven-release-plugin
 - Development versions are now pre-release versions such as `4.0.1-pre.0` instead of `-SNAPSHOT`
 - Dated the old releases in CHANGELOG.md from their git tags, as RTK requires, and linked issue references and versions
+- Simplify CI workflow to not use action files anymore
 
 ### Fixed
 - Fixed pausing a replication agent reusing a request shared between calls

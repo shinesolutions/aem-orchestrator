@@ -1,15 +1,22 @@
 ---
 name: CI
-on: [push, pull_request]
+on: [push, pull_request, workflow_dispatch]
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     steps:
-    - uses: actions/checkout@v7
-      with:
-        # Full history so pull requests can compare CHANGELOG.md with the base branch
-        fetch-depth: 0
-    - uses: ./.github/actions/ci-action
-      env:
-        # Pull requests must add an entry under ## [Unreleased] in CHANGELOG.md
-        CHANGELOG_BASE: ${{ github.event_name == 'pull_request' && format('origin/{0}', github.base_ref) || '' }}
+      - uses: actions/checkout@v7
+        with:
+          # Full history so pull requests can compare CHANGELOG.md with the base branch
+          fetch-depth: 0
+      - uses: cliffano/command-docker-action@v2.1.0
+        with:
+          command: |
+            mvn --version
+            make ci
+          image: shinesolutions/aem-platform-buildenv:6.2.1
+          shell: bash
+          extra_args: -e CHANGELOG_BASE
+        env:
+          # Pull requests must add an entry under ## [Unreleased] in CHANGELOG.md
+          CHANGELOG_BASE: ${{ github.event_name == 'pull_request' && format('origin/{0}', github.base_ref) || '' }}
