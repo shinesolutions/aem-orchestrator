@@ -2,7 +2,7 @@
 # (Java 21, Maven 3.10+), as CI does.
 SHELL := /bin/bash
 MVN ?= mvn -B -ntp
-BUILDENV_IMAGE ?= shinesolutions/aem-platform-buildenv:6.2.1
+BUILDENV_IMAGE ?= shinesolutions/aem-platform-buildenv:6.3.0
 # Lets git run as root in the buildenv container on this repository, which is owned by your user
 GIT_SAFE_DIRECTORY := GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=safe.directory GIT_CONFIG_VALUE_0=$(CURDIR)
 

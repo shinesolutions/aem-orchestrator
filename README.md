@@ -214,7 +214,7 @@ $ docker run --rm -it -v "$(pwd)":/workspace -w /workspace/aem-orchestrator \
     -e GIT_CONFIG_COUNT=1 -e GIT_CONFIG_KEY_0=safe.directory \
     -e GIT_CONFIG_VALUE_0=/workspace/aem-orchestrator \
     -e MAVEN_GPG_KEY -e MAVEN_GPG_PASSPHRASE -e MAVEN_CENTRAL_USERNAME -e MAVEN_CENTRAL_PASSWORD \
-    shinesolutions/aem-platform-buildenv:6.2.1 bash
+    shinesolutions/aem-platform-buildenv:6.3.0 bash
 ```
 
 ### Release steps
