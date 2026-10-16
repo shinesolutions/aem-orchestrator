@@ -2,7 +2,6 @@
 # (Java 21, Maven 3.10+), as CI does.
 SHELL := /bin/bash
 MVN ?= mvn -B -ntp
-BUILDENV_IMAGE ?= shinesolutions/aem-platform-buildenv:6.3.0
 # Lets git run as root in the buildenv container on this repository, which is owned by your user
 GIT_SAFE_DIRECTORY := GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=safe.directory GIT_CONFIG_VALUE_0=$(CURDIR)
 
@@ -142,17 +141,14 @@ release-check:
 # version, never publishing it (-DautoPublish=false), then print the deployment ID to check with
 # release-status and drop with release-drop. Checks the GPG key, the Central token, the upload and
 # Central's validation. Only pre-release versions are accepted; a dropped version can be reused.
+# Signs with MAVEN_GPG_KEY and MAVEN_GPG_PASSPHRASE and uploads with MAVEN_CENTRAL_USERNAME and
+# MAVEN_CENTRAL_PASSWORD.
 #   make release-test RELEASE_TEST_VERSION=5.0.0-rc.0   (default: current release version with -rc.0)
-# Run release-test on your machine: it runs release-test-run in BUILDENV_IMAGE with Docker, with
-# this repository mounted read-only and MAVEN_GPG_KEY, MAVEN_GPG_PASSPHRASE, MAVEN_CENTRAL_USERNAME
-# and MAVEN_CENTRAL_PASSWORD passed through from your environment.
+# For example, in aem-platform-buildenv with Docker, with this repository mounted read-only:
+#   docker run --rm -v "$(pwd)":/workspace/aem-orchestrator:ro -w /workspace/aem-orchestrator \
+#     -e MAVEN_GPG_KEY -e MAVEN_GPG_PASSPHRASE -e MAVEN_CENTRAL_USERNAME -e MAVEN_CENTRAL_PASSWORD \
+#     shinesolutions/aem-platform-buildenv:6.3.0 make release-test RELEASE_TEST_VERSION=5.0.0-rc.0
 release-test:
-	docker run --rm -v "$(CURDIR)":/workspace/aem-orchestrator:ro -v aem-orch-m2:/root/.m2 \
-	  -w /workspace/aem-orchestrator \
-	  -e MAVEN_GPG_KEY -e MAVEN_GPG_PASSPHRASE -e MAVEN_CENTRAL_USERNAME -e MAVEN_CENTRAL_PASSWORD \
-	  $(BUILDENV_IMAGE) make release-test-run RELEASE_TEST_VERSION="$(RELEASE_TEST_VERSION)"
-
-release-test-run:
 	@$(release_workdir); \
 	version="$(RELEASE_TEST_VERSION)"; \
 	[[ -n "$$version" ]] || version="$${current%%-*}-rc.0"; \
@@ -196,5 +192,5 @@ release-drop:
 	@$(call central_api,DELETE,deployment/$(DEPLOYMENT_ID))
 
 .PHONY: ci clean deps build test integration-test changelog-check \
-	release-major release-minor release-patch publish release-check release-test release-test-run \
+	release-major release-minor release-patch publish release-check release-test \
 	release-status release-drop
