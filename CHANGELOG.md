@@ -35,6 +35,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Fixed pausing a replication agent reusing a request shared between calls
 - Fixed log messages that showed a null or wrong instance ID during scale-down and content health alarms
+- Fix metadata-lint failure on publishing by upgrading release-action to 2.1.0
+- Fix metadata-lint failure on publishing via workflow runner 6.4.1
 
 ## [4.0.0] - 2023-07-28
 ### Added

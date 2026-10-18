@@ -147,7 +147,7 @@ release-check:
 # For example, in aem-platform-buildenv with Docker, with this repository mounted read-only:
 #   docker run --rm -v "$(pwd)":/workspace/aem-orchestrator:ro -w /workspace/aem-orchestrator \
 #     -e MAVEN_GPG_KEY -e MAVEN_GPG_PASSPHRASE -e MAVEN_CENTRAL_USERNAME -e MAVEN_CENTRAL_PASSWORD \
-#     shinesolutions/aem-platform-buildenv:6.3.0 make release-test
+#     shinesolutions/aem-platform-buildenv:6.4.1 make release-test
 release-test:
 	@$(release_workdir); \
 	version="$${current%%-*}-rc.0"; \
