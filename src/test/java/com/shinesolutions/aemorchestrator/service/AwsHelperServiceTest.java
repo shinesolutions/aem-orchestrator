@@ -1,450 +1,590 @@
 package com.shinesolutions.aemorchestrator.service;
 
-import com.amazonaws.AmazonServiceException;
-import com.amazonaws.services.autoscaling.AmazonAutoScalingClient;
-import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsRequest;
-import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsResult;
-import com.amazonaws.services.autoscaling.model.SetDesiredCapacityRequest;
-import com.amazonaws.services.cloudformation.AmazonCloudFormationClient;
-import com.amazonaws.services.cloudformation.model.DescribeStackResourcesRequest;
-import com.amazonaws.services.cloudformation.model.DescribeStackResourcesResult;
-import com.amazonaws.services.cloudformation.model.StackResource;
-import com.amazonaws.services.cloudwatch.AmazonCloudWatch;
-import com.amazonaws.services.cloudwatch.model.DeleteAlarmsRequest;
-import com.amazonaws.services.cloudwatch.model.PutMetricAlarmRequest;
-import com.amazonaws.services.ec2.AmazonEC2;
-import com.amazonaws.services.ec2.model.*;
-import com.amazonaws.services.elasticloadbalancingv2.AmazonElasticLoadBalancing;
-import com.amazonaws.services.elasticloadbalancingv2.model.DescribeLoadBalancersRequest;
-import com.amazonaws.services.elasticloadbalancingv2.model.DescribeLoadBalancersResult;
-import com.amazonaws.services.elasticloadbalancingv2.model.LoadBalancer;
-import com.amazonaws.services.s3.AmazonS3Client;
-import com.amazonaws.services.s3.model.GetObjectRequest;
-import com.amazonaws.services.s3.model.S3Object;
-import com.amazonaws.services.s3.model.S3ObjectInputStream;
-import org.apache.http.client.methods.HttpRequestBase;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.allOf;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasProperty;
+import static org.hamcrest.Matchers.is;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.util.*;
-
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyInt;
-import static org.mockito.Mockito.*;
-
-
-@RunWith(MockitoJUnitRunner.class)
-public class AwsHelperServiceTest {
-
-    private static final String TEST_INSTANCE_ID = "testInstanceId";
-
-    @Mock
-    private AmazonAutoScalingClient amazonAutoScalingClient;
-
-    @Mock
-    private AmazonCloudFormationClient amazonCloudFormationClient;
-
-    @Mock
-    private AmazonCloudWatch amazonCloudWatch;
-
-    @Mock
-    private AmazonEC2 amazonEC2Client;
-
-    @Mock
-    private AmazonElasticLoadBalancing amazonElbClient;
-
-    @Mock
-    private AmazonS3Client amazonS3Client;
-
-    @InjectMocks
-    private AwsHelperService awsHelperService;
-
-    @Test
-    public void testAddTags() {
-        final Map<String, String> tags = new HashMap<>();
-        tags.put("key1", "value1");
-        awsHelperService.addTags(TEST_INSTANCE_ID, tags);
-
-        final ArgumentCaptor<CreateTagsRequest> argumentCaptor = ArgumentCaptor.forClass(CreateTagsRequest.class);
-        verify(amazonEC2Client).createTags(argumentCaptor.capture());
-        assertThat(argumentCaptor.getValue().getResources().get(0), equalTo(TEST_INSTANCE_ID));
-        assertThat(argumentCaptor.getValue().getTags().get(0).getKey(), equalTo("key1"));
-        assertThat(argumentCaptor.getValue().getTags().get(0).getValue(), equalTo("value1"));
-    }
-
-    @Test
-    public void testCreateContentHealthCheckAlarm() {
-        final String alarmName = "testAlarmName";
-        final String alarmDescription = "testAlarmDescription";
-        final String publishInstanceId = "testPublishInstanceId";
-        final String namespace = "testNamespace";
-        final String topicArn = "testTopicArn";
-
-        awsHelperService.createContentHealthCheckAlarm(alarmName, alarmDescription, publishInstanceId, namespace, topicArn);
-
-        final ArgumentCaptor<PutMetricAlarmRequest> argumentCaptor = ArgumentCaptor.forClass(PutMetricAlarmRequest.class);
-        verify(amazonCloudWatch).putMetricAlarm(argumentCaptor.capture());
-        assertThat(argumentCaptor.getValue().getAlarmName(), equalTo(alarmName));
-        assertThat(argumentCaptor.getValue().getAlarmDescription(), equalTo(alarmDescription));
-        assertThat(argumentCaptor.getValue().getDimensions().get(0).getValue(), equalTo(publishInstanceId));
-        assertThat(argumentCaptor.getValue().getNamespace(), equalTo(namespace));
-        assertThat(argumentCaptor.getValue().getAlarmActions().get(0), equalTo(topicArn));
-    }
-
-    @Test
-    public void testCreateSnapshot() {
-        final String snapshotId = "testSnapshotId";
-        final CreateSnapshotResult result = mock(CreateSnapshotResult.class, RETURNS_DEEP_STUBS);
-        when(result.getSnapshot().getSnapshotId()).thenReturn(snapshotId);
-
-        when(amazonEC2Client.createSnapshot(any(CreateSnapshotRequest.class))).thenReturn(result);
-
-        final String volumeId = "testVolumeId";
-        final String description = "Test Description";
-        assertThat(awsHelperService.createSnapshot(volumeId, description), equalTo(snapshotId));
-
-        ArgumentCaptor<CreateSnapshotRequest> argumentCaptor = ArgumentCaptor.forClass(CreateSnapshotRequest.class);
-        verify(amazonEC2Client).createSnapshot(argumentCaptor.capture());
-        assertThat(argumentCaptor.getValue().getVolumeId(), equalTo(volumeId));
-        assertThat(argumentCaptor.getValue().getDescription(), equalTo(description));
-    }
-
-    @Test
-    public void testDeleteAlarm() {
-        final String alarmName = "testAlarmName";
-        awsHelperService.deleteAlarm(alarmName);
-
-        final ArgumentCaptor<DeleteAlarmsRequest> argumentCaptor = ArgumentCaptor.forClass(DeleteAlarmsRequest.class);
-        verify(amazonCloudWatch).deleteAlarms(argumentCaptor.capture());
-        assertThat(argumentCaptor.getValue().getAlarmNames().get(0), equalTo(alarmName));
-    }
-
-    @Test
-    public void testGetAutoScalingGroupDesiredCapacity() {
-        final int desiredCapacity = 5;
-
-        final DescribeAutoScalingGroupsResult result = mock(DescribeAutoScalingGroupsResult.class, RETURNS_DEEP_STUBS);
-        when(result.getAutoScalingGroups().get(0).getDesiredCapacity()).thenReturn(desiredCapacity);
-
-        when(amazonAutoScalingClient.describeAutoScalingGroups(any(DescribeAutoScalingGroupsRequest.class))).thenReturn(result);
-
-        final String groupName = "testGroupName";
-        assertThat(awsHelperService.getAutoScalingGroupDesiredCapacity(groupName), equalTo(desiredCapacity));
-
-        final ArgumentCaptor<DescribeAutoScalingGroupsRequest> argumentCaptor = ArgumentCaptor.forClass(DescribeAutoScalingGroupsRequest.class);
-        verify(amazonAutoScalingClient).describeAutoScalingGroups(argumentCaptor.capture());
-        assertThat(argumentCaptor.getValue().getAutoScalingGroupNames().get(0), equalTo(groupName));
-    }
-
-    @Test
-    public void testGetAvailabilityZone() {
-        final String availabilityZone = "testZone";
-        final DescribeInstancesResult result = mock(DescribeInstancesResult.class, RETURNS_DEEP_STUBS);
-        when(result.getReservations().get(0).getInstances().get(0).getPlacement().getAvailabilityZone()).thenReturn(availabilityZone);
-
-        when(amazonEC2Client.describeInstances(any(DescribeInstancesRequest.class))).thenReturn(result);
-
-        assertThat(awsHelperService.getAvailabilityZone(TEST_INSTANCE_ID), equalTo(availabilityZone));
-
-        final ArgumentCaptor<DescribeInstancesRequest> argumentCaptor = ArgumentCaptor.forClass(DescribeInstancesRequest.class);
-        verify(amazonEC2Client).describeInstances(argumentCaptor.capture());
-        assertThat(argumentCaptor.getValue().getInstanceIds().get(0), equalTo(TEST_INSTANCE_ID));
-    }
-
-    @Test
-    public void testGetElbName() {
-        final LoadBalancer description = new LoadBalancer();
-        description.setLoadBalancerName("testElbName");
-
-        final List<LoadBalancer> descriptions = new ArrayList<>();
-        descriptions.add(description);
-
-        final DescribeLoadBalancersResult result = mock(DescribeLoadBalancersResult.class);
-        when(result.getLoadBalancers()).thenReturn(descriptions);
-
-        when(amazonElbClient.describeLoadBalancers(any(DescribeLoadBalancersRequest.class))).thenReturn(result);
-
-        final String elbArn = "arn:aws:elasticloadbalancing:ap-southeast-2:918473058104:loadbalancer/app/bloch-Autho-1GWRY37R2O1GQ/809dd96ac8ee4083";
-        assertThat(awsHelperService.getElbName(elbArn), equalTo(description.getLoadBalancerName()));
-
-        final ArgumentCaptor<DescribeLoadBalancersRequest> argumentCaptor = ArgumentCaptor.forClass(DescribeLoadBalancersRequest.class);
-        verify(amazonElbClient).describeLoadBalancers(argumentCaptor.capture());
-        assertThat(argumentCaptor.getValue().getLoadBalancerArns().get(0), equalTo(elbArn));
-    }
-
-    @Test
-    public void testGetElbDnsName() {
-        final LoadBalancer description = new LoadBalancer();
-        description.setDNSName("testDnsName");
-
-        final List<LoadBalancer> descriptions = new ArrayList<>();
-        descriptions.add(description);
-
-        final DescribeLoadBalancersResult result = mock(DescribeLoadBalancersResult.class);
-        when(result.getLoadBalancers()).thenReturn(descriptions);
-
-        when(amazonElbClient.describeLoadBalancers(any(DescribeLoadBalancersRequest.class))).thenReturn(result);
-
-        final String elbName = "testElbName";
-        assertThat(awsHelperService.getElbDnsName(elbName), equalTo(description.getDNSName()));
-
-        final ArgumentCaptor<DescribeLoadBalancersRequest> argumentCaptor = ArgumentCaptor.forClass(DescribeLoadBalancersRequest.class);
-        verify(amazonElbClient).describeLoadBalancers(argumentCaptor.capture());
-        assertThat(argumentCaptor.getValue().getNames().get(0), equalTo(elbName));
-    }
-
-    @Test
-    public void testGetInstanceIdsForAutoScalingGroup() {
-        final com.amazonaws.services.autoscaling.model.Instance instance = new com.amazonaws.services.autoscaling.model.Instance();
-        instance.setInstanceId(TEST_INSTANCE_ID);
-
-        final List<com.amazonaws.services.autoscaling.model.Instance> instanceList = new ArrayList<>();
-        instanceList.add(instance);
-
-        final DescribeAutoScalingGroupsResult result = mock(DescribeAutoScalingGroupsResult.class, RETURNS_DEEP_STUBS);
-        when(result.getAutoScalingGroups().get(0).getInstances()).thenReturn(instanceList);
-
-        when(amazonAutoScalingClient.describeAutoScalingGroups(any(DescribeAutoScalingGroupsRequest.class))).thenReturn(result);
-
-        final String groupName = "testGroupName";
-        assertThat(awsHelperService.getInstanceIdsForAutoScalingGroup(groupName).get(0), equalTo(TEST_INSTANCE_ID));
-
-        final ArgumentCaptor<DescribeAutoScalingGroupsRequest> argumentCaptor = ArgumentCaptor.forClass(DescribeAutoScalingGroupsRequest.class);
-        verify(amazonAutoScalingClient).describeAutoScalingGroups(argumentCaptor.capture());
-        assertThat(argumentCaptor.getValue().getAutoScalingGroupNames().get(0), equalTo(groupName));
-    }
-
-    @Test
-    public void testGetInstancesForAutoScalingGroup() {
-        final com.amazonaws.services.autoscaling.model.Instance instance = new com.amazonaws.services.autoscaling.model.Instance();
-        instance.setInstanceId(TEST_INSTANCE_ID);
-        instance.setAvailabilityZone("testZone");
-
-        final List<com.amazonaws.services.autoscaling.model.Instance> instanceList = new ArrayList<>();
-        instanceList.add(instance);
-
-        final DescribeAutoScalingGroupsResult result = mock(DescribeAutoScalingGroupsResult.class, RETURNS_DEEP_STUBS);
-        when(result.getAutoScalingGroups().get(0).getInstances()).thenReturn(instanceList);
-
-        when(amazonAutoScalingClient.describeAutoScalingGroups(any(DescribeAutoScalingGroupsRequest.class))).thenReturn(result);
-
-        final String groupName = "testGroupName";
-        assertThat(awsHelperService.getInstancesForAutoScalingGroup(groupName).get(0),
-                allOf(
-                        hasProperty("instanceId", equalTo(TEST_INSTANCE_ID)),
-                        hasProperty("availabilityZone", equalTo("testZone"))
-                ));
-
-        final ArgumentCaptor<DescribeAutoScalingGroupsRequest> argumentCaptor = ArgumentCaptor.forClass(DescribeAutoScalingGroupsRequest.class);
-        verify(amazonAutoScalingClient).describeAutoScalingGroups(argumentCaptor.capture());
-        assertThat(argumentCaptor.getValue().getAutoScalingGroupNames().get(0), equalTo(groupName));
-    }
-
-    @Test
-    public void testGetLaunchTime() {
-        final Date launchDate = new Date();
-        final DescribeInstancesResult result = mock(DescribeInstancesResult.class, RETURNS_DEEP_STUBS);
-        when(result.getReservations().get(0).getInstances().get(0).getLaunchTime()).thenReturn(launchDate);
-
-        when(amazonEC2Client.describeInstances(any(DescribeInstancesRequest.class))).thenReturn(result);
-
-        assertThat(awsHelperService.getLaunchTime(TEST_INSTANCE_ID), equalTo(launchDate));
-
-        final ArgumentCaptor<DescribeInstancesRequest> argumentCaptor = ArgumentCaptor.forClass(DescribeInstancesRequest.class);
-        verify(amazonEC2Client).describeInstances(argumentCaptor.capture());
-        assertThat(argumentCaptor.getValue().getInstanceIds().get(0), equalTo(TEST_INSTANCE_ID));
-    }
-
-    @Test(expected = AmazonServiceException.class)
-    public void testGetLaunchTime_NoInstance() {
-        awsHelperService.getLaunchTime(TEST_INSTANCE_ID);
-    }
-
-    @Test
-    public void testGetPrivateIp() {
-        final String privateIp = "0.0.0.0";
-        final DescribeInstancesResult result = mock(DescribeInstancesResult.class, RETURNS_DEEP_STUBS);
-        when(result.getReservations().get(0).getInstances().get(0).getPrivateIpAddress()).thenReturn(privateIp);
-
-        when(amazonEC2Client.describeInstances(any(DescribeInstancesRequest.class))).thenReturn(result);
-
-        assertThat(awsHelperService.getPrivateIp(TEST_INSTANCE_ID), equalTo(privateIp));
-
-        final ArgumentCaptor<DescribeInstancesRequest> argumentCaptor = ArgumentCaptor.forClass(DescribeInstancesRequest.class);
-        verify(amazonEC2Client).describeInstances(argumentCaptor.capture());
-        assertThat(argumentCaptor.getValue().getInstanceIds().get(0), equalTo(TEST_INSTANCE_ID));
-    }
-
-    @Test(expected = AmazonServiceException.class)
-    public void testGetPrivateIp_NoInstance() {
-        awsHelperService.getPrivateIp(TEST_INSTANCE_ID);
-    }
-
-    @Test
-    public void testGetStackPhysicalResourceId() {
-        final StackResource stackResource1 = new StackResource();
-        stackResource1.setLogicalResourceId("logical1");
-        stackResource1.setPhysicalResourceId("physical1");
-
-        final StackResource stackResource2 = new StackResource();
-        stackResource2.setLogicalResourceId("logical2");
-        stackResource2.setPhysicalResourceId("physical2");
-
-        final List<StackResource> stackResources = new ArrayList<>();
-        stackResources.add(stackResource1);
-        stackResources.add(stackResource2);
-
-        final DescribeStackResourcesResult result = mock(DescribeStackResourcesResult.class);
-        when(result.getStackResources()).thenReturn(stackResources);
-
-        when(amazonCloudFormationClient.describeStackResources(any(DescribeStackResourcesRequest.class))).thenReturn(result);
-
-        assertThat(awsHelperService.getStackPhysicalResourceId("testStackName", "logical2"), equalTo("physical2"));
-
-        final ArgumentCaptor<DescribeStackResourcesRequest> argumentCaptor = ArgumentCaptor.forClass(DescribeStackResourcesRequest.class);
-        verify(amazonCloudFormationClient).describeStackResources(argumentCaptor.capture());
-        assertThat(argumentCaptor.getValue().getStackName(), equalTo("testStackName"));
-    }
-
-    @Test(expected = NoSuchElementException.class)
-    public void testGetStackPhysicalResourceId_NoStackResource() {
-        final DescribeStackResourcesResult result = mock(DescribeStackResourcesResult.class);
-        when(result.getStackResources()).thenReturn(new ArrayList<>());
-
-        when(amazonCloudFormationClient.describeStackResources(any(DescribeStackResourcesRequest.class))).thenReturn(result);
-
-        awsHelperService.getStackPhysicalResourceId("testStackName", "logical1");
-    }
-
-    @Test
-    public void testGetTags() {
-        TagDescription tag1 = new TagDescription().withKey("key1").withValue("value1");
-        TagDescription tag2 = new TagDescription().withKey("key2").withValue("value2");
-
-        List<TagDescription> tagList = new ArrayList<>();
-        tagList.add(tag1);
-        tagList.add(tag2);
-        DescribeTagsResult describeTagResult = new DescribeTagsResult();
-        describeTagResult.setTags(tagList);
-
-        when(amazonEC2Client.describeTags(any(DescribeTagsRequest.class))).thenReturn(describeTagResult);
-
-        Map<String, String> tagMap = awsHelperService.getTags(TEST_INSTANCE_ID);
-
-        assertThat(tagMap.get(tag1.getKey()), equalTo(tag1.getValue()));
-        assertThat(tagMap.get(tag2.getKey()), equalTo(tag2.getValue()));
-    }
-
-    @Test
-    public void testGetVolumeId() {
-        final String volumeId = "testVolumeId";
-        final EbsInstanceBlockDevice ebs = new EbsInstanceBlockDevice();
-        ebs.setVolumeId(volumeId);
-
-        final String deviceName = "testDeviceName";
-        final InstanceBlockDeviceMapping instanceBlockDeviceMapping = new InstanceBlockDeviceMapping();
-        instanceBlockDeviceMapping.setDeviceName(deviceName);
-        instanceBlockDeviceMapping.setEbs(ebs);
-
-
-        final List<InstanceBlockDeviceMapping> instanceBlockDeviceMappings = new ArrayList<>();
-        instanceBlockDeviceMappings.add(instanceBlockDeviceMapping);
-
-        final DescribeInstanceAttributeResult result = mock(DescribeInstanceAttributeResult.class, RETURNS_DEEP_STUBS);
-        when(result.getInstanceAttribute().getBlockDeviceMappings()).thenReturn(instanceBlockDeviceMappings);
-
-        when(amazonEC2Client.describeInstanceAttribute(any(DescribeInstanceAttributeRequest.class))).thenReturn(result);
-
-        assertThat(awsHelperService.getVolumeId(TEST_INSTANCE_ID, deviceName), equalTo(volumeId));
-
-        final ArgumentCaptor<DescribeInstanceAttributeRequest> argumentCaptor = ArgumentCaptor.forClass(DescribeInstanceAttributeRequest.class);
-        verify(amazonEC2Client).describeInstanceAttribute(argumentCaptor.capture());
-        assertThat(argumentCaptor.getValue().getInstanceId(), equalTo(TEST_INSTANCE_ID));
-    }
-
-    @Test(expected = NoSuchElementException.class)
-    public void testGetVolumeId_NoEbsInstance() {
-        final DescribeInstanceAttributeResult result = mock(DescribeInstanceAttributeResult.class, RETURNS_DEEP_STUBS);
-        when(result.getInstanceAttribute().getBlockDeviceMappings()).thenReturn(new ArrayList<>());
-
-        when(amazonEC2Client.describeInstanceAttribute(any(DescribeInstanceAttributeRequest.class))).thenReturn(result);
-
-        awsHelperService.getVolumeId(TEST_INSTANCE_ID, "testDeviceName");
-    }
-
-    @Test
-    public void testIsInstanceRunning() {
-        final InstanceState instanceState = new InstanceState();
-        final DescribeInstancesResult result = mock(DescribeInstancesResult.class, RETURNS_DEEP_STUBS);
-        when(result.getReservations().get(0).getInstances().get(0).getState()).thenReturn(instanceState);
-
-        when(amazonEC2Client.describeInstances(any(DescribeInstancesRequest.class))).thenReturn(result);
-
-        instanceState.setName(InstanceStateName.Running);
-        assertThat(awsHelperService.isInstanceRunning(TEST_INSTANCE_ID), is(true));
-        final ArgumentCaptor<DescribeInstancesRequest> argumentCaptor = ArgumentCaptor.forClass(DescribeInstancesRequest.class);
-        verify(amazonEC2Client).describeInstances(argumentCaptor.capture());
-        assertThat(argumentCaptor.getValue().getInstanceIds().get(0), equalTo(TEST_INSTANCE_ID));
-
-        instanceState.setName(InstanceStateName.Stopped);
-        assertThat(awsHelperService.isInstanceRunning(TEST_INSTANCE_ID), is(false));
-        verify(amazonEC2Client, times(2)).describeInstances(argumentCaptor.capture());
-        assertThat(argumentCaptor.getValue().getInstanceIds().get(0), equalTo(TEST_INSTANCE_ID));
-    }
-
-    @Test
-    public void testIsInstanceRunning_Default() {
-        final DescribeInstancesResult result = mock(DescribeInstancesResult.class, RETURNS_DEEP_STUBS);
-        when(result.getReservations().get(anyInt())).thenThrow(new IndexOutOfBoundsException());
-
-        when(amazonEC2Client.describeInstances(any(DescribeInstancesRequest.class))).thenReturn(result);
-
-        assertThat(awsHelperService.isInstanceRunning(TEST_INSTANCE_ID), is(false));
-    }
-
-    @Test
-    public void testReadFileFromS3() throws IOException {
-        final String testInput = "Test Input";
-        final S3ObjectInputStream s3ObjectInputStream = new S3ObjectInputStream(
-                new ByteArrayInputStream(testInput.getBytes()),
-                mock(HttpRequestBase.class),
-                false);
-
-        final S3Object s3Object = mock(S3Object.class);
-        when(s3Object.getObjectContent()).thenReturn(s3ObjectInputStream);
-
-        when(amazonS3Client.getObject(any(GetObjectRequest.class))).thenReturn(s3Object);
-
-        assertThat(awsHelperService.readFileFromS3("http://bucket.s3.amazonaws.com"), equalTo(testInput));
-    }
-
-    @Test
-    public void testSetAutoScalingGroupDesiredCapacity() {
-        final String groupName = "testGroupName";
-        final int desiredCapacity = 5;
-
-        awsHelperService.setAutoScalingGroupDesiredCapacity(groupName, desiredCapacity);
-
-        final ArgumentCaptor<SetDesiredCapacityRequest> argumentCaptor = ArgumentCaptor.forClass(SetDesiredCapacityRequest.class);
-        verify(amazonAutoScalingClient).setDesiredCapacity(argumentCaptor.capture());
-        assertThat(argumentCaptor.getValue().getAutoScalingGroupName(), equalTo(groupName));
-        assertThat(argumentCaptor.getValue().getDesiredCapacity(), equalTo(desiredCapacity));
-    }
-
-    @Test
-    public void testTerminateInstance() {
-        awsHelperService.terminateInstance(TEST_INSTANCE_ID);
-
-        final ArgumentCaptor<TerminateInstancesRequest> argumentCaptor = ArgumentCaptor.forClass(TerminateInstancesRequest.class);
-        verify(amazonEC2Client).terminateInstances(argumentCaptor.capture());
-        assertThat(argumentCaptor.getValue().getInstanceIds().get(0), equalTo(TEST_INSTANCE_ID));
-    }
+import java.nio.charset.StandardCharsets;
+import java.time.Instant;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.NoSuchElementException;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import software.amazon.awssdk.awscore.exception.AwsServiceException;
+import software.amazon.awssdk.core.ResponseInputStream;
+import software.amazon.awssdk.http.AbortableInputStream;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.autoscaling.AutoScalingClient;
+import software.amazon.awssdk.services.autoscaling.model.AutoScalingGroup;
+import software.amazon.awssdk.services.autoscaling.model.DescribeAutoScalingGroupsRequest;
+import software.amazon.awssdk.services.autoscaling.model.DescribeAutoScalingGroupsResponse;
+import software.amazon.awssdk.services.autoscaling.model.SetDesiredCapacityRequest;
+import software.amazon.awssdk.services.cloudformation.CloudFormationClient;
+import software.amazon.awssdk.services.cloudformation.model.DescribeStackResourcesRequest;
+import software.amazon.awssdk.services.cloudformation.model.DescribeStackResourcesResponse;
+import software.amazon.awssdk.services.cloudformation.model.StackResource;
+import software.amazon.awssdk.services.cloudwatch.CloudWatchClient;
+import software.amazon.awssdk.services.cloudwatch.model.DeleteAlarmsRequest;
+import software.amazon.awssdk.services.cloudwatch.model.PutMetricAlarmRequest;
+import software.amazon.awssdk.services.ec2.Ec2Client;
+import software.amazon.awssdk.services.ec2.model.CreateSnapshotRequest;
+import software.amazon.awssdk.services.ec2.model.CreateSnapshotResponse;
+import software.amazon.awssdk.services.ec2.model.CreateTagsRequest;
+import software.amazon.awssdk.services.ec2.model.DescribeInstanceAttributeRequest;
+import software.amazon.awssdk.services.ec2.model.DescribeInstanceAttributeResponse;
+import software.amazon.awssdk.services.ec2.model.DescribeInstancesRequest;
+import software.amazon.awssdk.services.ec2.model.DescribeInstancesResponse;
+import software.amazon.awssdk.services.ec2.model.DescribeTagsRequest;
+import software.amazon.awssdk.services.ec2.model.DescribeTagsResponse;
+import software.amazon.awssdk.services.ec2.model.EbsInstanceBlockDevice;
+import software.amazon.awssdk.services.ec2.model.Instance;
+import software.amazon.awssdk.services.ec2.model.InstanceBlockDeviceMapping;
+import software.amazon.awssdk.services.ec2.model.InstanceState;
+import software.amazon.awssdk.services.ec2.model.InstanceStateName;
+import software.amazon.awssdk.services.ec2.model.Placement;
+import software.amazon.awssdk.services.ec2.model.Reservation;
+import software.amazon.awssdk.services.ec2.model.TagDescription;
+import software.amazon.awssdk.services.ec2.model.TerminateInstancesRequest;
+import software.amazon.awssdk.services.elasticloadbalancingv2.ElasticLoadBalancingV2Client;
+import software.amazon.awssdk.services.elasticloadbalancingv2.model.DescribeLoadBalancersRequest;
+import software.amazon.awssdk.services.elasticloadbalancingv2.model.DescribeLoadBalancersResponse;
+import software.amazon.awssdk.services.elasticloadbalancingv2.model.LoadBalancer;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.S3Utilities;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.model.GetObjectResponse;
+
+@ExtendWith(MockitoExtension.class)
+class AwsHelperServiceTest {
+
+  private static final String TEST_INSTANCE_ID = "testInstanceId";
+
+  @Mock private AutoScalingClient autoScalingClient;
+
+  @Mock private CloudFormationClient cloudFormationClient;
+
+  @Mock private CloudWatchClient cloudWatchClient;
+
+  @Mock private Ec2Client ec2Client;
+
+  @Mock private ElasticLoadBalancingV2Client elasticLoadBalancingClient;
+
+  @Mock private S3Client s3Client;
+
+  @InjectMocks private AwsHelperService awsHelperService;
+
+  @Test
+  void testAddTags() {
+    final Map<String, String> tags = new HashMap<>();
+    tags.put("key1", "value1");
+    awsHelperService.addTags(TEST_INSTANCE_ID, tags);
+
+    final ArgumentCaptor<CreateTagsRequest> argumentCaptor =
+        ArgumentCaptor.forClass(CreateTagsRequest.class);
+    verify(ec2Client).createTags(argumentCaptor.capture());
+    assertThat(argumentCaptor.getValue().resources().get(0), equalTo(TEST_INSTANCE_ID));
+    assertThat(argumentCaptor.getValue().tags().get(0).key(), equalTo("key1"));
+    assertThat(argumentCaptor.getValue().tags().get(0).value(), equalTo("value1"));
+  }
+
+  @Test
+  void testCreateContentHealthCheckAlarm() {
+    final String alarmName = "testAlarmName";
+    final String alarmDescription = "testAlarmDescription";
+    final String publishInstanceId = "testPublishInstanceId";
+    final String namespace = "testNamespace";
+    final String topicArn = "testTopicArn";
+
+    awsHelperService.createContentHealthCheckAlarm(
+        alarmName, alarmDescription, publishInstanceId, namespace, topicArn);
+
+    final ArgumentCaptor<PutMetricAlarmRequest> argumentCaptor =
+        ArgumentCaptor.forClass(PutMetricAlarmRequest.class);
+    verify(cloudWatchClient).putMetricAlarm(argumentCaptor.capture());
+    assertThat(argumentCaptor.getValue().alarmName(), equalTo(alarmName));
+    assertThat(argumentCaptor.getValue().alarmDescription(), equalTo(alarmDescription));
+    assertThat(argumentCaptor.getValue().dimensions().get(0).value(), equalTo(publishInstanceId));
+    assertThat(argumentCaptor.getValue().namespace(), equalTo(namespace));
+    assertThat(argumentCaptor.getValue().alarmActions().get(0), equalTo(topicArn));
+  }
+
+  @Test
+  void testCreateSnapshot() {
+    final String snapshotId = "testSnapshotId";
+    final CreateSnapshotResponse response =
+        CreateSnapshotResponse.builder().snapshotId(snapshotId).build();
+
+    when(ec2Client.createSnapshot(any(CreateSnapshotRequest.class))).thenReturn(response);
+
+    final String volumeId = "testVolumeId";
+    final String description = "Test Description";
+    assertThat(awsHelperService.createSnapshot(volumeId, description), equalTo(snapshotId));
+
+    final ArgumentCaptor<CreateSnapshotRequest> argumentCaptor =
+        ArgumentCaptor.forClass(CreateSnapshotRequest.class);
+    verify(ec2Client).createSnapshot(argumentCaptor.capture());
+    assertThat(argumentCaptor.getValue().volumeId(), equalTo(volumeId));
+    assertThat(argumentCaptor.getValue().description(), equalTo(description));
+  }
+
+  @Test
+  void testDeleteAlarm() {
+    final String alarmName = "testAlarmName";
+    awsHelperService.deleteAlarm(alarmName);
+
+    final ArgumentCaptor<DeleteAlarmsRequest> argumentCaptor =
+        ArgumentCaptor.forClass(DeleteAlarmsRequest.class);
+    verify(cloudWatchClient).deleteAlarms(argumentCaptor.capture());
+    assertThat(argumentCaptor.getValue().alarmNames().get(0), equalTo(alarmName));
+  }
+
+  @Test
+  void testGetAutoScalingGroupDesiredCapacity() {
+    final int desiredCapacity = 5;
+
+    final AutoScalingGroup group =
+        AutoScalingGroup.builder().desiredCapacity(desiredCapacity).build();
+    final DescribeAutoScalingGroupsResponse response =
+        DescribeAutoScalingGroupsResponse.builder().autoScalingGroups(group).build();
+
+    when(autoScalingClient.describeAutoScalingGroups(any(DescribeAutoScalingGroupsRequest.class)))
+        .thenReturn(response);
+
+    final String groupName = "testGroupName";
+    assertThat(
+        awsHelperService.getAutoScalingGroupDesiredCapacity(groupName), equalTo(desiredCapacity));
+
+    final ArgumentCaptor<DescribeAutoScalingGroupsRequest> argumentCaptor =
+        ArgumentCaptor.forClass(DescribeAutoScalingGroupsRequest.class);
+    verify(autoScalingClient).describeAutoScalingGroups(argumentCaptor.capture());
+    assertThat(argumentCaptor.getValue().autoScalingGroupNames().get(0), equalTo(groupName));
+  }
+
+  @Test
+  void testGetAvailabilityZone() {
+    final String availabilityZone = "testZone";
+    final Placement placement = Placement.builder().availabilityZone(availabilityZone).build();
+    final Instance instance = Instance.builder().placement(placement).build();
+    final Reservation reservation = Reservation.builder().instances(instance).build();
+    final DescribeInstancesResponse response =
+        DescribeInstancesResponse.builder().reservations(reservation).build();
+
+    when(ec2Client.describeInstances(any(DescribeInstancesRequest.class))).thenReturn(response);
+
+    assertThat(awsHelperService.getAvailabilityZone(TEST_INSTANCE_ID), equalTo(availabilityZone));
+
+    final ArgumentCaptor<DescribeInstancesRequest> argumentCaptor =
+        ArgumentCaptor.forClass(DescribeInstancesRequest.class);
+    verify(ec2Client).describeInstances(argumentCaptor.capture());
+    assertThat(argumentCaptor.getValue().instanceIds().get(0), equalTo(TEST_INSTANCE_ID));
+  }
+
+  @Test
+  void testGetElbName() {
+    final LoadBalancer loadBalancer =
+        LoadBalancer.builder().loadBalancerName("testElbName").build();
+
+    final DescribeLoadBalancersResponse response =
+        DescribeLoadBalancersResponse.builder().loadBalancers(loadBalancer).build();
+
+    when(elasticLoadBalancingClient.describeLoadBalancers(any(DescribeLoadBalancersRequest.class)))
+        .thenReturn(response);
+
+    final String elbArn =
+        "arn:aws:elasticloadbalancing:ap-southeast-2:918473058104:loadbalancer/app/"
+            + "bloch-Autho-1GWRY37R2O1GQ/809dd96ac8ee4083";
+    assertThat(awsHelperService.getElbName(elbArn), equalTo(loadBalancer.loadBalancerName()));
+
+    final ArgumentCaptor<DescribeLoadBalancersRequest> argumentCaptor =
+        ArgumentCaptor.forClass(DescribeLoadBalancersRequest.class);
+    verify(elasticLoadBalancingClient).describeLoadBalancers(argumentCaptor.capture());
+    assertThat(argumentCaptor.getValue().loadBalancerArns().get(0), equalTo(elbArn));
+  }
+
+  @Test
+  void testGetElbDnsName() {
+    final LoadBalancer loadBalancer = LoadBalancer.builder().dnsName("testDnsName").build();
+
+    final DescribeLoadBalancersResponse response =
+        DescribeLoadBalancersResponse.builder().loadBalancers(loadBalancer).build();
+
+    when(elasticLoadBalancingClient.describeLoadBalancers(any(DescribeLoadBalancersRequest.class)))
+        .thenReturn(response);
+
+    final String elbName = "testElbName";
+    assertThat(awsHelperService.getElbDnsName(elbName), equalTo(loadBalancer.dnsName()));
+
+    final ArgumentCaptor<DescribeLoadBalancersRequest> argumentCaptor =
+        ArgumentCaptor.forClass(DescribeLoadBalancersRequest.class);
+    verify(elasticLoadBalancingClient).describeLoadBalancers(argumentCaptor.capture());
+    assertThat(argumentCaptor.getValue().names().get(0), equalTo(elbName));
+  }
+
+  @Test
+  void testGetInstanceIdsForAutoScalingGroup() {
+    final software.amazon.awssdk.services.autoscaling.model.Instance instance =
+        software.amazon.awssdk.services.autoscaling.model.Instance.builder()
+            .instanceId(TEST_INSTANCE_ID)
+            .build();
+
+    final AutoScalingGroup group = AutoScalingGroup.builder().instances(instance).build();
+
+    final DescribeAutoScalingGroupsResponse response =
+        DescribeAutoScalingGroupsResponse.builder().autoScalingGroups(group).build();
+
+    when(autoScalingClient.describeAutoScalingGroups(any(DescribeAutoScalingGroupsRequest.class)))
+        .thenReturn(response);
+
+    final String groupName = "testGroupName";
+    assertThat(
+        awsHelperService.getInstanceIdsForAutoScalingGroup(groupName).get(0),
+        equalTo(TEST_INSTANCE_ID));
+
+    final ArgumentCaptor<DescribeAutoScalingGroupsRequest> argumentCaptor =
+        ArgumentCaptor.forClass(DescribeAutoScalingGroupsRequest.class);
+    verify(autoScalingClient).describeAutoScalingGroups(argumentCaptor.capture());
+    assertThat(argumentCaptor.getValue().autoScalingGroupNames().get(0), equalTo(groupName));
+  }
+
+  @Test
+  void testGetInstancesForAutoScalingGroup() {
+    final software.amazon.awssdk.services.autoscaling.model.Instance instance =
+        software.amazon.awssdk.services.autoscaling.model.Instance.builder()
+            .instanceId(TEST_INSTANCE_ID)
+            .availabilityZone("testZone")
+            .build();
+
+    final AutoScalingGroup group = AutoScalingGroup.builder().instances(instance).build();
+
+    final DescribeAutoScalingGroupsResponse response =
+        DescribeAutoScalingGroupsResponse.builder().autoScalingGroups(group).build();
+
+    when(autoScalingClient.describeAutoScalingGroups(any(DescribeAutoScalingGroupsRequest.class)))
+        .thenReturn(response);
+
+    final String groupName = "testGroupName";
+
+    assertThat(
+        awsHelperService.getInstancesForAutoScalingGroup(groupName).get(0),
+        allOf(
+            hasProperty("instanceId", equalTo(TEST_INSTANCE_ID)),
+            hasProperty("availabilityZone", equalTo("testZone"))));
+
+    final ArgumentCaptor<DescribeAutoScalingGroupsRequest> argumentCaptor =
+        ArgumentCaptor.forClass(DescribeAutoScalingGroupsRequest.class);
+    verify(autoScalingClient).describeAutoScalingGroups(argumentCaptor.capture());
+    assertThat(argumentCaptor.getValue().autoScalingGroupNames().get(0), equalTo(groupName));
+  }
+
+  @Test
+  void testGetLaunchTime() {
+    final Instant launchTime = Instant.now();
+    final Instance instance = Instance.builder().launchTime(launchTime).build();
+    final Reservation reservation = Reservation.builder().instances(instance).build();
+    final DescribeInstancesResponse response =
+        DescribeInstancesResponse.builder().reservations(reservation).build();
+
+    when(ec2Client.describeInstances(any(DescribeInstancesRequest.class))).thenReturn(response);
+
+    // Convert launchTime (Instant) to Date to match awsHelperService.getLaunchTime()'s return type
+    assertThat(awsHelperService.getLaunchTime(TEST_INSTANCE_ID), equalTo(Date.from(launchTime)));
+
+    final ArgumentCaptor<DescribeInstancesRequest> argumentCaptor =
+        ArgumentCaptor.forClass(DescribeInstancesRequest.class);
+    verify(ec2Client).describeInstances(argumentCaptor.capture());
+    assertThat(argumentCaptor.getValue().instanceIds().get(0), equalTo(TEST_INSTANCE_ID));
+  }
+
+  @Test
+  void testGetLaunchTime_noInstance() {
+    // No reservations: the lookup fails inside the service and is wrapped in AwsServiceException
+    when(ec2Client.describeInstances(any(DescribeInstancesRequest.class)))
+        .thenReturn(DescribeInstancesResponse.builder().build());
+
+    assertThrows(
+        AwsServiceException.class,
+        () -> {
+          awsHelperService.getLaunchTime(TEST_INSTANCE_ID);
+        });
+  }
+
+  @Test
+  void testGetPrivateIp() {
+    final String privateIp = "0.0.0.0";
+    final Instance instance = Instance.builder().privateIpAddress(privateIp).build();
+    final Reservation reservation = Reservation.builder().instances(instance).build();
+    final DescribeInstancesResponse response =
+        DescribeInstancesResponse.builder().reservations(reservation).build();
+
+    when(ec2Client.describeInstances(any(DescribeInstancesRequest.class))).thenReturn(response);
+
+    assertThat(awsHelperService.getPrivateIp(TEST_INSTANCE_ID), equalTo(privateIp));
+
+    final ArgumentCaptor<DescribeInstancesRequest> argumentCaptor =
+        ArgumentCaptor.forClass(DescribeInstancesRequest.class);
+    verify(ec2Client).describeInstances(argumentCaptor.capture());
+    assertThat(argumentCaptor.getValue().instanceIds().get(0), equalTo(TEST_INSTANCE_ID));
+  }
+
+  @Test
+  void testGetPrivateIp_noInstance() {
+    // No reservations: the lookup fails inside the service and is wrapped in AwsServiceException
+    when(ec2Client.describeInstances(any(DescribeInstancesRequest.class)))
+        .thenReturn(DescribeInstancesResponse.builder().build());
+
+    assertThrows(
+        AwsServiceException.class,
+        () -> {
+          awsHelperService.getPrivateIp(TEST_INSTANCE_ID);
+        });
+  }
+
+  @Test
+  void testGetStackPhysicalResourceId() {
+    final StackResource stackResource1 =
+        StackResource.builder()
+            .logicalResourceId("logical1")
+            .physicalResourceId("physical1")
+            .build();
+
+    final StackResource stackResource2 =
+        StackResource.builder()
+            .logicalResourceId("logical2")
+            .physicalResourceId("physical2")
+            .build();
+
+    final DescribeStackResourcesResponse response =
+        DescribeStackResourcesResponse.builder()
+            .stackResources(stackResource1, stackResource2)
+            .build();
+
+    when(cloudFormationClient.describeStackResources(any(DescribeStackResourcesRequest.class)))
+        .thenReturn(response);
+
+    assertThat(
+        awsHelperService.getStackPhysicalResourceId("testStackName", "logical2"),
+        equalTo("physical2"));
+
+    final ArgumentCaptor<DescribeStackResourcesRequest> argumentCaptor =
+        ArgumentCaptor.forClass(DescribeStackResourcesRequest.class);
+    verify(cloudFormationClient).describeStackResources(argumentCaptor.capture());
+    assertThat(argumentCaptor.getValue().stackName(), equalTo("testStackName"));
+  }
+
+  @Test
+  void testGetStackPhysicalResourceId_noStackResource() {
+    final DescribeStackResourcesResponse response =
+        DescribeStackResourcesResponse.builder().stackResources(Collections.emptyList()).build();
+
+    when(cloudFormationClient.describeStackResources(any(DescribeStackResourcesRequest.class)))
+        .thenReturn(response);
+
+    assertThrows(
+        NoSuchElementException.class,
+        () -> {
+          awsHelperService.getStackPhysicalResourceId("testStackName", "logical1");
+        });
+  }
+
+  @Test
+  void testGetTags() {
+    TagDescription tag1 = TagDescription.builder().key("key1").value("value1").build();
+    TagDescription tag2 = TagDescription.builder().key("key2").value("value2").build();
+
+    DescribeTagsResponse describeTagResult =
+        DescribeTagsResponse.builder().tags(tag1, tag2).build();
+
+    when(ec2Client.describeTags(any(DescribeTagsRequest.class))).thenReturn(describeTagResult);
+
+    Map<String, String> tagMap = awsHelperService.getTags(TEST_INSTANCE_ID);
+
+    assertThat(tagMap.get(tag1.key()), equalTo(tag1.value()));
+    assertThat(tagMap.get(tag2.key()), equalTo(tag2.value()));
+  }
+
+  @Test
+  void testGetVolumeId() {
+    final String volumeId = "testVolumeId";
+    final String deviceName = "testDeviceName";
+
+    final EbsInstanceBlockDevice ebs = EbsInstanceBlockDevice.builder().volumeId(volumeId).build();
+    final InstanceBlockDeviceMapping mapping =
+        InstanceBlockDeviceMapping.builder().deviceName(deviceName).ebs(ebs).build();
+
+    final DescribeInstanceAttributeResponse response =
+        DescribeInstanceAttributeResponse.builder().blockDeviceMappings(mapping).build();
+
+    when(ec2Client.describeInstanceAttribute(any(DescribeInstanceAttributeRequest.class)))
+        .thenReturn(response);
+
+    assertThat(awsHelperService.getVolumeId(TEST_INSTANCE_ID, deviceName), equalTo(volumeId));
+
+    final ArgumentCaptor<DescribeInstanceAttributeRequest> argumentCaptor =
+        ArgumentCaptor.forClass(DescribeInstanceAttributeRequest.class);
+    verify(ec2Client).describeInstanceAttribute(argumentCaptor.capture());
+    assertThat(argumentCaptor.getValue().instanceId(), equalTo(TEST_INSTANCE_ID));
+  }
+
+  @Test
+  void testGetVolumeId_noEbsInstance() {
+    final DescribeInstanceAttributeResponse response =
+        DescribeInstanceAttributeResponse.builder()
+            .blockDeviceMappings(Collections.emptyList())
+            .build();
+
+    when(ec2Client.describeInstanceAttribute(any(DescribeInstanceAttributeRequest.class)))
+        .thenReturn(response);
+
+    assertThrows(
+        NoSuchElementException.class,
+        () -> {
+          awsHelperService.getVolumeId(TEST_INSTANCE_ID, "testDeviceName");
+        });
+  }
+
+  @Test
+  void testIsInstanceRunning() {
+    final DescribeInstancesResponse runningResponse =
+        DescribeInstancesResponse.builder()
+            .reservations(
+                Reservation.builder()
+                    .instances(
+                        Instance.builder()
+                            .state(InstanceState.builder().name(InstanceStateName.RUNNING).build())
+                            .build())
+                    .build())
+            .build();
+
+    final DescribeInstancesResponse stoppedResponse =
+        DescribeInstancesResponse.builder()
+            .reservations(
+                Reservation.builder()
+                    .instances(
+                        Instance.builder()
+                            .state(InstanceState.builder().name(InstanceStateName.STOPPED).build())
+                            .build())
+                    .build())
+            .build();
+
+    when(ec2Client.describeInstances(any(DescribeInstancesRequest.class)))
+        .thenReturn(runningResponse)
+        .thenReturn(stoppedResponse);
+
+    assertThat(awsHelperService.isInstanceRunning(TEST_INSTANCE_ID), is(true));
+
+    final ArgumentCaptor<DescribeInstancesRequest> argumentCaptor =
+        ArgumentCaptor.forClass(DescribeInstancesRequest.class);
+    verify(ec2Client).describeInstances(argumentCaptor.capture());
+    assertThat(argumentCaptor.getValue().instanceIds().get(0), equalTo(TEST_INSTANCE_ID));
+
+    assertThat(awsHelperService.isInstanceRunning(TEST_INSTANCE_ID), is(false));
+    verify(ec2Client, times(2)).describeInstances(argumentCaptor.capture());
+    assertThat(argumentCaptor.getValue().instanceIds().get(0), equalTo(TEST_INSTANCE_ID));
+  }
+
+  @Test
+  void testIsInstanceRunning_default() {
+    final DescribeInstancesResponse response =
+        DescribeInstancesResponse.builder().reservations(Collections.emptyList()).build();
+
+    when(ec2Client.describeInstances(any(DescribeInstancesRequest.class))).thenReturn(response);
+
+    assertThat(awsHelperService.isInstanceRunning(TEST_INSTANCE_ID), is(false));
+  }
+
+  @Test
+  void testReadFileFromS3() throws IOException {
+    final String testInput = "Test Input";
+    final ResponseInputStream<GetObjectResponse> responseInputStream =
+        new ResponseInputStream<>(
+            GetObjectResponse.builder().build(),
+            AbortableInputStream.create(
+                new ByteArrayInputStream(testInput.getBytes(StandardCharsets.UTF_8))));
+
+    when(s3Client.utilities()).thenReturn(S3Utilities.builder().region(Region.US_EAST_1).build());
+    when(s3Client.getObject(any(GetObjectRequest.class))).thenReturn(responseInputStream);
+
+    // Append an object key to the S3 URL path
+    final String s3Url = "http://bucket.s3.amazonaws.com/test-key.txt";
+    assertThat(awsHelperService.readFileFromS3(s3Url), equalTo(testInput));
+
+    final ArgumentCaptor<GetObjectRequest> argumentCaptor =
+        ArgumentCaptor.forClass(GetObjectRequest.class);
+    verify(s3Client).getObject(argumentCaptor.capture());
+    assertThat(argumentCaptor.getValue().bucket(), equalTo("bucket"));
+    assertThat(argumentCaptor.getValue().key(), equalTo("test-key.txt"));
+  }
+
+  @Test
+  void testReadFileFromS3_noKey() {
+    // SDK v1 also rejected a missing key (IllegalArgumentException from AmazonS3Client.getObject)
+    when(s3Client.utilities()).thenReturn(S3Utilities.builder().region(Region.US_EAST_1).build());
+
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> awsHelperService.readFileFromS3("http://bucket.s3.amazonaws.com"));
+    verify(s3Client, never()).getObject(any(GetObjectRequest.class));
+  }
+
+  @Test
+  void testReadFileFromS3_keyWithReservedCharacters() throws IOException {
+    final ResponseInputStream<GetObjectResponse> responseInputStream =
+        new ResponseInputStream<>(
+            GetObjectResponse.builder().build(),
+            AbortableInputStream.create(
+                new ByteArrayInputStream("{}".getBytes(StandardCharsets.UTF_8))));
+
+    when(s3Client.utilities()).thenReturn(S3Utilities.builder().region(Region.US_EAST_1).build());
+    when(s3Client.getObject(any(GetObjectRequest.class))).thenReturn(responseInputStream);
+
+    // Like SDK v1's AmazonS3URI, spaces and '#' are part of the key, not a parse error or fragment
+    awsHelperService.readFileFromS3("s3://bucket/aem config/credentials #1.json");
+
+    final ArgumentCaptor<GetObjectRequest> argumentCaptor =
+        ArgumentCaptor.forClass(GetObjectRequest.class);
+    verify(s3Client).getObject(argumentCaptor.capture());
+    assertThat(argumentCaptor.getValue().bucket(), equalTo("bucket"));
+    assertThat(argumentCaptor.getValue().key(), equalTo("aem config/credentials #1.json"));
+  }
+
+  @Test
+  void testSetAutoScalingGroupDesiredCapacity() {
+    final String groupName = "testGroupName";
+    final int desiredCapacity = 5;
+
+    awsHelperService.setAutoScalingGroupDesiredCapacity(groupName, desiredCapacity);
+
+    final ArgumentCaptor<SetDesiredCapacityRequest> argumentCaptor =
+        ArgumentCaptor.forClass(SetDesiredCapacityRequest.class);
+    verify(autoScalingClient).setDesiredCapacity(argumentCaptor.capture());
+    assertThat(argumentCaptor.getValue().autoScalingGroupName(), equalTo(groupName));
+    assertThat(argumentCaptor.getValue().desiredCapacity(), equalTo(desiredCapacity));
+  }
+
+  @Test
+  void testTerminateInstance() {
+    awsHelperService.terminateInstance(TEST_INSTANCE_ID);
+
+    final ArgumentCaptor<TerminateInstancesRequest> argumentCaptor =
+        ArgumentCaptor.forClass(TerminateInstancesRequest.class);
+    verify(ec2Client).terminateInstances(argumentCaptor.capture());
+    assertThat(argumentCaptor.getValue().instanceIds().get(0), equalTo(TEST_INSTANCE_ID));
+  }
 }

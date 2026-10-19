@@ -1,34 +1,26 @@
 package com.shinesolutions.aemorchestrator.model;
 
-public class UserPasswordCredentials {
+/**
+ * User name and password of an AEM user.
+ *
+ * <p>Immutable to fix SpotBugs EI_EXPOSE_REP; created once in AemConfig or CredentialsExtractor.
+ */
+public final class UserPasswordCredentials {
 
-    private String userName;
-    private String password;
+  private final String userName;
+  private final String password;
 
-    public String getUserName() {
-        return userName;
-    }
+  /** Creates credentials for the given AEM user. */
+  public UserPasswordCredentials(String userName, String password) {
+    this.userName = userName;
+    this.password = password;
+  }
 
-    public void setUserName(String userName) {
-        this.userName = userName;
-    }
-    
-    public UserPasswordCredentials withUserName(String userName) {
-        this.setUserName(userName);
-        return this;
-    }
+  public String getUserName() {
+    return userName;
+  }
 
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-    
-    public UserPasswordCredentials withPassword(String password) {
-        this.setPassword(password);
-        return this;
-    }
-
+  public String getPassword() {
+    return password;
+  }
 }

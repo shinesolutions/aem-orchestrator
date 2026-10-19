@@ -1,14 +1,14 @@
 package com.shinesolutions.aemorchestrator.util;
 
+import com.shinesolutions.aemorchestrator.model.SnsMessage;
 import org.springframework.stereotype.Component;
 
-import com.shinesolutions.aemorchestrator.model.SnsMessage;
-
+/** Deserializes an SQS message body into an {@link SnsMessage}. */
 @Component
 public class SnsMessageExtractor extends MessageExtractor<SnsMessage> {
 
-    public SnsMessageExtractor() {
-        super(SnsMessage.class);
-    }
-
+  /** Creates an extractor for {@link SnsMessage}. */
+  public SnsMessageExtractor() {
+    super(SnsMessage.class);
+  }
 }

@@ -3,39 +3,39 @@ package com.shinesolutions.aemorchestrator.util;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 
+import com.shinesolutions.aemorchestrator.model.AemCredentials;
 import java.io.File;
 import java.util.Scanner;
+import org.junit.jupiter.api.Test;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 
-import org.junit.Test;
+class CredentialsExtractorTest {
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.shinesolutions.aemorchestrator.model.AemCredentials;
+  @Test
+  @SuppressWarnings("resource")
+  void testExtractSuccess() throws Exception {
+    // Read file into a string
+    File sampleFile = new File(getClass().getResource("/sample-aem-credentials.json").getFile());
+    String sampleFileContent = new Scanner(sampleFile).useDelimiter("\\Z").next();
 
-public class CredentialsExtractorTest {
+    ObjectMapper mapper = new ObjectMapper();
+    JsonNode root = mapper.readTree(sampleFileContent);
 
-    
-    @Test
-    @SuppressWarnings("resource")
-    public void testExtractSuccess() throws Exception {
-        //Read file into a string
-        File sampleFile = new File(getClass().getResource("/sample-aem-credentials.json").getFile());
-        String sampleFileContent = new Scanner(sampleFile).useDelimiter("\\Z").next();
-        
-        ObjectMapper mapper = new ObjectMapper();
-        JsonNode root = mapper.readTree(sampleFileContent);
-        
-        AemCredentials aemCredentials = CredentialsExtractor.extractAemCredentials(sampleFileContent);
-        
-        assertThat(aemCredentials.getOrchestratorCredentials().getUserName(), 
-            equalTo(CredentialsExtractor.ORCHESTRATOR_USER));
-        assertThat(aemCredentials.getOrchestratorCredentials().getPassword(), 
-            equalTo(root.path(CredentialsExtractor.ORCHESTRATOR_USER).asText()));
-        
-        assertThat(aemCredentials.getReplicatorCredentials().getUserName(), 
-            equalTo(CredentialsExtractor.REPLICATOR_USER));
-        assertThat(aemCredentials.getReplicatorCredentials().getPassword(), 
-            equalTo(root.path(CredentialsExtractor.REPLICATOR_USER).asText()));
-    }
+    AemCredentials aemCredentials = CredentialsExtractor.extractAemCredentials(sampleFileContent);
 
+    assertThat(
+        aemCredentials.getOrchestratorCredentials().getUserName(),
+        equalTo(CredentialsExtractor.ORCHESTRATOR_USER));
+    assertThat(
+        aemCredentials.getOrchestratorCredentials().getPassword(),
+        equalTo(root.path(CredentialsExtractor.ORCHESTRATOR_USER).asString()));
+
+    assertThat(
+        aemCredentials.getReplicatorCredentials().getUserName(),
+        equalTo(CredentialsExtractor.REPLICATOR_USER));
+    assertThat(
+        aemCredentials.getReplicatorCredentials().getPassword(),
+        equalTo(root.path(CredentialsExtractor.REPLICATOR_USER).asString()));
+  }
 }

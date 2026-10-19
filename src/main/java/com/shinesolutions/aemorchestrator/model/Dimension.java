@@ -1,27 +1,34 @@
 package com.shinesolutions.aemorchestrator.model;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class Dimension {
-    @JsonProperty("name")
-    private String name;
-    
-    @JsonProperty("value")
-    private String value;
+/**
+ * A CloudWatch metric dimension, its {@code name} and {@code value}, from the {@code Dimensions} of
+ * an alarm {@link Trigger}.
+ */
+public final class Dimension {
 
-    public String getName() {
-        return name;
-    }
+  private final String name;
+  private final String value;
 
-    public void setName(String name) {
-        this.name = name;
-    }
+  /**
+   * Creates a dimension; also used by Jackson to map the alarm message JSON.
+   *
+   * <p>Immutable to fix SpotBugs EI_EXPOSE_REP: Jackson builds it through this constructor instead
+   * of setters, using the same JSON property names as before.
+   */
+  @JsonCreator
+  public Dimension(@JsonProperty("name") String name, @JsonProperty("value") String value) {
+    this.name = name;
+    this.value = value;
+  }
 
-    public String getValue() {
-        return value;
-    }
+  public String getName() {
+    return name;
+  }
 
-    public void setValue(String value) {
-        this.value = value;
-    }
+  public String getValue() {
+    return value;
+  }
 }

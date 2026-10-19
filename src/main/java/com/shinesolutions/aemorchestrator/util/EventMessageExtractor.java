@@ -1,14 +1,14 @@
 package com.shinesolutions.aemorchestrator.util;
 
+import com.shinesolutions.aemorchestrator.model.EventMessage;
 import org.springframework.stereotype.Component;
 
-import com.shinesolutions.aemorchestrator.model.EventMessage;
-
+/** Deserializes Auto Scaling event JSON into an {@link EventMessage}. */
 @Component
 public class EventMessageExtractor extends MessageExtractor<EventMessage> {
 
-    public EventMessageExtractor() {
-        super(EventMessage.class);
-    }
-
+  /** Creates an extractor for {@link EventMessage}. */
+  public EventMessageExtractor() {
+    super(EventMessage.class);
+  }
 }

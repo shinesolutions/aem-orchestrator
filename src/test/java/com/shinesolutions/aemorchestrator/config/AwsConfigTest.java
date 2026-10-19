@@ -1,116 +1,160 @@
 package com.shinesolutions.aemorchestrator.config;
 
-import com.amazonaws.ClientConfiguration;
-import com.amazonaws.auth.AWSCredentialsProvider;
-import com.shinesolutions.aemorchestrator.model.ProxyDetails;
-import org.junit.Before;
-import org.junit.Test;
-
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.core.IsNull.notNullValue;
 import static org.hamcrest.core.IsNull.nullValue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.springframework.test.util.ReflectionTestUtils.setField;
 
-public class AwsConfigTest {
-    
-    private AwsConfig awsConfig;
-    
-    @Before
-    public void setup() {
-        awsConfig = new AwsConfig();
-    }
-    
+import com.shinesolutions.aemorchestrator.model.ProxyDetails;
+import java.time.Duration;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.InstanceProfileCredentialsProvider;
+import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
+import software.amazon.awssdk.http.apache5.Apache5HttpClient;
+import software.amazon.awssdk.http.apache5.ProxyConfiguration;
 
-    @Test
-    public void testAwsClientConfig_EmptyProxy() {
-        // Setup HTTP proxy
-        String httpProxyHost = "";
-        ProxyDetails proxyDetails = new ProxyDetails();
-        proxyDetails.setHost(httpProxyHost);
+class AwsConfigTest {
 
-        String clientProtocol = "http";
-        int clientConnectionTimeout = 10;
-        int clientMaxErrorRetry = 20;
-        setField(awsConfig, "clientProtocol", clientProtocol);
-        setField(awsConfig, "clientConnectionTimeout", clientConnectionTimeout);
-        setField(awsConfig, "clientMaxErrorRetry", clientMaxErrorRetry);
+  private AwsConfig awsConfig;
 
-        setField(awsConfig, "useProxy", false);
-        ClientConfiguration clientConfiguration = awsConfig.awsClientConfig(proxyDetails);
+  @BeforeEach
+  void setup() {
+    awsConfig = new AwsConfig();
+  }
 
-        assertThat(clientConfiguration.getProxyHost(), nullValue());
-        assertThat(clientConfiguration.getProtocol().toString(), equalTo(clientProtocol));
-        assertThat(clientConfiguration.getConnectionTimeout(), equalTo(clientConnectionTimeout));
-        assertThat(clientConfiguration.getMaxErrorRetry(), equalTo(clientMaxErrorRetry));
-    }
+  @Test
+  void testAwsClientConfig_emptyProxy() {
+    // Setup HTTP proxy
+    String httpProxyHost = "";
+    ProxyDetails proxyDetails = new ProxyDetails();
+    proxyDetails.setHost(httpProxyHost);
 
-    @Test
-    public void testAwsClientConfig_NoProxy() {
-        String clientProtocol = "http";
-        int clientConnectionTimeout = 10;
-        int clientMaxErrorRetry = 20;
-        setField(awsConfig, "clientProtocol", clientProtocol);
-        setField(awsConfig, "clientConnectionTimeout", clientConnectionTimeout);
-        setField(awsConfig, "clientMaxErrorRetry", clientMaxErrorRetry);
-        
-        setField(awsConfig, "useProxy", false);
-        ClientConfiguration clientConfiguration = awsConfig.awsClientConfig(null);
-        
-        assertThat(clientConfiguration.getProxyHost(), nullValue());
-        assertThat(clientConfiguration.getProxyPort(), equalTo(-1));
-        assertThat(clientConfiguration.getProtocol().toString(), equalTo(clientProtocol));
-        assertThat(clientConfiguration.getConnectionTimeout(), equalTo(clientConnectionTimeout));
-        assertThat(clientConfiguration.getMaxErrorRetry(), equalTo(clientMaxErrorRetry));
-    }
-    
-    @Test
-    public void testAwsClientConfig_UseProxy() {
-        String clientProtocol = "http";
-        int clientConnectionTimeout = 10;
-        int clientMaxErrorRetry = 20;
-        setField(awsConfig, "clientProtocol", clientProtocol);
-        setField(awsConfig, "clientConnectionTimeout", clientConnectionTimeout);
-        setField(awsConfig, "clientMaxErrorRetry", clientMaxErrorRetry);
-        
-        // Setup client proxy
-        String clientProxyHost = "clientProxyHost";
-        Integer clientProxyPort = 1;
-        setField(awsConfig, "clientProxyHost", clientProxyHost);
-        setField(awsConfig, "clientProxyPort", clientProxyPort);
-        
-        // Setup HTTP proxy
-        String httpProxyHost = "httpProxyHost";
-        Integer httpProxyPort = 2;
-        ProxyDetails proxyDetails = new ProxyDetails();
-        proxyDetails.setHost(httpProxyHost);
-        proxyDetails.setPort(httpProxyPort);
-        
-        // Use client proxy
-        setField(awsConfig, "useProxy", true);
-        ClientConfiguration clientConfiguration = awsConfig.awsClientConfig(proxyDetails);
-        
-        assertThat(clientConfiguration.getProxyHost(), equalTo(clientProxyHost));
-        assertThat(clientConfiguration.getProxyPort(), equalTo(clientProxyPort));
-        assertThat(clientConfiguration.getProtocol().toString(), equalTo(clientProtocol));
-        assertThat(clientConfiguration.getConnectionTimeout(), equalTo(clientConnectionTimeout));
-        assertThat(clientConfiguration.getMaxErrorRetry(), equalTo(clientMaxErrorRetry));
-        
-        // Use HTTP proxy
-        setField(awsConfig, "useProxy", false);
-        clientConfiguration = awsConfig.awsClientConfig(proxyDetails);
-        
-        assertThat(clientConfiguration.getProxyHost(), equalTo(httpProxyHost));
-        assertThat(clientConfiguration.getProxyPort(), equalTo(httpProxyPort));
-        assertThat(clientConfiguration.getProtocol().toString(), equalTo(clientProtocol));
-        assertThat(clientConfiguration.getConnectionTimeout(), equalTo(clientConnectionTimeout));
-        assertThat(clientConfiguration.getMaxErrorRetry(), equalTo(clientMaxErrorRetry));
-    }
-    
-    @Test
-    public void testAwsCredentialsProvider() {
-        AWSCredentialsProvider awsCredentialsProvider = awsConfig.awsCredentialsProvider();
-        
-        assertThat(awsCredentialsProvider, notNullValue());
-    }
+    int clientConnectionTimeout = 10;
+    int clientMaxErrorRetry = 20;
+    setField(awsConfig, "clientConnectionTimeout", clientConnectionTimeout);
+    setField(awsConfig, "clientMaxErrorRetry", clientMaxErrorRetry);
+
+    setField(awsConfig, "useProxy", false);
+    ProxyConfiguration proxyConfig = awsConfig.proxyConfiguration(proxyDetails);
+    Apache5HttpClient.Builder httpClientBuilder = mock(Apache5HttpClient.Builder.class);
+    awsConfig.configureHttpClient(httpClientBuilder, proxyDetails);
+
+    assertThat(proxyConfig, nullValue());
+    verify(httpClientBuilder, never()).proxyConfiguration(any(ProxyConfiguration.class));
+    verify(httpClientBuilder).connectionTimeout(Duration.ofMillis(clientConnectionTimeout));
+    verify(httpClientBuilder).socketTimeout(Duration.ofSeconds(50));
+
+    ClientOverrideConfiguration overrideConfig = awsConfig.clientOverrideConfiguration();
+    assertThat(overrideConfig.retryStrategy().isPresent(), equalTo(true));
+    assertThat(
+        overrideConfig.retryStrategy().get().maxAttempts(), equalTo(clientMaxErrorRetry + 1));
+  }
+
+  @Test
+  void testAwsClientConfig_noProxy() {
+    int clientConnectionTimeout = 10;
+    int clientMaxErrorRetry = 20;
+    setField(awsConfig, "clientConnectionTimeout", clientConnectionTimeout);
+    setField(awsConfig, "clientMaxErrorRetry", clientMaxErrorRetry);
+
+    setField(awsConfig, "useProxy", false);
+    ProxyConfiguration proxyConfig = awsConfig.proxyConfiguration(null);
+    Apache5HttpClient.Builder httpClientBuilder = mock(Apache5HttpClient.Builder.class);
+    awsConfig.configureHttpClient(httpClientBuilder, null);
+
+    assertThat(proxyConfig, nullValue());
+    verify(httpClientBuilder, never()).proxyConfiguration(any(ProxyConfiguration.class));
+    verify(httpClientBuilder).connectionTimeout(Duration.ofMillis(clientConnectionTimeout));
+    verify(httpClientBuilder).socketTimeout(Duration.ofSeconds(50));
+
+    ClientOverrideConfiguration overrideConfig = awsConfig.clientOverrideConfiguration();
+    assertThat(overrideConfig.retryStrategy().isPresent(), equalTo(true));
+    assertThat(
+        overrideConfig.retryStrategy().get().maxAttempts(), equalTo(clientMaxErrorRetry + 1));
+  }
+
+  @Test
+  void testAwsClientConfig_useProxy() {
+    int clientConnectionTimeout = 10;
+    int clientMaxErrorRetry = 20;
+    setField(awsConfig, "clientConnectionTimeout", clientConnectionTimeout);
+    setField(awsConfig, "clientMaxErrorRetry", clientMaxErrorRetry);
+
+    // Setup client proxy
+    String clientProxyHost = "clientProxyHost";
+    Integer clientProxyPort = 1;
+    setField(awsConfig, "clientProxyHost", clientProxyHost);
+    setField(awsConfig, "clientProxyPort", clientProxyPort);
+
+    // Setup HTTP proxy
+    String httpProxyHost = "httpProxyHost";
+    Integer httpProxyPort = 2;
+    ProxyDetails proxyDetails = new ProxyDetails();
+    proxyDetails.setHost(httpProxyHost);
+    proxyDetails.setPort(httpProxyPort);
+
+    // 1. Assert Client Proxy branch
+    setField(awsConfig, "useProxy", true);
+    ProxyConfiguration proxyConfig = awsConfig.proxyConfiguration(proxyDetails);
+    Apache5HttpClient.Builder httpClientBuilder = mock(Apache5HttpClient.Builder.class);
+    awsConfig.configureHttpClient(httpClientBuilder, proxyDetails);
+
+    assertThat(proxyConfig, notNullValue());
+    assertThat(proxyConfig.host(), equalTo(clientProxyHost));
+    assertThat(proxyConfig.port(), equalTo(clientProxyPort));
+    assertThat(proxyConfig.scheme(), equalTo("http"));
+    assertThat(configuredProxy(httpClientBuilder).host(), equalTo(proxyConfig.host()));
+    assertThat(configuredProxy(httpClientBuilder).port(), equalTo(proxyConfig.port()));
+    assertThat(configuredProxy(httpClientBuilder).scheme(), equalTo("http"));
+    verify(httpClientBuilder).connectionTimeout(Duration.ofMillis(clientConnectionTimeout));
+    verify(httpClientBuilder).socketTimeout(Duration.ofSeconds(50));
+
+    ClientOverrideConfiguration overrideConfig = awsConfig.clientOverrideConfiguration();
+    assertThat(overrideConfig.retryStrategy().isPresent(), equalTo(true));
+    assertThat(
+        overrideConfig.retryStrategy().get().maxAttempts(), equalTo(clientMaxErrorRetry + 1));
+
+    // 2. Assert HTTP Proxy branch
+    setField(awsConfig, "useProxy", false);
+    proxyConfig = awsConfig.proxyConfiguration(proxyDetails);
+    overrideConfig = awsConfig.clientOverrideConfiguration();
+    httpClientBuilder = mock(Apache5HttpClient.Builder.class);
+    awsConfig.configureHttpClient(httpClientBuilder, proxyDetails);
+
+    assertThat(proxyConfig, notNullValue());
+    assertThat(proxyConfig.host(), equalTo(httpProxyHost));
+    assertThat(proxyConfig.port(), equalTo(httpProxyPort));
+    assertThat(proxyConfig.scheme(), equalTo("http"));
+    assertThat(configuredProxy(httpClientBuilder).host(), equalTo(proxyConfig.host()));
+    assertThat(configuredProxy(httpClientBuilder).port(), equalTo(proxyConfig.port()));
+    assertThat(configuredProxy(httpClientBuilder).scheme(), equalTo("http"));
+    verify(httpClientBuilder).connectionTimeout(Duration.ofMillis(clientConnectionTimeout));
+    verify(httpClientBuilder).socketTimeout(Duration.ofSeconds(50));
+    assertThat(overrideConfig.retryStrategy().isPresent(), equalTo(true));
+    assertThat(
+        overrideConfig.retryStrategy().get().maxAttempts(), equalTo(clientMaxErrorRetry + 1));
+  }
+
+  @Test
+  void testAwsCredentialsProvider() {
+    AwsCredentialsProvider awsCredentialsProvider = awsConfig.awsCredentialsProvider();
+
+    assertThat(awsCredentialsProvider, instanceOf(InstanceProfileCredentialsProvider.class));
+  }
+
+  /** ProxyConfiguration has no equals(), so capture what the HTTP client builder received. */
+  private static ProxyConfiguration configuredProxy(Apache5HttpClient.Builder httpClientBuilder) {
+    ArgumentCaptor<ProxyConfiguration> captor = ArgumentCaptor.forClass(ProxyConfiguration.class);
+    verify(httpClientBuilder).proxyConfiguration(captor.capture());
+    return captor.getValue();
+  }
 }

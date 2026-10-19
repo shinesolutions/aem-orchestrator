@@ -2,77 +2,74 @@ package com.shinesolutions.aemorchestrator.actions;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
-import static org.mockito.Matchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import com.shinesolutions.aemorchestrator.service.AemInstanceHelperService;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.shinesolutions.aemorchestrator.service.AemInstanceHelperService;
+@ExtendWith(MockitoExtension.class)
+class ScaleUpPublishDispatcherActionTest {
 
-@RunWith(MockitoJUnitRunner.class)
-public class ScaleUpPublishDispatcherActionTest {
+  @Mock private AemInstanceHelperService aemHelperService;
 
-    @Mock
-    private AemInstanceHelperService aemHelperService;
+  @InjectMocks private ScaleUpPublishDispatcherAction action;
 
-    @InjectMocks
-    private ScaleUpPublishDispatcherAction action;
+  private String instanceId;
 
-    private String instanceId;
+  @BeforeEach
+  void setUp() throws Exception {
+    instanceId = "i-4398603686";
+  }
 
-    @Before
-    public void setUp() throws Exception {
-        instanceId = "i-4398603686";
+  @Test
+  void testSameDesiredCapacity() {
+    when(aemHelperService.getAutoScalingGroupDesiredCapacityForPublishDispatcher()).thenReturn(2);
+    when(aemHelperService.getAutoScalingGroupDesiredCapacityForPublish()).thenReturn(2);
 
-    }
+    boolean success = action.execute(instanceId);
 
-    @Test
-    public void testSameDesiredCapacity() {
-        when(aemHelperService.getAutoScalingGroupDesiredCapacityForPublishDispatcher()).thenReturn(2);
-        when(aemHelperService.getAutoScalingGroupDesiredCapacityForPublish()).thenReturn(2);
+    verify(aemHelperService, times(0)).setAutoScalingGroupDesiredCapacityForPublish(anyInt());
 
-        boolean success = action.execute(instanceId);
+    assertThat(success, equalTo(true));
+  }
 
-        verify(aemHelperService, times(0)).setAutoScalingGroupDesiredCapacityForPublish(anyInt());
+  @Test
+  void testHigherDesiredCapacity() {
+    int dispatcherDesiredCapcity = 4;
+    when(aemHelperService.getAutoScalingGroupDesiredCapacityForPublishDispatcher())
+        .thenReturn(dispatcherDesiredCapcity);
+    when(aemHelperService.getAutoScalingGroupDesiredCapacityForPublish())
+        .thenReturn(dispatcherDesiredCapcity + 1);
 
-        assertThat(success, equalTo(true));
-    }
+    boolean success = action.execute(instanceId);
 
-    @Test
-    public void testHigherDesiredCapacity() {
-        int dispatcherDesiredCapcity = 4;
-        when(aemHelperService.getAutoScalingGroupDesiredCapacityForPublishDispatcher()).thenReturn(
-            dispatcherDesiredCapcity);
-        when(aemHelperService.getAutoScalingGroupDesiredCapacityForPublish()).thenReturn(
-            dispatcherDesiredCapcity + 1);
+    verify(aemHelperService, times(1))
+        .setAutoScalingGroupDesiredCapacityForPublish(dispatcherDesiredCapcity);
 
-        boolean success = action.execute(instanceId);
+    assertThat(success, equalTo(true));
+  }
 
-        verify(aemHelperService, times(1)).setAutoScalingGroupDesiredCapacityForPublish(dispatcherDesiredCapcity);
+  @Test
+  void testLowerDesiredCapacity() {
+    int dispatcherDesiredCapcity = 3;
+    when(aemHelperService.getAutoScalingGroupDesiredCapacityForPublishDispatcher())
+        .thenReturn(dispatcherDesiredCapcity);
+    when(aemHelperService.getAutoScalingGroupDesiredCapacityForPublish())
+        .thenReturn(dispatcherDesiredCapcity - 1);
 
-        assertThat(success, equalTo(true));
-    }
+    boolean success = action.execute(instanceId);
 
-    @Test
-    public void testLowerDesiredCapacity() {
-        int dispatcherDesiredCapcity = 3;
-        when(aemHelperService.getAutoScalingGroupDesiredCapacityForPublishDispatcher()).thenReturn(
-            dispatcherDesiredCapcity);
-        when(aemHelperService.getAutoScalingGroupDesiredCapacityForPublish()).thenReturn(
-            dispatcherDesiredCapcity - 1);
+    verify(aemHelperService, times(1))
+        .setAutoScalingGroupDesiredCapacityForPublish(dispatcherDesiredCapcity);
 
-        boolean success = action.execute(instanceId);
-
-        verify(aemHelperService, times(1)).setAutoScalingGroupDesiredCapacityForPublish(dispatcherDesiredCapcity);
-
-        assertThat(success, equalTo(true));
-    }
-
+    assertThat(success, equalTo(true));
+  }
 }

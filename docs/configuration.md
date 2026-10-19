@@ -15,63 +15,74 @@ aws.sqs.queueName = example-aem-asg-event-queue
 ```
 The [aem-aws-stack-builder](https://github.com/shinesolutions/aem-aws-stack-builder) will generate these names for you, they just need to be added to this Orchestrator application.properties file.
 
-If one of these required properties is not defined in the application.properties file, then you will see an error in the *orchestrator.log* file when the Orchestrator is started. Here is an example:
+The preview publish stack names (`aws.cloudformation.stackName.previewPublish*`) are optional; leave them empty if the stack has no preview publish tier.
 
-```
-ERROR o.s.boot.SpringApplication - Application startup failed
-...
-Caused by: org.springframework.beans.InvalidPropertyException: Invalid property 'aws.sqs.queueName' of bean class [com.shinesolutions.aemorchestrator.model.EnvironmentValues]: Queue name cannot be empty or null
-```
+If one of the required properties is not defined in the application.properties file, the Orchestrator fails at start up and the cause is shown in the *orchestrator.log* file.
 
 ## List of Properties
 Here is a complete list of all configurable properties:
 
-| Property Name                                                 | Default Value                         | Example Value                        |
-|---------------------------------------------------------------|---------------------------------------|--------------------------------------|
-| aws.region                                                    |                                       | ap-southeast-2                       |
-| aws.sqs.queueName                                             |                                       | example-aem-asg-event-queue          |
-| aws.cloudformation.stackName.messaging                        |                                       | example-aem-messaging-stack          |
-| aws.cloudformation.stackName.publishDispatcher                |                                       | example-aem-publish-dispatcher-stack |
-| aws.cloudformation.stackName.publish                          |                                       | example-aem-publish-stack            |
-| aws.cloudformation.stackName.authorDispatcher                 |                                       | example-aem-author-dispatcher-stack  |
-| aws.cloudformation.stackName.author                           |                                       | example-aem-author-stack             |
-| aws.cloudformation.autoScaleGroup.logicalId.publishDispatcher | PublishDispatcherAutoScalingGroup     |                                      |
-| aws.cloudformation.autoScaleGroup.logicalId.publish           | PublishAutoScalingGroup               |                                      |
-| aws.cloudformation.autoScaleGroup.logicalId.authorDispatcher  | AuthorDispatcherAutoScalingGroup      |                                      |
-| aws.cloudformation.loadBalancer.logicalId.author              | AuthorLoadBalancer                    |                                      |
-| aws.cloudformation.sns.logicalId.eventTopic                   | AEMASGEventTopic                      |                                      |
-| aws.client.connection.timeout                                 | 30000                                 |                                      |
-| aws.client.max.errorRetry                                     | 10                                    |                                      |
-| aws.client.useProxy                                           | false                                 | true                                 |
-| aws.client.proxy.host                                         |                                       | yourdomain.proxy.com                 |
-| aws.client.proxy.port                                         |                                       | 8080                                 |
-| aws.client.protocol                                           | https                                 |                                      |
-| aws.snapshot.tags                                             | Component,StackPrefix                 |                                      |
-| aws.device.name                                               | /dev/sdb                              |                                      |
-| aem.credentials.s3.use                                        | false                                 | true                                 |
-| aem.credentials.s3.file.uri                                   |                                       | s3://bucket/file.ext                 |
-| aem.credentials.replicator.username                           | admin                                 |                                      |
-| aem.credentials.replicator.password                           | admin                                 |                                      |
-| aem.credentials.orchestrator.username                         | admin                                 |                                      |
-| aem.credentials.orchestrator.password                         | admin                                 |                                      |
-| aem.protocol.publishDispatcher                                | http                                  |                                      |
-| aem.protocol.publish                                          | http                                  |                                      |
-| aem.protocol.authorDispatcher                                 | http                                  |                                      |
-| aem.protocol.author                                           | http                                  |                                      |
-| aem.port.publishDispatcher                                    | 80                                    |                                      |
-| aem.port.publish                                              | 4503                                  |                                      |
-| aem.port.authorDispatcher                                     | 80                                    |                                      |
-| aem.port.author                                               | 80                                    |                                      |
-| aem.client.api.debug                                          | false                                 |                                      |
-| aem.client.api.connection.timeout                             | 30000                                 |                                      |
-| aem.reverseReplication.enable                                 | false                                 |                                      |
-| aem.reverseReplication.transportUri.postfix                   | /bin/receive?sling:authRequestLogin=1 |                                      |
-| aem.relaxed.ssl.enable                                        | true                                  | false                                |
-| endpoints.health.enabled                                      | true                                  | false                                |
-| endpoints.info.enabled                                        | true                                  | false                                |
-| startup.waitForAuthorElb.maxAttempts                          | 100                                   |                                      |
-| startup.waitForAuthorElb.backOffPeriod                        | 5000                                  |                                      |
-| http.client.relaxed.ssl.enable                                | true                                  | false                                |
+| Property Name                                                        | Default Value                            | Example Value                                |
+|----------------------------------------------------------------------|------------------------------------------|----------------------------------------------|
+| aws.region                                                           |                                          | ap-southeast-2                               |
+| aws.sqs.queueName                                                    |                                          | example-aem-asg-event-queue                  |
+| aws.cloudformation.stackName.messaging                               |                                          | example-aem-messaging-stack                  |
+| aws.cloudformation.stackName.publishDispatcher                       |                                          | example-aem-publish-dispatcher-stack         |
+| aws.cloudformation.stackName.publish                                 |                                          | example-aem-publish-stack                    |
+| aws.cloudformation.stackName.previewPublishDispatcher                |                                          | example-aem-preview-publish-dispatcher-stack |
+| aws.cloudformation.stackName.previewPublish                          |                                          | example-aem-preview-publish-stack            |
+| aws.cloudformation.stackName.authorDispatcher                        |                                          | example-aem-author-dispatcher-stack          |
+| aws.cloudformation.stackName.author                                  |                                          | example-aem-author-stack                     |
+| aws.cloudformation.autoScaleGroup.logicalId.publishDispatcher        | PublishDispatcherAutoScalingGroup        |                                              |
+| aws.cloudformation.autoScaleGroup.logicalId.publish                  | PublishAutoScalingGroup                  |                                              |
+| aws.cloudformation.autoScaleGroup.logicalId.previewPublishDispatcher | PreviewPublishDispatcherAutoScalingGroup |                                              |
+| aws.cloudformation.autoScaleGroup.logicalId.previewPublish           | PreviewPublishAutoScalingGroup           |                                              |
+| aws.cloudformation.autoScaleGroup.logicalId.authorDispatcher         | AuthorDispatcherAutoScalingGroup         |                                              |
+| aws.cloudformation.loadBalancer.logicalId.author                     | AuthorLoadBalancer                       |                                              |
+| aws.cloudformation.sns.logicalId.eventTopic                          | AEMASGEventTopic                         |                                              |
+| aws.client.connection.timeout                                        | 30000                                    |                                              |
+| aws.client.max.errorRetry                                            | 10                                       |                                              |
+| aws.client.useProxy                                                  | false                                    | true                                         |
+| aws.client.proxy.host                                                |                                          | yourdomain.proxy.com                         |
+| aws.client.proxy.port                                                |                                          | 8080                                         |
+| aws.client.protocol                                                  | https                                    | (no effect)                                  |
+| aws.snapshot.tags                                                    | Component,StackPrefix                    |                                              |
+| aws.device.name                                                      | /dev/sdb                                 |                                              |
+| aem.credentials.s3.use                                               | false                                    | true                                         |
+| aem.credentials.s3.file.uri                                          |                                          | s3://bucket/file.ext                         |
+| aem.credentials.replicator.username                                  | overwrite-me                             |                                              |
+| aem.credentials.replicator.password                                  | overwrite-me                             |                                              |
+| aem.credentials.orchestrator.username                                | overwrite-me                             |                                              |
+| aem.credentials.orchestrator.password                                | overwrite-me                             |                                              |
+| aem.protocol.publishDispatcher                                       | https                                    |                                              |
+| aem.protocol.publish                                                 | https                                    |                                              |
+| aem.protocol.previewPublishDispatcher                                | https                                    |                                              |
+| aem.protocol.previewPublish                                          | https                                    |                                              |
+| aem.protocol.authorDispatcher                                        | http                                     |                                              |
+| aem.protocol.author                                                  | https                                    |                                              |
+| aem.port.publishDispatcher                                           | 443                                      |                                              |
+| aem.port.publish                                                     | 5433                                     |                                              |
+| aem.port.previewPublishDispatcher                                    | 443                                      |                                              |
+| aem.port.previewPublish                                              | 5433                                     |                                              |
+| aem.port.authorDispatcher                                            | 443                                      |                                              |
+| aem.port.author                                                      | 443                                      |                                              |
+| aem.client.api.verifyssl                                             | false                                    | true                                         |
+| aem.client.api.debug                                                 | false                                    |                                              |
+| aem.client.api.connection.timeout                                    | 30000                                    |                                              |
+| aem.reverseReplication.enable                                        | false                                    |                                              |
+| aem.reverseReplication.transportUri.postfix                          | /bin/receive?sling:authRequestLogin=1    |                                              |
+| aem.flush.logLevel                                                   | info                                     |                                              |
+| aem.replication.logLevel                                             | info                                     |                                              |
+| aem.reverseReplication.logLevel                                      | error                                    |                                              |
+| aem.relaxed.ssl.enable                                               | true                                     | false                                        |
+| management.endpoints.web.exposure.include                            | health,info                              | health                                       |
+| startup.waitForAuthorElb.maxAttempts                                 | 150                                      |                                              |
+| startup.waitForAuthorElb.backOffPeriod                               | 5000                                     |                                              |
+| startup.waitForAuthorElb.maxBackOffPeriod                            | 160000                                   |                                              |
+| startup.waitForAuthorElb.backOffPeriodMultiplier                     | 2                                        |                                              |
+| http.client.relaxed.ssl.enable                                       | true                                     | false                                        |
+| alarm.content.health.check.terminate.instance.enable                 | false                                    | true                                         |
+
 You can also view the base [application.properties](src/main/resources/application.properties) file.
 
 ## Additional Details
@@ -114,7 +125,7 @@ If the Orchestrator sits behind a proxy, then set this to **true**
 If the proxy is enabled (aws.client.useProxy=true), then these properties will define the host and port for the proxy
 
 #### aws.client.protocol
-By default the AWS client uses **https**, but this can be set to **http** if needed
+No longer has an effect. AWS SDK for Java v2 always calls AWS over **https**, and the proxy is always reached over **http**
 
 #### aws.snapshot.tags	
 This is a comma delimetered list of AWS tag names that are transferred from instance to the snapshot when the snapshot is taken. For example if the instance has 10 tags, and you want the *Name* and *StackPrefix* tags to be applied to the snapshot, then add them to this property e.g.:
@@ -155,10 +166,13 @@ The Orchestrator has two roles. Below is a table outlining what actions each rol
 The AEM credentials (username/password) for the _**replicator**_ and _**orchestrator**_ roles. See table above for details
 
 #### aem.protocol.\*
-The protocol to use when performing AEM actions at each tier (Author, Author Dispatcher, Publish, Publish Dispatcher). Will be **http** or **https**.
+The protocol to use when performing AEM actions at each tier (Author, Author Dispatcher, Publish, Publish Dispatcher, Preview Publish, Preview Publish Dispatcher). Will be **http** or **https**.
 
 #### aem.port.\*
-The port to use when connecting to AEM at each tier (Author, Author Dispatcher, Publish, Publish Dispatcher).
+The port to use when connecting to AEM at each tier (Author, Author Dispatcher, Publish, Publish Dispatcher, Preview Publish, Preview Publish Dispatcher).
+
+#### aem.client.api.verifyssl
+If set to true, the Orchestrator verifies the SSL certificates of AEM for all AEM http calls via the [swagger-aem-4j](https://github.com/shinesolutions/swagger-aem/tree/master/java) API.
 
 #### aem.client.api.debug
 If set to true, the Orchestrator will output debug information for all AEM http calls via the [swagger-aem-4j](https://github.com/shinesolutions/swagger-aem/tree/master/java) API.
@@ -186,35 +200,40 @@ Here is an example of a Publish URL:
 http://localhost:4503
 ```
 
+#### aem.flush.logLevel, aem.replication.logLevel, aem.reverseReplication.logLevel
+The log level set on the Flush, Replication and Reverse Replication Agents the Orchestrator creates.
+
 #### aem.relaxed.ssl.enable
 Enable if you want self-certified SSL certificates to be accepted by AEM when setting up replication agents. 
 
 
 ### Orchestrator Properties
 
-#### endpoints.health.enabled
-The Orchestrator has a very basic JSON formatted health check page, which can be accessed via:
+#### management.endpoints.web.exposure.include
+The Orchestrator has a very basic JSON formatted health check page and info page, which can be accessed via:
 
 ```
-http://<orchestrator domain>:8080/health
+http://<orchestrator domain>:8080/actuator/health
+http://<orchestrator domain>:8080/actuator/info
 ```
-By default the health check page is enabled, but this can be turned off by setting this property to **false**
+The info page generally contains information about environment properties loaded at startup. Can be useful for debugging.
 
-#### endpoints.info.enabled
-The Orchestrator has a very basic JSON formatted info page, which can be accessed via:
-
-```
-http://<orchestrator domain>:8080/info
-```
-It generally contains information about environment properties loaded at startup. Can be useful for debugging.
+By default both pages are exposed. To expose only the health check page, set this property to **health**.
 
 #### startup.waitForAuthorElb.maxAttempts
 Before the Orchestrator starts receiving messages on the SQS queue, it first waits for the Author Elastic Load Balancer (ELB) to be in a healthy state. This helps to avoid continuous errors in the logs at start up. This property defines the max attempts to check the Author ELB is healthy before terminating the Orchestrator.
 
 #### startup.waitForAuthorElb.backOffPeriod
-Same as above, but defines how long to wait in seconds between checking the Author ELB is in a healthy state.
+Same as above, but defines how long to wait in milliseconds before checking the Author ELB again after the first check.
+
+#### startup.waitForAuthorElb.backOffPeriodMultiplier
+The wait between checks is multiplied by this value after each check, so the checks back off exponentially.
+
+#### startup.waitForAuthorElb.maxBackOffPeriod
+The longest wait in milliseconds between checks, however many checks have been made.
 
 #### http.client.relaxed.ssl.enable
 When Orchestrator performs health checks to AEM instances (via https) it will ignore host name verification if this is enabled.
 
-
+#### alarm.content.health.check.terminate.instance.enable
+If set to true, the Orchestrator terminates the Publish instance when the [content health check alarm](alarms.md) triggers. Otherwise the unhealthy instance is only logged as an error.

@@ -8,320 +8,385 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.util.ReflectionTestUtils.setField;
 
-import java.util.NoSuchElementException;
-
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
-
 import com.shinesolutions.aemorchestrator.aem.AgentRunMode;
 import com.shinesolutions.aemorchestrator.aem.ReplicationAgentManager;
 import com.shinesolutions.aemorchestrator.exception.InstanceNotInHealthyStateException;
 import com.shinesolutions.aemorchestrator.service.AemInstanceHelperService;
 import com.shinesolutions.aemorchestrator.service.AwsHelperService;
 import com.shinesolutions.swaggeraem4j.ApiException;
+import java.util.NoSuchElementException;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+@ExtendWith(MockitoExtension.class)
+class ScaleUpPreviewPublishActionTest {
+
+  @Mock private AemInstanceHelperService aemHelperService;
+
+  @Mock private AwsHelperService awsHelperService;
+
+  @Mock private ReplicationAgentManager replicationAgentManager;
+
+  @InjectMocks private ScaleUpPreviewPublishAction action;
+
+  private String awsDeviceName;
+  private String instanceId;
+  private String authorAemBaseUrl;
+  private String previewPublishAemBaseUrl;
+  private String activePreviewPublishId;
+  private String volumeId;
+  private String snapshotId;
+  private String unpairedDispatcherId;
+
+  @BeforeEach
+  void setUp() throws Exception {
+    instanceId = "i-0347568433";
+    awsDeviceName = "testDeviceName";
+    authorAemBaseUrl = "testAuthorAemBaseUrl";
+    previewPublishAemBaseUrl = "testPreviewPublishAemBaseUrl";
+    activePreviewPublishId = "testActivePreviewPublishId";
+    volumeId = "testVolumeId";
+    snapshotId = "testSnapshotId";
+    unpairedDispatcherId = "testUnpairedDispatcherId";
+
+    setField(action, "awsDeviceName", awsDeviceName);
+
+    when(aemHelperService.getAemUrlForAuthorElb()).thenReturn(authorAemBaseUrl);
+    when(aemHelperService.getAemUrlForPreviewPublish(instanceId))
+        .thenReturn(previewPublishAemBaseUrl);
+    when(aemHelperService.findUnpairedPreviewPublishDispatcher(instanceId))
+        .thenReturn(unpairedDispatcherId);
+  }
+
+  @Test
+  void testExecuteSuccess() throws Exception {
+    givenActivePreviewPublishToSnapshotFrom();
+    givenActivePreviewPublishVolumeIsSnapshotted();
+
+    boolean result = action.execute(instanceId);
+    assertThat(result, equalTo(true));
+
+    // Check replication agents
+    verify(aemHelperService, times(1))
+        .pairPreviewPublishWithDispatcher(instanceId, unpairedDispatcherId);
+
+    verify(replicationAgentManager, times(1))
+        .createPreviewReplicationAgent(
+            instanceId, previewPublishAemBaseUrl, authorAemBaseUrl, AgentRunMode.PREVIEWPUBLISH);
+
+    verify(replicationAgentManager, times(0))
+        .createPreviewReverseReplicationAgent(
+            instanceId, previewPublishAemBaseUrl, authorAemBaseUrl, AgentRunMode.PREVIEWPUBLISH);
+
+    verify(replicationAgentManager, times(1))
+        .pausePreviewReplicationAgent(
+            activePreviewPublishId, authorAemBaseUrl, AgentRunMode.PREVIEWPUBLISH);
+
+    verify(aemHelperService, times(1)).tagInstanceWithSnapshotId(instanceId, snapshotId);
+
+    verify(replicationAgentManager, times(1))
+        .resumePreviewReplicationAgent(
+            activePreviewPublishId, authorAemBaseUrl, AgentRunMode.PREVIEWPUBLISH);
+  }
+
+  @Test
+  void testExecuteReverseReplicationSuccess() throws Exception {
+    givenActivePreviewPublishToSnapshotFrom();
+    givenActivePreviewPublishVolumeIsSnapshotted();
 
-@RunWith(MockitoJUnitRunner.class)
-public class ScaleUpPreviewPublishActionTest {
+    enableReverseReplication();
+
+    boolean result = action.execute(instanceId);
+    assertThat(result, equalTo(true));
 
-    @Mock
-    private AemInstanceHelperService aemHelperService;
+    verify(aemHelperService, times(1))
+        .pairPreviewPublishWithDispatcher(instanceId, unpairedDispatcherId);
 
-    @Mock
-    private AwsHelperService awsHelperService;
+    verify(replicationAgentManager, times(1))
+        .createPreviewReplicationAgent(
+            instanceId, previewPublishAemBaseUrl, authorAemBaseUrl, AgentRunMode.PREVIEWPUBLISH);
 
-    @Mock
-    private ReplicationAgentManager replicationAgentManager;
+    verify(replicationAgentManager, times(1))
+        .createPreviewReverseReplicationAgent(
+            instanceId, previewPublishAemBaseUrl, authorAemBaseUrl, AgentRunMode.PREVIEWPUBLISH);
 
-    @InjectMocks
-    private ScaleUpPreviewPublishAction action;
+    verify(replicationAgentManager, times(1))
+        .pausePreviewReplicationAgent(
+            activePreviewPublishId, authorAemBaseUrl, AgentRunMode.PREVIEWPUBLISH);
 
-    private String awsDeviceName;
-    private String instanceId;
-    private String authorAemBaseUrl;
-    private String PreviewPublishAemBaseUrl;
-    private String activePreviewPublishId;
-    private String volumeId;
-    private String snapshotId;
-    private String unpairedDispatcherId;
+    verify(aemHelperService, times(1)).tagInstanceWithSnapshotId(instanceId, snapshotId);
 
-    @Before
-    public void setUp() throws Exception {
-        instanceId = "i-0347568433";
-        awsDeviceName = "testDeviceName";
-        authorAemBaseUrl = "testAuthorAemBaseUrl";
-        PreviewPublishAemBaseUrl = "testPreviewPublishAemBaseUrl";
-        activePreviewPublishId = "testActivePreviewPublishId";
-        volumeId = "testVolumeId";
-        snapshotId = "testSnapshotId";
-        unpairedDispatcherId = "testUnpairedDispatcherId";
+    verify(replicationAgentManager, times(1))
+        .resumePreviewReplicationAgent(
+            activePreviewPublishId, authorAemBaseUrl, AgentRunMode.PREVIEWPUBLISH);
+  }
 
-        setField(action, "awsDeviceName", awsDeviceName);
+  @Test
+  void testExceptionWhenCreatingReplicationAgent() throws Exception {
+    doThrow(new ApiException("Test"))
+        .when(replicationAgentManager)
+        .createPreviewReplicationAgent(
+            instanceId, previewPublishAemBaseUrl, authorAemBaseUrl, AgentRunMode.PREVIEWPUBLISH);
 
-        when(aemHelperService.getAemUrlForAuthorElb()).thenReturn(authorAemBaseUrl);
-        when(aemHelperService.getAemUrlForPreviewPublish(instanceId)).thenReturn(PreviewPublishAemBaseUrl);
-        when(aemHelperService.getPreviewPublishIdToSnapshotFrom(instanceId)).thenReturn(activePreviewPublishId);
-        when(awsHelperService.getVolumeId(activePreviewPublishId, awsDeviceName)).thenReturn(volumeId);
-        when(aemHelperService.createPreviewPublishSnapshot(activePreviewPublishId, volumeId)).thenReturn(snapshotId);
-        when(aemHelperService.findUnpairedPreviewPublishDispatcher(instanceId)).thenReturn(unpairedDispatcherId);
-        when(aemHelperService.isFirstPreviewPublishInstance()).thenReturn(false);
-    }
+    boolean result = action.execute(instanceId);
+    assertThat(result, equalTo(false));
 
-    @Test
-    public void testExecuteSuccess() throws Exception {
-        boolean result = action.execute(instanceId);
+    verify(aemHelperService, times(1))
+        .pairPreviewPublishWithDispatcher(instanceId, unpairedDispatcherId);
 
-        // Check replication agents
-        verify(aemHelperService, times(1)).pairPreviewPublishWithDispatcher(instanceId, unpairedDispatcherId);
+    verify(replicationAgentManager, times(1))
+        .createPreviewReplicationAgent(
+            instanceId, previewPublishAemBaseUrl, authorAemBaseUrl, AgentRunMode.PREVIEWPUBLISH);
 
-        verify(replicationAgentManager, times(1)).createPreviewReplicationAgent(instanceId, PreviewPublishAemBaseUrl,
-            authorAemBaseUrl, AgentRunMode.PREVIEWPUBLISH);
+    verify(replicationAgentManager, times(0))
+        .pausePreviewReplicationAgent(
+            activePreviewPublishId, authorAemBaseUrl, AgentRunMode.PREVIEWPUBLISH);
 
-        verify(replicationAgentManager, times(0)).createPreviewReverseReplicationAgent(instanceId, PreviewPublishAemBaseUrl,
-            authorAemBaseUrl, AgentRunMode.PREVIEWPUBLISH);
+    verify(aemHelperService, times(0)).tagInstanceWithSnapshotId(instanceId, snapshotId);
 
-        verify(replicationAgentManager, times(1)).pausePreviewReplicationAgent(activePreviewPublishId, authorAemBaseUrl,
-            AgentRunMode.PREVIEWPUBLISH);
+    verify(replicationAgentManager, times(0))
+        .resumePreviewReplicationAgent(
+            activePreviewPublishId, authorAemBaseUrl, AgentRunMode.PREVIEWPUBLISH);
+  }
 
-        verify(aemHelperService, times(1)).tagInstanceWithSnapshotId(instanceId, snapshotId);
+  @Test
+  void testExceptionWhenCreatingReverseReplicationAgent() throws Exception {
+    enableReverseReplication();
 
-        verify(replicationAgentManager, times(1)).resumePreviewReplicationAgent(activePreviewPublishId, authorAemBaseUrl,
-            AgentRunMode.PREVIEWPUBLISH);
+    doThrow(new ApiException("Test"))
+        .when(replicationAgentManager)
+        .createPreviewReverseReplicationAgent(
+            instanceId, previewPublishAemBaseUrl, authorAemBaseUrl, AgentRunMode.PREVIEWPUBLISH);
 
-        assertThat(result, equalTo(true));
-    }
+    boolean result = action.execute(instanceId);
+    assertThat(result, equalTo(false));
 
-    @Test
-    public void testExecuteReverseReplicationSuccess() throws Exception {
-        enableReverseReplication();
+    verify(aemHelperService, times(1))
+        .pairPreviewPublishWithDispatcher(instanceId, unpairedDispatcherId);
 
-        boolean result = action.execute(instanceId);
+    verify(replicationAgentManager, times(1))
+        .createPreviewReplicationAgent(
+            instanceId, previewPublishAemBaseUrl, authorAemBaseUrl, AgentRunMode.PREVIEWPUBLISH);
 
-        verify(aemHelperService, times(1)).pairPreviewPublishWithDispatcher(instanceId, unpairedDispatcherId);
+    verify(replicationAgentManager, times(0))
+        .pausePreviewReplicationAgent(
+            activePreviewPublishId, authorAemBaseUrl, AgentRunMode.PREVIEWPUBLISH);
 
-        verify(replicationAgentManager, times(1)).createPreviewReplicationAgent(instanceId, PreviewPublishAemBaseUrl,
-            authorAemBaseUrl, AgentRunMode.PREVIEWPUBLISH);
+    verify(aemHelperService, times(0)).tagInstanceWithSnapshotId(instanceId, snapshotId);
 
-        verify(replicationAgentManager, times(1)).createPreviewReverseReplicationAgent(instanceId, PreviewPublishAemBaseUrl,
-            authorAemBaseUrl, AgentRunMode.PREVIEWPUBLISH);
+    verify(replicationAgentManager, times(0))
+        .resumePreviewReplicationAgent(
+            activePreviewPublishId, authorAemBaseUrl, AgentRunMode.PREVIEWPUBLISH);
+  }
 
-        verify(replicationAgentManager, times(1)).pausePreviewReplicationAgent(activePreviewPublishId, authorAemBaseUrl,
-            AgentRunMode.PREVIEWPUBLISH);
+  @Test
+  void testWhenIsFirstPreviewPublish() throws Exception {
+    when(aemHelperService.isFirstPreviewPublishInstance()).thenReturn(true);
 
-        verify(aemHelperService, times(1)).tagInstanceWithSnapshotId(instanceId, snapshotId);
+    boolean result = action.execute(instanceId);
+    assertThat(result, equalTo(true));
 
-        verify(replicationAgentManager, times(1)).resumePreviewReplicationAgent(activePreviewPublishId, authorAemBaseUrl,
-            AgentRunMode.PREVIEWPUBLISH);
+    verify(aemHelperService, times(1))
+        .pairPreviewPublishWithDispatcher(instanceId, unpairedDispatcherId);
 
-        assertThat(result, equalTo(true));
-    }
+    verify(replicationAgentManager, times(1))
+        .createPreviewReplicationAgent(
+            instanceId, previewPublishAemBaseUrl, authorAemBaseUrl, AgentRunMode.PREVIEWPUBLISH);
 
-    @Test
-    public void testExceptionWhenCreatingReplicationAgent() throws Exception {
-        doThrow(new ApiException("Test")).when(replicationAgentManager).createPreviewReplicationAgent(instanceId,
-            PreviewPublishAemBaseUrl, authorAemBaseUrl, AgentRunMode.PREVIEWPUBLISH);
+    verify(replicationAgentManager, times(0))
+        .pausePreviewReplicationAgent(
+            activePreviewPublishId, authorAemBaseUrl, AgentRunMode.PREVIEWPUBLISH);
 
-        boolean result = action.execute(instanceId);
+    verify(aemHelperService, times(1))
+        .tagInstanceWithSnapshotId(instanceId, ""); // Ensure is empty SnapshotId tag
 
-        verify(aemHelperService, times(1)).pairPreviewPublishWithDispatcher(instanceId, unpairedDispatcherId);
+    verify(replicationAgentManager, times(0))
+        .resumePreviewReplicationAgent(
+            activePreviewPublishId, authorAemBaseUrl, AgentRunMode.PREVIEWPUBLISH);
+  }
 
-        verify(replicationAgentManager, times(1)).createPreviewReplicationAgent(instanceId, PreviewPublishAemBaseUrl,
-            authorAemBaseUrl, AgentRunMode.PREVIEWPUBLISH);
+  @Test
+  void testCantFindHealthyActivePreviewPublisher() throws Exception {
+    givenActivePreviewPublishToSnapshotFrom();
 
-        verify(replicationAgentManager, times(0)).pausePreviewReplicationAgent(activePreviewPublishId, authorAemBaseUrl,
-            AgentRunMode.PREVIEWPUBLISH);
+    doThrow(new InstanceNotInHealthyStateException(""))
+        .when(aemHelperService)
+        .waitForPreviewPublishToBeHealthy(activePreviewPublishId);
 
-        verify(aemHelperService, times(0)).tagInstanceWithSnapshotId(instanceId, snapshotId);
+    boolean result = action.execute(instanceId);
+    assertThat(result, equalTo(false));
 
-        verify(replicationAgentManager, times(0)).resumePreviewReplicationAgent(activePreviewPublishId, authorAemBaseUrl,
-            AgentRunMode.PREVIEWPUBLISH);
+    verify(aemHelperService, times(1))
+        .pairPreviewPublishWithDispatcher(instanceId, unpairedDispatcherId);
 
-        assertThat(result, equalTo(false));
-    }
+    verify(replicationAgentManager, times(1))
+        .createPreviewReplicationAgent(
+            instanceId, previewPublishAemBaseUrl, authorAemBaseUrl, AgentRunMode.PREVIEWPUBLISH);
 
-    @Test
-    public void testExceptionWhenCreatingReverseReplicationAgent() throws Exception {
-        enableReverseReplication();
+    verify(replicationAgentManager, times(0))
+        .pausePreviewReplicationAgent(
+            activePreviewPublishId, authorAemBaseUrl, AgentRunMode.PREVIEWPUBLISH);
 
-        doThrow(new ApiException("Test")).when(replicationAgentManager).createPreviewReverseReplicationAgent(instanceId,
-            PreviewPublishAemBaseUrl, authorAemBaseUrl, AgentRunMode.PREVIEWPUBLISH);
+    verify(aemHelperService, times(0)).tagInstanceWithSnapshotId(instanceId, snapshotId);
 
-        boolean result = action.execute(instanceId);
+    verify(replicationAgentManager, times(0))
+        .resumePreviewReplicationAgent(
+            activePreviewPublishId, authorAemBaseUrl, AgentRunMode.PREVIEWPUBLISH);
+  }
 
-        verify(aemHelperService, times(1)).pairPreviewPublishWithDispatcher(instanceId, unpairedDispatcherId);
+  @Test
+  void testExceptionWhenPausingActiveReplicationAgent() throws Exception {
+    givenActivePreviewPublishToSnapshotFrom();
 
-        verify(replicationAgentManager, times(1)).createPreviewReplicationAgent(instanceId, PreviewPublishAemBaseUrl,
-            authorAemBaseUrl, AgentRunMode.PREVIEWPUBLISH);
+    doThrow(new ApiException("Test"))
+        .when(replicationAgentManager)
+        .pausePreviewReplicationAgent(
+            activePreviewPublishId, authorAemBaseUrl, AgentRunMode.PREVIEWPUBLISH);
 
-        verify(replicationAgentManager, times(0)).pausePreviewReplicationAgent(activePreviewPublishId, authorAemBaseUrl,
-            AgentRunMode.PREVIEWPUBLISH);
+    boolean result = action.execute(instanceId);
+    assertThat(result, equalTo(false));
 
-        verify(aemHelperService, times(0)).tagInstanceWithSnapshotId(instanceId, snapshotId);
+    verify(aemHelperService, times(1))
+        .pairPreviewPublishWithDispatcher(instanceId, unpairedDispatcherId);
 
-        verify(replicationAgentManager, times(0)).resumePreviewReplicationAgent(activePreviewPublishId, authorAemBaseUrl,
-            AgentRunMode.PREVIEWPUBLISH);
+    verify(replicationAgentManager, times(1))
+        .createPreviewReplicationAgent(
+            instanceId, previewPublishAemBaseUrl, authorAemBaseUrl, AgentRunMode.PREVIEWPUBLISH);
 
-        assertThat(result, equalTo(false));
-    }
+    verify(aemHelperService, times(0)).tagInstanceWithSnapshotId(instanceId, snapshotId);
 
-    @Test
-    public void testWhenIsFirstPreviewPublish() throws Exception {
-        when(aemHelperService.isFirstPreviewPublishInstance()).thenReturn(true);
+    verify(replicationAgentManager, times(1))
+        .resumePreviewReplicationAgent(
+            activePreviewPublishId, authorAemBaseUrl, AgentRunMode.PREVIEWPUBLISH);
+  }
 
-        boolean result = action.execute(instanceId);
+  @Test
+  void testWithNullVolumeId() throws Exception {
+    givenActivePreviewPublishToSnapshotFrom();
 
-        verify(aemHelperService, times(1)).pairPreviewPublishWithDispatcher(instanceId, unpairedDispatcherId);
+    when(awsHelperService.getVolumeId(activePreviewPublishId, awsDeviceName)).thenReturn(null);
 
-        verify(replicationAgentManager, times(1)).createPreviewReplicationAgent(instanceId, PreviewPublishAemBaseUrl,
-            authorAemBaseUrl, AgentRunMode.PREVIEWPUBLISH);
+    boolean result = action.execute(instanceId);
+    assertThat(result, equalTo(false));
 
-        verify(replicationAgentManager, times(0)).pausePreviewReplicationAgent(activePreviewPublishId, authorAemBaseUrl,
-            AgentRunMode.PREVIEWPUBLISH);
+    verify(aemHelperService, times(1))
+        .pairPreviewPublishWithDispatcher(instanceId, unpairedDispatcherId);
 
-        verify(aemHelperService, times(1)).tagInstanceWithSnapshotId(instanceId, ""); //Ensure is empty SnapshotId tag
+    verify(replicationAgentManager, times(1))
+        .createPreviewReplicationAgent(
+            instanceId, previewPublishAemBaseUrl, authorAemBaseUrl, AgentRunMode.PREVIEWPUBLISH);
 
-        verify(replicationAgentManager, times(0)).resumePreviewReplicationAgent(activePreviewPublishId, authorAemBaseUrl,
-            AgentRunMode.PREVIEWPUBLISH);
+    verify(replicationAgentManager, times(1))
+        .pausePreviewReplicationAgent(
+            activePreviewPublishId, authorAemBaseUrl, AgentRunMode.PREVIEWPUBLISH);
 
-        assertThat(result, equalTo(true));
-    }
+    verify(aemHelperService, times(0)).tagInstanceWithSnapshotId(instanceId, snapshotId);
 
-    @Test
-    public void testCantFindHealthyActivePreviewPublisher() throws Exception {
-        doThrow(new InstanceNotInHealthyStateException("")).when(aemHelperService).waitForPreviewPublishToBeHealthy(activePreviewPublishId);
+    verify(replicationAgentManager, times(1))
+        .resumePreviewReplicationAgent(
+            activePreviewPublishId, authorAemBaseUrl, AgentRunMode.PREVIEWPUBLISH);
+  }
 
-        boolean result = action.execute(instanceId);
+  @Test
+  void testFailedToResumeActivePreviewPublishReplicationAgent() throws Exception {
+    givenActivePreviewPublishToSnapshotFrom();
+    givenActivePreviewPublishVolumeIsSnapshotted();
 
-        verify(aemHelperService, times(1)).pairPreviewPublishWithDispatcher(instanceId, unpairedDispatcherId);
+    doThrow(new ApiException("Test"))
+        .when(replicationAgentManager)
+        .resumePreviewReplicationAgent(
+            activePreviewPublishId, authorAemBaseUrl, AgentRunMode.PREVIEWPUBLISH);
 
-        verify(replicationAgentManager, times(1)).createPreviewReplicationAgent(instanceId, PreviewPublishAemBaseUrl,
-            authorAemBaseUrl, AgentRunMode.PREVIEWPUBLISH);
+    boolean result = action.execute(instanceId);
+    assertThat(result, equalTo(true));
 
-        verify(replicationAgentManager, times(0)).pausePreviewReplicationAgent(activePreviewPublishId, authorAemBaseUrl,
-            AgentRunMode.PREVIEWPUBLISH);
+    verify(aemHelperService, times(1))
+        .pairPreviewPublishWithDispatcher(instanceId, unpairedDispatcherId);
 
-        verify(aemHelperService, times(0)).tagInstanceWithSnapshotId(instanceId, snapshotId);
+    verify(replicationAgentManager, times(1))
+        .createPreviewReplicationAgent(
+            instanceId, previewPublishAemBaseUrl, authorAemBaseUrl, AgentRunMode.PREVIEWPUBLISH);
 
-        verify(replicationAgentManager, times(0)).resumePreviewReplicationAgent(activePreviewPublishId, authorAemBaseUrl,
-            AgentRunMode.PREVIEWPUBLISH);
+    verify(replicationAgentManager, times(1))
+        .pausePreviewReplicationAgent(
+            activePreviewPublishId, authorAemBaseUrl, AgentRunMode.PREVIEWPUBLISH);
 
-        assertThat(result, equalTo(false));
-    }
+    verify(aemHelperService, times(1)).tagInstanceWithSnapshotId(instanceId, snapshotId);
 
-    @Test
-    public void testExceptionWhenPausingActiveReplicationAgent() throws Exception {
-        doThrow(new ApiException("Test")).when(replicationAgentManager).pausePreviewReplicationAgent(activePreviewPublishId,
-             authorAemBaseUrl, AgentRunMode.PREVIEWPUBLISH);
+    verify(replicationAgentManager, times(1))
+        .resumePreviewReplicationAgent(
+            activePreviewPublishId, authorAemBaseUrl, AgentRunMode.PREVIEWPUBLISH);
+  }
 
-        boolean result = action.execute(instanceId);
+  @Test
+  void testUnableToFindUnpairedDispatcher() throws Exception {
+    when(aemHelperService.findUnpairedPreviewPublishDispatcher(instanceId))
+        .thenThrow(new NoSuchElementException());
 
-        verify(aemHelperService, times(1)).pairPreviewPublishWithDispatcher(instanceId, unpairedDispatcherId);
+    boolean result = action.execute(instanceId);
+    assertThat(result, equalTo(false));
 
-        verify(replicationAgentManager, times(1)).createPreviewReplicationAgent(instanceId, PreviewPublishAemBaseUrl,
-            authorAemBaseUrl, AgentRunMode.PREVIEWPUBLISH);
+    verify(aemHelperService, times(0))
+        .pairPreviewPublishWithDispatcher(instanceId, unpairedDispatcherId);
 
-        verify(aemHelperService, times(0)).tagInstanceWithSnapshotId(instanceId, snapshotId);
+    verify(replicationAgentManager, times(0))
+        .createPreviewReplicationAgent(
+            instanceId, previewPublishAemBaseUrl, authorAemBaseUrl, AgentRunMode.PREVIEWPUBLISH);
 
-        verify(replicationAgentManager, times(1)).resumePreviewReplicationAgent(activePreviewPublishId, authorAemBaseUrl,
-            AgentRunMode.PREVIEWPUBLISH);
+    verify(replicationAgentManager, times(0))
+        .pausePreviewReplicationAgent(
+            activePreviewPublishId, authorAemBaseUrl, AgentRunMode.PREVIEWPUBLISH);
 
-        assertThat(result, equalTo(false));
-    }
+    verify(aemHelperService, times(0)).tagInstanceWithSnapshotId(instanceId, snapshotId);
 
-    @Test
-    public void testWithNullVolumeId() throws Exception {
-        when(awsHelperService.getVolumeId(activePreviewPublishId, awsDeviceName)).thenReturn(null);
+    verify(replicationAgentManager, times(0))
+        .resumePreviewReplicationAgent(
+            activePreviewPublishId, authorAemBaseUrl, AgentRunMode.PREVIEWPUBLISH);
+  }
 
-        boolean result = action.execute(instanceId);
+  @Test
+  void testUnablePairPreviewPublishWithDispatcher() throws Exception {
+    doThrow(new RuntimeException("Test"))
+        .when(aemHelperService)
+        .pairPreviewPublishWithDispatcher(instanceId, unpairedDispatcherId);
 
-        verify(aemHelperService, times(1)).pairPreviewPublishWithDispatcher(instanceId, unpairedDispatcherId);
+    boolean result = action.execute(instanceId);
+    assertThat(result, equalTo(false));
 
-        verify(replicationAgentManager, times(1)).createPreviewReplicationAgent(instanceId, PreviewPublishAemBaseUrl,
-            authorAemBaseUrl, AgentRunMode.PREVIEWPUBLISH);
+    verify(replicationAgentManager, times(0))
+        .createPreviewReplicationAgent(
+            instanceId, previewPublishAemBaseUrl, authorAemBaseUrl, AgentRunMode.PREVIEWPUBLISH);
 
-        verify(replicationAgentManager, times(1)).pausePreviewReplicationAgent(activePreviewPublishId, authorAemBaseUrl,
-            AgentRunMode.PREVIEWPUBLISH);
+    verify(replicationAgentManager, times(0))
+        .pausePreviewReplicationAgent(
+            activePreviewPublishId, authorAemBaseUrl, AgentRunMode.PREVIEWPUBLISH);
 
-        verify(aemHelperService, times(0)).tagInstanceWithSnapshotId(instanceId, snapshotId);
+    verify(aemHelperService, times(0)).tagInstanceWithSnapshotId(instanceId, snapshotId);
 
-        verify(replicationAgentManager, times(1)).resumePreviewReplicationAgent(activePreviewPublishId, authorAemBaseUrl,
-            AgentRunMode.PREVIEWPUBLISH);
+    verify(replicationAgentManager, times(0))
+        .resumePreviewReplicationAgent(
+            activePreviewPublishId, authorAemBaseUrl, AgentRunMode.PREVIEWPUBLISH);
+  }
 
-        assertThat(result, equalTo(false));
-    }
+  /** Not the first preview publish instance: an active one exists to snapshot from. */
+  private void givenActivePreviewPublishToSnapshotFrom() throws Exception {
+    when(aemHelperService.isFirstPreviewPublishInstance()).thenReturn(false);
+    when(aemHelperService.getPreviewPublishIdToSnapshotFrom(instanceId))
+        .thenReturn(activePreviewPublishId);
+  }
 
-    @Test
-    public void testFailedToResumeActivePreviewPublishReplicationAgent() throws Exception {
-        doThrow(new ApiException("Test")).when(replicationAgentManager).resumePreviewReplicationAgent(activePreviewPublishId,
-            authorAemBaseUrl, AgentRunMode.PREVIEWPUBLISH);
+  /** The active preview publish instance's data volume is found and snapshotted. */
+  private void givenActivePreviewPublishVolumeIsSnapshotted() {
+    when(awsHelperService.getVolumeId(activePreviewPublishId, awsDeviceName)).thenReturn(volumeId);
+    when(aemHelperService.createPreviewPublishSnapshot(activePreviewPublishId, volumeId))
+        .thenReturn(snapshotId);
+  }
 
-        boolean result = action.execute(instanceId);
-
-        verify(aemHelperService, times(1)).pairPreviewPublishWithDispatcher(instanceId, unpairedDispatcherId);
-
-        verify(replicationAgentManager, times(1)).createPreviewReplicationAgent(instanceId, PreviewPublishAemBaseUrl,
-            authorAemBaseUrl, AgentRunMode.PREVIEWPUBLISH);
-
-        verify(replicationAgentManager, times(1)).pausePreviewReplicationAgent(activePreviewPublishId, authorAemBaseUrl,
-            AgentRunMode.PREVIEWPUBLISH);
-
-        verify(aemHelperService, times(1)).tagInstanceWithSnapshotId(instanceId, snapshotId);
-
-        verify(replicationAgentManager, times(1)).resumePreviewReplicationAgent(activePreviewPublishId, authorAemBaseUrl,
-            AgentRunMode.PREVIEWPUBLISH);
-
-        assertThat(result, equalTo(true));
-    }
-
-    @Test
-    public void testUnableToFindUnpairedDispatcher() throws Exception {
-        when(aemHelperService.findUnpairedPreviewPublishDispatcher(instanceId)).thenThrow(new NoSuchElementException());
-
-        boolean result = action.execute(instanceId);
-
-        verify(aemHelperService, times(0)).pairPreviewPublishWithDispatcher(instanceId, unpairedDispatcherId);
-
-        verify(replicationAgentManager, times(0)).createPreviewReplicationAgent(instanceId, PreviewPublishAemBaseUrl,
-            authorAemBaseUrl, AgentRunMode.PREVIEWPUBLISH);
-
-        verify(replicationAgentManager, times(0)).pausePreviewReplicationAgent(activePreviewPublishId, authorAemBaseUrl,
-            AgentRunMode.PREVIEWPUBLISH);
-
-        verify(aemHelperService, times(0)).tagInstanceWithSnapshotId(instanceId, snapshotId);
-
-        verify(replicationAgentManager, times(0)).resumePreviewReplicationAgent(activePreviewPublishId, authorAemBaseUrl,
-            AgentRunMode.PREVIEWPUBLISH);
-
-        assertThat(result, equalTo(false));
-    }
-
-    @Test
-    public void testUnablePairPreviewPublishWithDispatcher() throws Exception {
-        doThrow(new RuntimeException("Test")).when(aemHelperService).pairPreviewPublishWithDispatcher(instanceId,
-            unpairedDispatcherId);
-
-        boolean result = action.execute(instanceId);
-
-        verify(replicationAgentManager, times(0)).createPreviewReplicationAgent(instanceId, PreviewPublishAemBaseUrl,
-            authorAemBaseUrl, AgentRunMode.PREVIEWPUBLISH);
-
-        verify(replicationAgentManager, times(0)).pausePreviewReplicationAgent(activePreviewPublishId, authorAemBaseUrl,
-            AgentRunMode.PREVIEWPUBLISH);
-
-        verify(aemHelperService, times(0)).tagInstanceWithSnapshotId(instanceId, snapshotId);
-
-        verify(replicationAgentManager, times(0)).resumePreviewReplicationAgent(activePreviewPublishId, authorAemBaseUrl,
-            AgentRunMode.PREVIEWPUBLISH);
-
-        assertThat(result, equalTo(false));
-    }
-
-
-    private void enableReverseReplication() {
-        setField(action, "enableReverseReplication", true);
-    }
-
+  private void enableReverseReplication() {
+    setField(action, "enableReverseReplication", true);
+  }
 }
