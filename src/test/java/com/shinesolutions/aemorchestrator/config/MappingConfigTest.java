@@ -82,11 +82,8 @@ class MappingConfigTest {
     String key4 = "key4";
     String key5 = "key5";
     EnvironmentValues environmentValues = mock(EnvironmentValues.class);
-    when(environmentValues.getAutoScaleGroupNameForPublishDispatcher()).thenReturn(key1);
-    when(environmentValues.getAutoScaleGroupNameForPublish()).thenReturn(key2);
-    when(environmentValues.getAutoScaleGroupNameForPreviewPublishDispatcher()).thenReturn(key3);
-    when(environmentValues.getAutoScaleGroupNameForPreviewPublish()).thenReturn(key4);
-    when(environmentValues.getAutoScaleGroupNameForAuthorDispatcher()).thenReturn(key5);
+    setupEnvironmentValuesGetAutoScaleGroupNameForAuthorAnd4MoreStubs(
+        environmentValues, key1, key2, key3, key4, key5);
 
     Map<String, Action> mappings =
         mappingConfig.scaleDownAutoScaleGroupMappings(
@@ -122,11 +119,8 @@ class MappingConfigTest {
     String key4 = "key4";
     String key5 = "key5";
     EnvironmentValues environmentValues = mock(EnvironmentValues.class);
-    when(environmentValues.getAutoScaleGroupNameForPublishDispatcher()).thenReturn(key1);
-    when(environmentValues.getAutoScaleGroupNameForPublish()).thenReturn(key2);
-    when(environmentValues.getAutoScaleGroupNameForPreviewPublishDispatcher()).thenReturn(key3);
-    when(environmentValues.getAutoScaleGroupNameForPreviewPublish()).thenReturn(key4);
-    when(environmentValues.getAutoScaleGroupNameForAuthorDispatcher()).thenReturn(key5);
+    setupEnvironmentValuesGetAutoScaleGroupNameForAuthorAnd4MoreStubs(
+        environmentValues, key1, key2, key3, key4, key5);
 
     Map<String, Action> mappings =
         mappingConfig.scaleUpAutoScaleGroupMappings(
@@ -142,5 +136,19 @@ class MappingConfigTest {
     assertThat(mappings.get(key3), equalTo(scaleUpPreviewPublishDispatcherAction));
     assertThat(mappings.get(key4), equalTo(scaleUpPreviewPublishAction));
     assertThat(mappings.get(key5), equalTo(scaleUpAuthorDispatcherAction));
+  }
+
+  private void setupEnvironmentValuesGetAutoScaleGroupNameForAuthorAnd4MoreStubs(
+      EnvironmentValues environmentValues,
+      String key1,
+      String key2,
+      String key3,
+      String key4,
+      String key5) {
+    when(environmentValues.getAutoScaleGroupNameForPublishDispatcher()).thenReturn(key1);
+    when(environmentValues.getAutoScaleGroupNameForPublish()).thenReturn(key2);
+    when(environmentValues.getAutoScaleGroupNameForPreviewPublishDispatcher()).thenReturn(key3);
+    when(environmentValues.getAutoScaleGroupNameForPreviewPublish()).thenReturn(key4);
+    when(environmentValues.getAutoScaleGroupNameForAuthorDispatcher()).thenReturn(key5);
   }
 }
