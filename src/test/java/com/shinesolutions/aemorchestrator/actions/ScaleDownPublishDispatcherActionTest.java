@@ -40,13 +40,7 @@ class ScaleDownPublishDispatcherActionTest {
     currentDispatcherDesiredCapacity = 2;
     currentPublishDesiredCapacity = 3;
 
-    when(aemHelperService.getPublishIdForPairedDispatcher(instanceId)).thenReturn(pairedPublishId);
-
-    when(aemHelperService.getAutoScalingGroupDesiredCapacityForPublishDispatcher())
-        .thenReturn(currentDispatcherDesiredCapacity);
-
-    when(aemHelperService.getAutoScalingGroupDesiredCapacityForPublish())
-        .thenReturn(currentPublishDesiredCapacity);
+    setupAemInstanceHelperServiceGetAutoScalingGroupDesiredAnd2MoreStubs(pairedPublishId);
 
     boolean success = action.execute(instanceId);
 
@@ -63,13 +57,7 @@ class ScaleDownPublishDispatcherActionTest {
     currentDispatcherDesiredCapacity = 3;
     currentPublishDesiredCapacity = 3;
 
-    when(aemHelperService.getPublishIdForPairedDispatcher(instanceId)).thenReturn(pairedPublishId);
-
-    when(aemHelperService.getAutoScalingGroupDesiredCapacityForPublishDispatcher())
-        .thenReturn(currentDispatcherDesiredCapacity);
-
-    when(aemHelperService.getAutoScalingGroupDesiredCapacityForPublish())
-        .thenReturn(currentPublishDesiredCapacity);
+    setupAemInstanceHelperServiceGetAutoScalingGroupDesiredAnd2MoreStubs(pairedPublishId);
 
     boolean success = action.execute(instanceId);
 
@@ -86,13 +74,7 @@ class ScaleDownPublishDispatcherActionTest {
     currentDispatcherDesiredCapacity = 1;
     currentPublishDesiredCapacity = 3;
 
-    when(aemHelperService.getPublishIdForPairedDispatcher(instanceId)).thenReturn(null);
-
-    when(aemHelperService.getAutoScalingGroupDesiredCapacityForPublishDispatcher())
-        .thenReturn(currentDispatcherDesiredCapacity);
-
-    when(aemHelperService.getAutoScalingGroupDesiredCapacityForPublish())
-        .thenReturn(currentPublishDesiredCapacity);
+    setupAemInstanceHelperServiceGetAutoScalingGroupDesiredAnd2MoreStubs(null);
 
     boolean success = action.execute(instanceId);
 
@@ -102,5 +84,15 @@ class ScaleDownPublishDispatcherActionTest {
         .setAutoScalingGroupDesiredCapacityForPublish(currentDispatcherDesiredCapacity);
 
     assertThat(success, equalTo(true));
+  }
+
+  private void setupAemInstanceHelperServiceGetAutoScalingGroupDesiredAnd2MoreStubs(
+      String getPublishIdForPairedDispatcherReturnValue) {
+    when(aemHelperService.getPublishIdForPairedDispatcher(instanceId))
+        .thenReturn(getPublishIdForPairedDispatcherReturnValue);
+    when(aemHelperService.getAutoScalingGroupDesiredCapacityForPublishDispatcher())
+        .thenReturn(currentDispatcherDesiredCapacity);
+    when(aemHelperService.getAutoScalingGroupDesiredCapacityForPublish())
+        .thenReturn(currentPublishDesiredCapacity);
   }
 }
