@@ -236,14 +236,8 @@ class AemInstanceHelperServiceTest {
     instanceIds.add(instanceId);
     instanceIds.add("extra-89351");
 
-    when(awsHelperService.getInstanceIdsForAutoScalingGroup(
-            envValues.getAutoScaleGroupNameForPublish()))
-        .thenReturn(instanceIds);
-
     Map<String, String> instanceTags1 = new HashMap<>();
     instanceTags1.put(InstanceTags.SNAPSHOT_ID.getTagName(), "");
-
-    when(awsHelperService.getTags(anyString())).thenReturn(instanceTags1);
 
     Date dt = new Date();
 
@@ -252,8 +246,14 @@ class AemInstanceHelperServiceTest {
     ZonedDateTime originalPlusOneDateTime = originalDateTime.plusDays(1);
     Date originalPlusOneDate = Date.from(originalPlusOneDateTime.toInstant());
 
-    when(awsHelperService.getLaunchTime(instanceId)).thenReturn(originalDate);
-    when(awsHelperService.getLaunchTime("extra-89351")).thenReturn(originalPlusOneDate);
+    setupAwsHelperServiceGetInstanceIdsForAutoScalingGroupAnd2MoreStubs(
+        instanceIds,
+        instanceTags1,
+        originalDate,
+        envValues.getAutoScaleGroupNameForPublish(),
+        instanceId,
+        "extra-89351",
+        originalPlusOneDate);
 
     String resultInstanceId = aemHelperService.getPublishIdToSnapshotFrom(excludeInstanceId);
 
@@ -268,14 +268,8 @@ class AemInstanceHelperServiceTest {
     instanceIds.add(instanceId);
     instanceIds.add("extra-89351");
 
-    when(awsHelperService.getInstanceIdsForAutoScalingGroup(
-            envValues.getAutoScaleGroupNameForPreviewPublish()))
-        .thenReturn(instanceIds);
-
     Map<String, String> instanceTags1 = new HashMap<>();
     instanceTags1.put(InstanceTags.SNAPSHOT_ID.getTagName(), "");
-
-    when(awsHelperService.getTags(anyString())).thenReturn(instanceTags1);
 
     Date dt = new Date();
 
@@ -284,8 +278,14 @@ class AemInstanceHelperServiceTest {
     ZonedDateTime originalPlusOneDateTime = originalDateTime.plusDays(1);
     Date originalPlusOneDate = Date.from(originalPlusOneDateTime.toInstant());
 
-    when(awsHelperService.getLaunchTime(instanceId)).thenReturn(originalDate);
-    when(awsHelperService.getLaunchTime("extra-89351")).thenReturn(originalPlusOneDate);
+    setupAwsHelperServiceGetInstanceIdsForAutoScalingGroupAnd2MoreStubs(
+        instanceIds,
+        instanceTags1,
+        originalDate,
+        envValues.getAutoScaleGroupNameForPreviewPublish(),
+        instanceId,
+        "extra-89351",
+        originalPlusOneDate);
 
     String resultInstanceId = aemHelperService.getPreviewPublishIdToSnapshotFrom(excludeInstanceId);
 
@@ -300,18 +300,18 @@ class AemInstanceHelperServiceTest {
     instanceIds.add(alphabeticallySecond);
     instanceIds.add(alphabeticallyFirst);
 
-    when(awsHelperService.getInstanceIdsForAutoScalingGroup(
-            envValues.getAutoScaleGroupNameForPublish()))
-        .thenReturn(instanceIds);
-
     Map<String, String> instanceTags1 = new HashMap<>();
     instanceTags1.put(InstanceTags.SNAPSHOT_ID.getTagName(), "");
 
-    when(awsHelperService.getTags(anyString())).thenReturn(instanceTags1);
-
     Date originalDate = new Date();
-    when(awsHelperService.getLaunchTime(alphabeticallyFirst)).thenReturn(originalDate);
-    when(awsHelperService.getLaunchTime(alphabeticallySecond)).thenReturn(originalDate);
+    setupAwsHelperServiceGetInstanceIdsForAutoScalingGroupAnd2MoreStubs(
+        instanceIds,
+        instanceTags1,
+        originalDate,
+        envValues.getAutoScaleGroupNameForPublish(),
+        alphabeticallyFirst,
+        alphabeticallySecond,
+        originalDate);
 
     String resultInstanceId = aemHelperService.getPublishIdToSnapshotFrom("exclude-352768");
 
@@ -326,18 +326,18 @@ class AemInstanceHelperServiceTest {
     instanceIds.add(alphabeticallySecond);
     instanceIds.add(alphabeticallyFirst);
 
-    when(awsHelperService.getInstanceIdsForAutoScalingGroup(
-            envValues.getAutoScaleGroupNameForPreviewPublish()))
-        .thenReturn(instanceIds);
-
     Map<String, String> instanceTags1 = new HashMap<>();
     instanceTags1.put(InstanceTags.SNAPSHOT_ID.getTagName(), "");
 
-    when(awsHelperService.getTags(anyString())).thenReturn(instanceTags1);
-
     Date originalDate = new Date();
-    when(awsHelperService.getLaunchTime(alphabeticallyFirst)).thenReturn(originalDate);
-    when(awsHelperService.getLaunchTime(alphabeticallySecond)).thenReturn(originalDate);
+    setupAwsHelperServiceGetInstanceIdsForAutoScalingGroupAnd2MoreStubs(
+        instanceIds,
+        instanceTags1,
+        originalDate,
+        envValues.getAutoScaleGroupNameForPreviewPublish(),
+        alphabeticallyFirst,
+        alphabeticallySecond,
+        originalDate);
 
     String resultInstanceId = aemHelperService.getPreviewPublishIdToSnapshotFrom("exclude-352768");
 
@@ -379,11 +379,8 @@ class AemInstanceHelperServiceTest {
     List<String> instanceIds = new ArrayList<>();
     instanceIds.add(instanceId);
 
-    when(awsHelperService.getInstanceIdsForAutoScalingGroup(
-            envValues.getAutoScaleGroupNameForPublish()))
-        .thenReturn(instanceIds);
-
-    when(awsHelperService.getTags(anyString())).thenReturn(new HashMap<>());
+    setupAwsHelperServiceGetTagsAndGetInstanceIdsForAutoScalingGroupStubs(
+        instanceIds, envValues.getAutoScaleGroupNameForPublish(), new HashMap<>());
 
     String excludeInstanceId = "exclude-352768";
     String resultInstanceId = aemHelperService.getPublishIdToSnapshotFrom(excludeInstanceId);
@@ -396,11 +393,8 @@ class AemInstanceHelperServiceTest {
     List<String> instanceIds = new ArrayList<>();
     instanceIds.add(instanceId);
 
-    when(awsHelperService.getInstanceIdsForAutoScalingGroup(
-            envValues.getAutoScaleGroupNameForPreviewPublish()))
-        .thenReturn(instanceIds);
-
-    when(awsHelperService.getTags(anyString())).thenReturn(new HashMap<>());
+    setupAwsHelperServiceGetTagsAndGetInstanceIdsForAutoScalingGroupStubs(
+        instanceIds, envValues.getAutoScaleGroupNameForPreviewPublish(), new HashMap<>());
 
     String excludeInstanceId = "exclude-352768";
     String resultInstanceId = aemHelperService.getPreviewPublishIdToSnapshotFrom(excludeInstanceId);
@@ -436,12 +430,9 @@ class AemInstanceHelperServiceTest {
     instanceIds.add("i-1");
     instanceIds.add("i-2");
 
-    when(awsHelperService.getInstanceIdsForAutoScalingGroup(
-            envValues.getAutoScaleGroupNameForPublish()))
-        .thenReturn(instanceIds);
-
     Map<String, String> instanceTags = new HashMap<>();
-    when(awsHelperService.getTags(anyString())).thenReturn(instanceTags);
+    setupAwsHelperServiceGetTagsAndGetInstanceIdsForAutoScalingGroupStubs(
+        instanceIds, envValues.getAutoScaleGroupNameForPublish(), instanceTags);
 
     boolean result = aemHelperService.isFirstPublishInstance();
 
@@ -454,12 +445,9 @@ class AemInstanceHelperServiceTest {
     instanceIds.add("i-1");
     instanceIds.add("i-2");
 
-    when(awsHelperService.getInstanceIdsForAutoScalingGroup(
-            envValues.getAutoScaleGroupNameForPreviewPublish()))
-        .thenReturn(instanceIds);
-
     Map<String, String> instanceTags = new HashMap<>();
-    when(awsHelperService.getTags(anyString())).thenReturn(instanceTags);
+    setupAwsHelperServiceGetTagsAndGetInstanceIdsForAutoScalingGroupStubs(
+        instanceIds, envValues.getAutoScaleGroupNameForPreviewPublish(), instanceTags);
 
     boolean result = aemHelperService.isFirstPreviewPublishInstance();
 
@@ -551,18 +539,19 @@ class AemInstanceHelperServiceTest {
     instanceIds.add(instance2);
     instanceIds.add(instance3);
 
-    when(awsHelperService.getInstancesForAutoScalingGroup(
-            envValues.getAutoScaleGroupNameForPublishDispatcher()))
-        .thenReturn(instanceIds);
-
     Map<String, String> tagsWithPairName = new HashMap<>();
     tagsWithPairName.put(PAIR_INSTANCE_ID.getTagName(), "testPair");
 
     Map<String, String> tagsWithoutPairName = new HashMap<>();
 
-    when(awsHelperService.getTags(instance1.getInstanceId())).thenReturn(tagsWithPairName);
-    when(awsHelperService.getTags(instance2.getInstanceId()))
-        .thenReturn(tagsWithoutPairName); // Instance 2 is the winner
+    // Instance 2 is the winner
+    setupAwsHelperServiceGetTagsAndGetInstancesForAutoScalingGroupStubs(
+        instanceIds,
+        instance1,
+        tagsWithPairName,
+        instance2,
+        envValues.getAutoScaleGroupNameForPublishDispatcher(),
+        tagsWithoutPairName);
     when(awsHelperService.getTags(instance3.getInstanceId())).thenReturn(tagsWithPairName);
 
     String resultInstanceId = aemHelperService.findUnpairedPublishDispatcher(instanceId);
@@ -585,18 +574,19 @@ class AemInstanceHelperServiceTest {
     instanceIds.add(instance2);
     instanceIds.add(instance3);
 
-    when(awsHelperService.getInstancesForAutoScalingGroup(
-            envValues.getAutoScaleGroupNameForPreviewPublishDispatcher()))
-        .thenReturn(instanceIds);
-
     Map<String, String> tagsWithPairName = new HashMap<>();
     tagsWithPairName.put(PREVIEW_PAIR_INSTANCE_ID.getTagName(), "testPair");
 
     Map<String, String> tagsWithoutPairName = new HashMap<>();
 
-    when(awsHelperService.getTags(instance1.getInstanceId())).thenReturn(tagsWithPairName);
-    when(awsHelperService.getTags(instance2.getInstanceId()))
-        .thenReturn(tagsWithoutPairName); // Instance 2 is the winner
+    // Instance 2 is the winner
+    setupAwsHelperServiceGetTagsAndGetInstancesForAutoScalingGroupStubs(
+        instanceIds,
+        instance1,
+        tagsWithPairName,
+        instance2,
+        envValues.getAutoScaleGroupNameForPreviewPublishDispatcher(),
+        tagsWithoutPairName);
     when(awsHelperService.getTags(instance3.getInstanceId())).thenReturn(tagsWithPairName);
 
     String resultInstanceId = aemHelperService.findUnpairedPreviewPublishDispatcher(instanceId);
@@ -619,19 +609,20 @@ class AemInstanceHelperServiceTest {
     instanceIds.add(instance2);
     instanceIds.add(instance3);
 
-    when(awsHelperService.getInstancesForAutoScalingGroup(
-            envValues.getAutoScaleGroupNameForPublishDispatcher()))
-        .thenReturn(instanceIds);
-    when(awsHelperService.getAvailabilityZone(instanceId)).thenReturn(publishAz);
-
     Map<String, String> tagsWithPairName = new HashMap<>();
     tagsWithPairName.put(PAIR_INSTANCE_ID.getTagName(), "testPair");
 
     Map<String, String> tagsWithoutPairName = new HashMap<>();
 
-    when(awsHelperService.getTags(instance1.getInstanceId())).thenReturn(tagsWithPairName);
-    when(awsHelperService.getTags(instance2.getInstanceId())).thenReturn(tagsWithoutPairName);
-    when(awsHelperService.getTags(instance3.getInstanceId())).thenReturn(tagsWithoutPairName);
+    setupAwsHelperServiceGetTagsAndGetAvailabilityZoneAnd1MoreStubs(
+        instanceIds,
+        instance1,
+        tagsWithPairName,
+        instance2,
+        tagsWithoutPairName,
+        instance3,
+        envValues.getAutoScaleGroupNameForPublishDispatcher(),
+        publishAz);
 
     String resultInstanceId = aemHelperService.findUnpairedPublishDispatcher(instanceId);
 
@@ -654,19 +645,20 @@ class AemInstanceHelperServiceTest {
     instanceIds.add(instance2);
     instanceIds.add(instance3);
 
-    when(awsHelperService.getInstancesForAutoScalingGroup(
-            envValues.getAutoScaleGroupNameForPreviewPublishDispatcher()))
-        .thenReturn(instanceIds);
-    when(awsHelperService.getAvailabilityZone(instanceId)).thenReturn(previewPublishAz);
-
     Map<String, String> tagsWithPairName = new HashMap<>();
     tagsWithPairName.put(PREVIEW_PAIR_INSTANCE_ID.getTagName(), "testPair");
 
     Map<String, String> tagsWithoutPairName = new HashMap<>();
 
-    when(awsHelperService.getTags(instance1.getInstanceId())).thenReturn(tagsWithPairName);
-    when(awsHelperService.getTags(instance2.getInstanceId())).thenReturn(tagsWithoutPairName);
-    when(awsHelperService.getTags(instance3.getInstanceId())).thenReturn(tagsWithoutPairName);
+    setupAwsHelperServiceGetTagsAndGetAvailabilityZoneAnd1MoreStubs(
+        instanceIds,
+        instance1,
+        tagsWithPairName,
+        instance2,
+        tagsWithoutPairName,
+        instance3,
+        envValues.getAutoScaleGroupNameForPreviewPublishDispatcher(),
+        previewPublishAz);
 
     String resultInstanceId = aemHelperService.findUnpairedPreviewPublishDispatcher(instanceId);
 
@@ -689,19 +681,20 @@ class AemInstanceHelperServiceTest {
     instanceIds.add(instance2);
     instanceIds.add(instance3);
 
-    when(awsHelperService.getInstancesForAutoScalingGroup(
-            envValues.getAutoScaleGroupNameForPublishDispatcher()))
-        .thenReturn(instanceIds);
-    when(awsHelperService.getAvailabilityZone(instanceId)).thenReturn(publishAz);
-
     Map<String, String> tagsWithPairName = new HashMap<>();
     tagsWithPairName.put(PAIR_INSTANCE_ID.getTagName(), "testPair");
 
     Map<String, String> tagsWithoutPairName = new HashMap<>();
 
-    when(awsHelperService.getTags(instance1.getInstanceId())).thenReturn(tagsWithPairName);
-    when(awsHelperService.getTags(instance2.getInstanceId())).thenReturn(tagsWithoutPairName);
-    when(awsHelperService.getTags(instance3.getInstanceId())).thenReturn(tagsWithoutPairName);
+    setupAwsHelperServiceGetTagsAndGetAvailabilityZoneAnd1MoreStubs(
+        instanceIds,
+        instance1,
+        tagsWithPairName,
+        instance2,
+        tagsWithoutPairName,
+        instance3,
+        envValues.getAutoScaleGroupNameForPublishDispatcher(),
+        publishAz);
 
     String resultInstanceId = aemHelperService.findUnpairedPublishDispatcher(instanceId);
 
@@ -724,19 +717,20 @@ class AemInstanceHelperServiceTest {
     instanceIds.add(instance2);
     instanceIds.add(instance3);
 
-    when(awsHelperService.getInstancesForAutoScalingGroup(
-            envValues.getAutoScaleGroupNameForPreviewPublishDispatcher()))
-        .thenReturn(instanceIds);
-    when(awsHelperService.getAvailabilityZone(instanceId)).thenReturn(previewPublishAz);
-
     Map<String, String> tagsWithPairName = new HashMap<>();
     tagsWithPairName.put(PREVIEW_PAIR_INSTANCE_ID.getTagName(), "testPair");
 
     Map<String, String> tagsWithoutPairName = new HashMap<>();
 
-    when(awsHelperService.getTags(instance1.getInstanceId())).thenReturn(tagsWithPairName);
-    when(awsHelperService.getTags(instance2.getInstanceId())).thenReturn(tagsWithoutPairName);
-    when(awsHelperService.getTags(instance3.getInstanceId())).thenReturn(tagsWithoutPairName);
+    setupAwsHelperServiceGetTagsAndGetAvailabilityZoneAnd1MoreStubs(
+        instanceIds,
+        instance1,
+        tagsWithPairName,
+        instance2,
+        tagsWithoutPairName,
+        instance3,
+        envValues.getAutoScaleGroupNameForPreviewPublishDispatcher(),
+        previewPublishAz);
 
     String resultInstanceId = aemHelperService.findUnpairedPreviewPublishDispatcher(instanceId);
 
@@ -759,19 +753,20 @@ class AemInstanceHelperServiceTest {
     instanceIds.add(instance2);
     instanceIds.add(instance3);
 
-    when(awsHelperService.getInstancesForAutoScalingGroup(
-            envValues.getAutoScaleGroupNameForPublishDispatcher()))
-        .thenReturn(instanceIds);
-    when(awsHelperService.getAvailabilityZone(instanceId)).thenReturn(publishAz);
-
     Map<String, String> tagsWithPairName = new HashMap<>();
     tagsWithPairName.put(PAIR_INSTANCE_ID.getTagName(), "testPair");
 
     Map<String, String> tagsWithoutPairName = new HashMap<>();
 
-    when(awsHelperService.getTags(instance1.getInstanceId())).thenReturn(tagsWithPairName);
-    when(awsHelperService.getTags(instance2.getInstanceId())).thenReturn(tagsWithoutPairName);
-    when(awsHelperService.getTags(instance3.getInstanceId())).thenReturn(tagsWithoutPairName);
+    setupAwsHelperServiceGetTagsAndGetAvailabilityZoneAnd1MoreStubs(
+        instanceIds,
+        instance1,
+        tagsWithPairName,
+        instance2,
+        tagsWithoutPairName,
+        instance3,
+        envValues.getAutoScaleGroupNameForPublishDispatcher(),
+        publishAz);
 
     String resultInstanceId = aemHelperService.findUnpairedPublishDispatcher(instanceId);
 
@@ -794,19 +789,20 @@ class AemInstanceHelperServiceTest {
     instanceIds.add(instance2);
     instanceIds.add(instance3);
 
-    when(awsHelperService.getInstancesForAutoScalingGroup(
-            envValues.getAutoScaleGroupNameForPreviewPublishDispatcher()))
-        .thenReturn(instanceIds);
-    when(awsHelperService.getAvailabilityZone(instanceId)).thenReturn(previewPublishAz);
-
     Map<String, String> tagsWithPairName = new HashMap<>();
     tagsWithPairName.put(PREVIEW_PAIR_INSTANCE_ID.getTagName(), "testPair");
 
     Map<String, String> tagsWithoutPairName = new HashMap<>();
 
-    when(awsHelperService.getTags(instance1.getInstanceId())).thenReturn(tagsWithPairName);
-    when(awsHelperService.getTags(instance2.getInstanceId())).thenReturn(tagsWithoutPairName);
-    when(awsHelperService.getTags(instance3.getInstanceId())).thenReturn(tagsWithoutPairName);
+    setupAwsHelperServiceGetTagsAndGetAvailabilityZoneAnd1MoreStubs(
+        instanceIds,
+        instance1,
+        tagsWithPairName,
+        instance2,
+        tagsWithoutPairName,
+        instance3,
+        envValues.getAutoScaleGroupNameForPreviewPublishDispatcher(),
+        previewPublishAz);
 
     String resultInstanceId = aemHelperService.findUnpairedPreviewPublishDispatcher(instanceId);
 
@@ -856,19 +852,20 @@ class AemInstanceHelperServiceTest {
     instanceIds.add(instance1);
     instanceIds.add(instance2);
 
-    when(awsHelperService.getInstancesForAutoScalingGroup(
-            envValues.getAutoScaleGroupNameForPublishDispatcher()))
-        .thenReturn(instanceIds);
-
     Map<String, String> tagsWithPairName = new HashMap<>();
     tagsWithPairName.put(PAIR_INSTANCE_ID.getTagName(), "testPair");
 
     Map<String, String> tagsWithAlreadyPairedId = new HashMap<>();
     tagsWithAlreadyPairedId.put(PAIR_INSTANCE_ID.getTagName(), instanceId);
 
-    when(awsHelperService.getTags(instance1.getInstanceId())).thenReturn(tagsWithPairName);
-    when(awsHelperService.getTags(instance2.getInstanceId()))
-        .thenReturn(tagsWithAlreadyPairedId); // Instance 2 is the winner
+    // Instance 2 is the winner
+    setupAwsHelperServiceGetTagsAndGetInstancesForAutoScalingGroupStubs(
+        instanceIds,
+        instance1,
+        tagsWithPairName,
+        instance2,
+        envValues.getAutoScaleGroupNameForPublishDispatcher(),
+        tagsWithAlreadyPairedId);
 
     String resultInstanceId = aemHelperService.findUnpairedPublishDispatcher(instanceId);
 
@@ -887,19 +884,20 @@ class AemInstanceHelperServiceTest {
     instanceIds.add(instance1);
     instanceIds.add(instance2);
 
-    when(awsHelperService.getInstancesForAutoScalingGroup(
-            envValues.getAutoScaleGroupNameForPreviewPublishDispatcher()))
-        .thenReturn(instanceIds);
-
     Map<String, String> tagsWithPairName = new HashMap<>();
     tagsWithPairName.put(PREVIEW_PAIR_INSTANCE_ID.getTagName(), "testPair");
 
     Map<String, String> tagsWithAlreadyPairedId = new HashMap<>();
     tagsWithAlreadyPairedId.put(PAIR_INSTANCE_ID.getTagName(), instanceId);
 
-    when(awsHelperService.getTags(instance1.getInstanceId())).thenReturn(tagsWithPairName);
-    when(awsHelperService.getTags(instance2.getInstanceId()))
-        .thenReturn(tagsWithAlreadyPairedId); // Instance 2 is the winner
+    // Instance 2 is the winner
+    setupAwsHelperServiceGetTagsAndGetInstancesForAutoScalingGroupStubs(
+        instanceIds,
+        instance1,
+        tagsWithPairName,
+        instance2,
+        envValues.getAutoScaleGroupNameForPreviewPublishDispatcher(),
+        tagsWithAlreadyPairedId);
 
     String resultInstanceId = aemHelperService.findUnpairedPreviewPublishDispatcher(instanceId);
 
@@ -930,12 +928,10 @@ class AemInstanceHelperServiceTest {
 
     Map<String, String> tagsMissingPair = new HashMap<>();
 
-    when(awsHelperService.getInstanceIdsForAutoScalingGroup(
-            envValues.getAutoScaleGroupNameForPublish()))
-        .thenReturn(instanceIds);
-    when(awsHelperService.getTags(instance1)).thenReturn(tagsWithoutPair);
-    when(awsHelperService.getTags(instance2)).thenReturn(tagsMissingPair);
-    when(awsHelperService.getTags(instance3)).thenReturn(tagsWithPair); // Instance 3 is the winner
+    setupAwsHelperServiceGetTagsAndGetInstanceIdsForAutoScalingGroupStubs2(
+        instanceIds, instance1, envValues.getAutoScaleGroupNameForPublish(), tagsWithoutPair);
+    setupAwsHelperServiceGetTagsStubs(
+        tagsWithPair, instance2, instance3, tagsMissingPair); // Instance 3 is the winner
 
     String resultInstanceId = aemHelperService.getPublishIdForPairedDispatcher(dispatcherId);
 
@@ -967,12 +963,13 @@ class AemInstanceHelperServiceTest {
 
     Map<String, String> tagsMissingPair = new HashMap<>();
 
-    when(awsHelperService.getInstanceIdsForAutoScalingGroup(
-            envValues.getAutoScaleGroupNameForPreviewPublish()))
-        .thenReturn(instanceIds);
-    when(awsHelperService.getTags(instance1)).thenReturn(tagsWithoutPair);
-    when(awsHelperService.getTags(instance2)).thenReturn(tagsMissingPair);
-    when(awsHelperService.getTags(instance3)).thenReturn(tagsWithPair); // Instance 3 is the winner
+    setupAwsHelperServiceGetTagsAndGetInstanceIdsForAutoScalingGroupStubs2(
+        instanceIds,
+        instance1,
+        envValues.getAutoScaleGroupNameForPreviewPublish(),
+        tagsWithoutPair);
+    setupAwsHelperServiceGetTagsStubs(
+        tagsWithPair, instance2, instance3, tagsMissingPair); // Instance 3 is the winner
 
     String resultInstanceId = aemHelperService.getPreviewPublishIdForPairedDispatcher(dispatcherId);
 
@@ -988,10 +985,8 @@ class AemInstanceHelperServiceTest {
     List<String> instanceIds = new ArrayList<>();
     instanceIds.add("1st-876543");
 
-    when(awsHelperService.getInstanceIdsForAutoScalingGroup(
-            envValues.getAutoScaleGroupNameForPublish()))
-        .thenReturn(instanceIds);
-    when(awsHelperService.getTags(instance1)).thenReturn(tagsMissingPair);
+    setupAwsHelperServiceGetTagsAndGetInstanceIdsForAutoScalingGroupStubs2(
+        instanceIds, instance1, envValues.getAutoScaleGroupNameForPublish(), tagsMissingPair);
 
     String resultInstanceId = aemHelperService.getPublishIdForPairedDispatcher("irrelevant-id");
 
@@ -1007,10 +1002,11 @@ class AemInstanceHelperServiceTest {
     List<String> instanceIds = new ArrayList<>();
     instanceIds.add("1st-876543");
 
-    when(awsHelperService.getInstanceIdsForAutoScalingGroup(
-            envValues.getAutoScaleGroupNameForPreviewPublish()))
-        .thenReturn(instanceIds);
-    when(awsHelperService.getTags(instance1)).thenReturn(tagsMissingPair);
+    setupAwsHelperServiceGetTagsAndGetInstanceIdsForAutoScalingGroupStubs2(
+        instanceIds,
+        instance1,
+        envValues.getAutoScaleGroupNameForPreviewPublish(),
+        tagsMissingPair);
 
     String resultInstanceId =
         aemHelperService.getPreviewPublishIdForPairedDispatcher("irrelevant-id");
@@ -1043,13 +1039,14 @@ class AemInstanceHelperServiceTest {
 
     Map<String, String> tagsMissingPair = new HashMap<>();
 
-    when(awsHelperService.getInstanceIdsForAutoScalingGroup(
-            envValues.getAutoScaleGroupNameForPublishDispatcher()))
-        .thenReturn(instanceIds);
-    when(awsHelperService.getTags(instance1)).thenReturn(tagsWithoutPair);
+    setupAwsHelperServiceGetTagsAndGetInstanceIdsForAutoScalingGroupStubs2(
+        instanceIds,
+        instance1,
+        envValues.getAutoScaleGroupNameForPublishDispatcher(),
+        tagsWithoutPair);
     when(awsHelperService.getTags(instance2)).thenReturn(tagsMissingPair);
-    when(awsHelperService.getTags(instance3)).thenReturn(tagsWithoutPair);
-    when(awsHelperService.getTags(instance4)).thenReturn(tagsWithPair); // Instance 4 is the winner
+    setupAwsHelperServiceGetTagsStubs(
+        tagsWithPair, instance3, instance4, tagsWithoutPair); // Instance 4 is the winner
 
     String resultInstanceId = aemHelperService.getDispatcherIdForPairedPublish(publishId);
 
@@ -1080,13 +1077,14 @@ class AemInstanceHelperServiceTest {
 
     Map<String, String> tagsMissingPair = new HashMap<>();
 
-    when(awsHelperService.getInstanceIdsForAutoScalingGroup(
-            envValues.getAutoScaleGroupNameForPreviewPublishDispatcher()))
-        .thenReturn(instanceIds);
-    when(awsHelperService.getTags(instance1)).thenReturn(tagsWithoutPair);
+    setupAwsHelperServiceGetTagsAndGetInstanceIdsForAutoScalingGroupStubs2(
+        instanceIds,
+        instance1,
+        envValues.getAutoScaleGroupNameForPreviewPublishDispatcher(),
+        tagsWithoutPair);
     when(awsHelperService.getTags(instance2)).thenReturn(tagsMissingPair);
-    when(awsHelperService.getTags(instance3)).thenReturn(tagsWithoutPair);
-    when(awsHelperService.getTags(instance4)).thenReturn(tagsWithPair); // Instance 4 is the winner
+    setupAwsHelperServiceGetTagsStubs(
+        tagsWithPair, instance3, instance4, tagsWithoutPair); // Instance 4 is the winner
 
     String resultInstanceId =
         aemHelperService.getDispatcherIdForPairedPreviewPublish(previewPublishId);
@@ -1470,10 +1468,8 @@ class AemInstanceHelperServiceTest {
     activePublishTags.put(tag2, tag2);
     activePublishTags.put("someRandomTag3", "someRandomTag3");
 
-    when(awsHelperService.getTags(instanceId)).thenReturn(activePublishTags);
-
     String snapshotId = "x3289751048";
-    when(awsHelperService.createSnapshot(anyString(), anyString())).thenReturn(snapshotId);
+    setupAwsHelperServiceGetTagsAndCreateSnapshotStubs(snapshotId, activePublishTags);
 
     String resultId = aemHelperService.createPublishSnapshot(instanceId, "volumeId");
     assertThat(resultId, equalTo(snapshotId));
@@ -1506,10 +1502,8 @@ class AemInstanceHelperServiceTest {
     activePreviewPublishTags.put(tag2, tag2);
     activePreviewPublishTags.put("someRandomTag3", "someRandomTag3");
 
-    when(awsHelperService.getTags(instanceId)).thenReturn(activePreviewPublishTags);
-
     String snapshotId = "x3289751048";
-    when(awsHelperService.createSnapshot(anyString(), anyString())).thenReturn(snapshotId);
+    setupAwsHelperServiceGetTagsAndCreateSnapshotStubs(snapshotId, activePreviewPublishTags);
 
     String resultId = aemHelperService.createPreviewPublishSnapshot(instanceId, "volumeId");
     assertThat(resultId, equalTo(snapshotId));
@@ -1537,10 +1531,8 @@ class AemInstanceHelperServiceTest {
     activePublishTags.put("someRandomTag2", "someRandomTag2");
     activePublishTags.put("someRandomTag3", "someRandomTag3");
 
-    when(awsHelperService.getTags(instanceId)).thenReturn(activePublishTags);
-
     String snapshotId = "x3289751048";
-    when(awsHelperService.createSnapshot(anyString(), anyString())).thenReturn(snapshotId);
+    setupAwsHelperServiceGetTagsAndCreateSnapshotStubs(snapshotId, activePublishTags);
 
     String resultId = aemHelperService.createPublishSnapshot(instanceId, "volumeId");
     assertThat(resultId, equalTo(snapshotId));
@@ -1566,10 +1558,8 @@ class AemInstanceHelperServiceTest {
     activePreviewPublishTags.put("someRandomTag2", "someRandomTag2");
     activePreviewPublishTags.put("someRandomTag3", "someRandomTag3");
 
-    when(awsHelperService.getTags(instanceId)).thenReturn(activePreviewPublishTags);
-
     String snapshotId = "x3289751048";
-    when(awsHelperService.createSnapshot(anyString(), anyString())).thenReturn(snapshotId);
+    setupAwsHelperServiceGetTagsAndCreateSnapshotStubs(snapshotId, activePreviewPublishTags);
 
     String resultId = aemHelperService.createPreviewPublishSnapshot(instanceId, "volumeId");
     assertThat(resultId, equalTo(snapshotId));
@@ -1632,5 +1622,87 @@ class AemInstanceHelperServiceTest {
     final ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
     verify(awsHelperService).deleteAlarm(captor.capture());
     assertThat(captor.getValue().endsWith(instanceId), is(true));
+  }
+
+  private void setupAwsHelperServiceGetTagsAndGetInstancesForAutoScalingGroupStubs(
+      List<Ec2Instance> instanceIds,
+      Ec2Instance instance1,
+      Map<String, String> tagsWithPairName,
+      Ec2Instance instance2,
+      String getInstancesForAutoScalingGroupArg1,
+      Map<String, String> getTagsReturnValue) {
+    when(awsHelperService.getInstancesForAutoScalingGroup(getInstancesForAutoScalingGroupArg1))
+        .thenReturn(instanceIds);
+    when(awsHelperService.getTags(instance1.getInstanceId())).thenReturn(tagsWithPairName);
+    when(awsHelperService.getTags(instance2.getInstanceId())).thenReturn(getTagsReturnValue);
+  }
+
+  private void setupAwsHelperServiceGetTagsAndGetInstanceIdsForAutoScalingGroupStubs(
+      List<String> instanceIds,
+      String getInstanceIdsForAutoScalingGroupArg1,
+      Map<String, String> getTagsReturnValue) {
+    when(awsHelperService.getInstanceIdsForAutoScalingGroup(getInstanceIdsForAutoScalingGroupArg1))
+        .thenReturn(instanceIds);
+    when(awsHelperService.getTags(anyString())).thenReturn(getTagsReturnValue);
+  }
+
+  private void setupAwsHelperServiceGetTagsAndGetAvailabilityZoneAnd1MoreStubs(
+      List<Ec2Instance> instanceIds,
+      Ec2Instance instance1,
+      Map<String, String> tagsWithPairName,
+      Ec2Instance instance2,
+      Map<String, String> tagsWithoutPairName,
+      Ec2Instance instance3,
+      String getInstancesForAutoScalingGroupArg1,
+      String getAvailabilityZoneReturnValue) {
+    setupAwsHelperServiceGetTagsAndGetInstancesForAutoScalingGroupStubs(
+        instanceIds,
+        instance1,
+        tagsWithPairName,
+        instance2,
+        getInstancesForAutoScalingGroupArg1,
+        tagsWithoutPairName);
+    when(awsHelperService.getAvailabilityZone(instanceId))
+        .thenReturn(getAvailabilityZoneReturnValue);
+    when(awsHelperService.getTags(instance3.getInstanceId())).thenReturn(tagsWithoutPairName);
+  }
+
+  private void setupAwsHelperServiceGetInstanceIdsForAutoScalingGroupAnd2MoreStubs(
+      List<String> instanceIds,
+      Map<String, String> instanceTags1,
+      Date originalDate,
+      String getInstanceIdsForAutoScalingGroupArg1,
+      String getLaunchTimeArg1,
+      String getLaunchTimeArg12,
+      Date getLaunchTimeReturnValue) {
+    setupAwsHelperServiceGetTagsAndGetInstanceIdsForAutoScalingGroupStubs(
+        instanceIds, getInstanceIdsForAutoScalingGroupArg1, instanceTags1);
+    when(awsHelperService.getLaunchTime(getLaunchTimeArg1)).thenReturn(originalDate);
+    when(awsHelperService.getLaunchTime(getLaunchTimeArg12)).thenReturn(getLaunchTimeReturnValue);
+  }
+
+  private void setupAwsHelperServiceGetTagsAndGetInstanceIdsForAutoScalingGroupStubs2(
+      List<String> instanceIds,
+      String instance1,
+      String getInstanceIdsForAutoScalingGroupArg1,
+      Map<String, String> getTagsReturnValue) {
+    when(awsHelperService.getInstanceIdsForAutoScalingGroup(getInstanceIdsForAutoScalingGroupArg1))
+        .thenReturn(instanceIds);
+    when(awsHelperService.getTags(instance1)).thenReturn(getTagsReturnValue);
+  }
+
+  private void setupAwsHelperServiceGetTagsAndCreateSnapshotStubs(
+      String snapshotId, Map<String, String> getTagsReturnValue) {
+    when(awsHelperService.getTags(instanceId)).thenReturn(getTagsReturnValue);
+    when(awsHelperService.createSnapshot(anyString(), anyString())).thenReturn(snapshotId);
+  }
+
+  private void setupAwsHelperServiceGetTagsStubs(
+      Map<String, String> tagsWithPair,
+      String getTagsArg1,
+      String getTagsArg12,
+      Map<String, String> getTagsReturnValue) {
+    when(awsHelperService.getTags(getTagsArg1)).thenReturn(getTagsReturnValue);
+    when(awsHelperService.getTags(getTagsArg12)).thenReturn(tagsWithPair);
   }
 }
