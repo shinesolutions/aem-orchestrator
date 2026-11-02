@@ -32,9 +32,11 @@ integration-test:
 # Check CHANGELOG.md follows Keep a Changelog: a single `## [Unreleased]` section first (the release
 # targets date its entries), then `## [x.y.z] - YYYY-MM-DD` releases, as rtk's keep-a-changelog
 # parser requires, with only the standard Added/Changed/Deprecated/Removed/Fixed/Security subsections.
-# Entries under `## [Unreleased]` are checked by rtk when releasing.
+# With CHANGELOG_BASE (e.g. origin/master, set by CI for pull requests) it also requires at least
+# one `## [Unreleased]` entry that is not in the base branch's CHANGELOG.md.
 changelog-check:
 	@set -euo pipefail; \
+	export $(GIT_SAFE_DIRECTORY); \
 	awk ' \
 	  function bad(msg) { printf "CHANGELOG.md:%d: %s: %s\n", NR, msg, $$0; errors++ } \
 	  /^## / { \
@@ -44,7 +46,17 @@ changelog-check:
 	    else bad("version heading must be ## [x.y.z] - YYYY-MM-DD") } \
 	  /^### / && $$0 !~ /^### (Added|Changed|Deprecated|Removed|Fixed|Security)$$/ { bad("unknown subsection") } \
 	  END { if (!seen) { print "CHANGELOG.md: missing ## [Unreleased]"; errors++ } \
-	        if (errors) exit 1; print "CHANGELOG.md format OK (" releases " releases)" }' CHANGELOG.md
+	        if (errors) exit 1; print "CHANGELOG.md format OK (" releases " releases)" }' CHANGELOG.md; \
+	if [[ -n "$${CHANGELOG_BASE:-}" ]]; then \
+	  unreleased() { awk '/^## \[Unreleased\]$$/ { found = 1; next } /^## / { found = 0 } found && /^- /'; }; \
+	  added=$$(comm -13 <(git show "$$CHANGELOG_BASE:CHANGELOG.md" | unreleased | sort -u) \
+	    <(unreleased < CHANGELOG.md | sort -u)); \
+	  if [[ -z "$$added" ]]; then \
+	    echo "CHANGELOG.md: add an entry under ## [Unreleased] describing this change (compared with $$CHANGELOG_BASE)"; \
+	    exit 1; \
+	  fi; \
+	  echo "New ## [Unreleased] entries compared with $$CHANGELOG_BASE:"; echo "$$added"; \
+	fi
 
 # Release with rtk (https://github.com/cliffano/rtk), configured in .rtk.json. Sets the release version
 # in pom.xml and CHANGELOG.md (the `## [Unreleased]` entries are dated as the release) and commits
