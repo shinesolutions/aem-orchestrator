@@ -27,6 +27,9 @@ public class AemApiHelper {
         request.getJcrContentCqDistributeTypeHint(),
         request.getJcrContentCqName(),
         request.getJcrContentCqTemplate(),
+        // jcr:content/aliasUpdate, added in swaggeraem4j 4.x before enabled. null leaves it out of
+        // the request, as with 0.10.0, which had no such parameter
+        null,
         request.getJcrContentEnabled(),
         request.getJcrContentJcrDescription(),
         request.getJcrContentJcrLastModified(),
