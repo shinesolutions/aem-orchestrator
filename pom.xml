@@ -210,7 +210,7 @@
         </configuration>
       </plugin>
 
-      <!-- Dependency Plugin (resolve Mockito agent path, copy runtime dependencies) -->
+      <!-- Dependency Plugin (resolve the Mockito agent path for surefire and failsafe) -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-dependency-plugin</artifactId>
@@ -221,19 +221,12 @@
               <goal>properties</goal>
             </goals>
           </execution>
-          <execution>
-            <phase>package</phase>
-            <goals>
-              <goal>copy-dependencies</goal>
-            </goals>
-            <configuration>
-              <outputDirectory>${project.build.directory}/lib</outputDirectory>
-            </configuration>
-          </execution>
         </executions>
       </plugin>
 
-      <!-- JAR Plugin -->
+      <!-- JAR Plugin (also builds the tests jar). The runnable jar, with its dependencies and main
+           class, is built by spring-boot-maven-plugin, so dependencies are no longer copied to
+           target/lib and referenced from the jar manifest -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-jar-plugin</artifactId>
@@ -244,15 +237,6 @@
             </goals>
           </execution>
         </executions>
-        <configuration>
-          <archive>
-            <manifest>
-              <addClasspath>true</addClasspath>
-              <classpathPrefix>lib/</classpathPrefix>
-              <mainClass>com.shinesolutions.aemorchestrator.AemOrchestrator</mainClass>
-            </manifest>
-          </archive>
-        </configuration>
       </plugin>
 
       <!-- Checkstyle Plugin (Code Style Linting) -->
