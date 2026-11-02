@@ -34,7 +34,7 @@
     <aws-sdk.version>2.55.16</aws-sdk.version>
     <amazon-sqs-java-messaging-lib.version>2.1.4</amazon-sqs-java-messaging-lib.version>
     <spring-retry.version>2.0.13</spring-retry.version>
-    <swaggeraem4j.version>0.10.0</swaggeraem4j.version>
+    <swaggeraem4j.version>4.1.0</swaggeraem4j.version>
 
     <!-- Plugin Versions (overriding Spring Boot managed versions) -->
     <maven-compiler-plugin.version>3.16.0</maven-compiler-plugin.version>
