@@ -3,9 +3,9 @@
   "resources": [
     {
       "path": "pom.xml",
-      "type": "text",
+      "type": "xml",
       "params": {
-        "regex": "(?<=<artifactId>aem-orchestrator</artifactId>\\s*<version>)[^<]+"
+        "property": "project.version"
       }
     },
     {
