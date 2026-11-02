@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 - Removed copying the dependencies to `target/lib`, as the Spring Boot jar already contains them
+- Removed the CI check that pull requests add a `## [Unreleased]` entry, and the full history checkout it needed
 
 ## [5.0.0] - 2026-10-19
 ### Added

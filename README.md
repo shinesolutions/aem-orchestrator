@@ -154,7 +154,7 @@ Run the targets below inside the [aem-platform-buildenv](https://github.com/shin
 | `make ci` | Clean, download dependencies, check the changelog, then checkstyle, unit tests, integration tests, SpotBugs and packaging (`mvn verify`) |
 | `make test` | Checkstyle and unit tests (`src/test/java`) |
 | `make integration-test` | Integration tests only (`src/integration-test/java`) |
-| `make changelog-check` | Check CHANGELOG.md follows Keep a Changelog, with an `## [Unreleased]` section first. With `CHANGELOG_BASE=origin/master` (set by CI for pull requests) it also requires a new `## [Unreleased]` entry, so every pull request must describe its change |
+| `make changelog-check` | Check CHANGELOG.md follows Keep a Changelog, with an `## [Unreleased]` section first |
 
 For manual testing against a real stack, use the [integration test scenarios](docs/integration-test-scenarios.md) template.
 
