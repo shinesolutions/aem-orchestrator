@@ -10,9 +10,9 @@ import static org.springframework.test.util.ReflectionTestUtils.setField;
 import com.shinesolutions.aemorchestrator.model.AemCredentials;
 import com.shinesolutions.aemorchestrator.model.EnvironmentValues;
 import com.shinesolutions.aemorchestrator.service.AwsHelperService;
-import java.io.IOException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import software.amazon.awssdk.services.secretsmanager.model.SecretsManagerException;
 
 class AemConfigTest {
 
@@ -25,7 +25,7 @@ class AemConfigTest {
 
   @Test
   void testAemCredentials_readFromPropertiesFile() throws Exception {
-    setField(aemConfig, "readCredentialsFromS3", false);
+    setField(aemConfig, "readCredentialsFromSecretsManager", false);
 
     String orchestratorUsername = "orchestratorUsername";
     String orchestratorPassword = "orchestratorPassword";
@@ -51,15 +51,17 @@ class AemConfigTest {
 
   @Test
   void testAemCredentials_readingThrowsException() throws Exception {
-    String s3CredentialFileUri = "s3CredentialFileUri";
-    setField(aemConfig, "s3CredentialFileUri", s3CredentialFileUri);
-    setField(aemConfig, "readCredentialsFromS3", true);
+    String credentialsSecretId = "credentialsSecretId";
+    setField(aemConfig, "credentialsSecretId", credentialsSecretId);
+    setField(aemConfig, "readCredentialsFromSecretsManager", true);
 
     AwsHelperService awsHelperService = mock(AwsHelperService.class);
-    when(awsHelperService.readFileFromS3(s3CredentialFileUri)).thenThrow(new IOException());
+    // readSecretString throws the SDK's unchecked exceptions, not the IOException of readFileFromS3
+    when(awsHelperService.readSecretString(credentialsSecretId))
+        .thenThrow(SecretsManagerException.builder().build());
 
     assertThrows(
-        IOException.class,
+        SecretsManagerException.class,
         () -> {
           aemConfig.aemCredentials(awsHelperService);
         });

@@ -30,7 +30,7 @@ import software.amazon.awssdk.services.cloudformation.CloudFormationClient;
 import software.amazon.awssdk.services.cloudwatch.CloudWatchClient;
 import software.amazon.awssdk.services.ec2.Ec2Client;
 import software.amazon.awssdk.services.elasticloadbalancingv2.ElasticLoadBalancingV2Client;
-import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
 import software.amazon.awssdk.services.sqs.SqsClient;
 
 /**
@@ -293,15 +293,18 @@ public class AwsConfig {
         .build();
   }
 
-  /** Provides the S3 client, configured with the shared AWS client settings. */
+  /**
+   * Provides the Secrets Manager client, configured with the shared AWS client settings. It
+   * replaces the S3 client, whose only use was reading the AEM credentials file.
+   */
   @Bean
-  public S3Client amazonS3Client(
+  public SecretsManagerClient amazonSecretsManagerClient(
       final AwsCredentialsProvider awsCredentialsProvider,
       final SdkHttpClient httpClient,
       final ClientOverrideConfiguration overrideConfig,
       final Region awsRegion) {
 
-    return S3Client.builder()
+    return SecretsManagerClient.builder()
         .credentialsProvider(awsCredentialsProvider)
         .httpClient(httpClient)
         .overrideConfiguration(overrideConfig)

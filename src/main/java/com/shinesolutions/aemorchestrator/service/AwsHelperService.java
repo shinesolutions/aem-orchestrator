@@ -3,10 +3,6 @@ package com.shinesolutions.aemorchestrator.service;
 import com.shinesolutions.aemorchestrator.model.Ec2Instance;
 import com.shinesolutions.aemorchestrator.model.InstanceTags;
 import jakarta.annotation.Resource;
-import java.io.IOException;
-import java.net.URI;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.Date;
 import java.util.List;
@@ -16,7 +12,6 @@ import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Component;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
-import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.services.autoscaling.AutoScalingClient;
 import software.amazon.awssdk.services.autoscaling.model.AutoScalingGroup;
 import software.amazon.awssdk.services.autoscaling.model.DescribeAutoScalingGroupsRequest;
@@ -53,11 +48,8 @@ import software.amazon.awssdk.services.ec2.model.TerminateInstancesRequest;
 import software.amazon.awssdk.services.elasticloadbalancingv2.ElasticLoadBalancingV2Client;
 import software.amazon.awssdk.services.elasticloadbalancingv2.model.DescribeLoadBalancersRequest;
 import software.amazon.awssdk.services.elasticloadbalancingv2.model.DescribeLoadBalancersResponse;
-import software.amazon.awssdk.services.s3.S3Client;
-import software.amazon.awssdk.services.s3.S3Uri;
-import software.amazon.awssdk.services.s3.model.GetObjectRequest;
-import software.amazon.awssdk.services.s3.model.GetObjectResponse;
-import software.amazon.awssdk.utils.IoUtils;
+import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
+import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueRequest;
 
 /** Helper class for performing a range of AWS functions. */
 @Component
@@ -71,7 +63,7 @@ public class AwsHelperService {
 
   @Resource public CloudFormationClient amazonCloudFormationClient;
 
-  @Resource public S3Client amazonS3Client;
+  @Resource public SecretsManagerClient amazonSecretsManagerClient;
 
   @Resource public CloudWatchClient amazonCloudWatchClient;
 
@@ -362,38 +354,15 @@ public class AwsHelperService {
   }
 
   /**
-   * Reads a file from S3 into a String object.
+   * Reads the string value of a secret from Secrets Manager.
    *
-   * @param s3Uri (eg. s3://bucket/file.ext)
-   * @return String containing the content of the file in S3
-   * @throws IOException if error reading file
+   * @param secretId name or ARN of the secret
+   * @return String containing the current value of the secret
    */
-  public String readFileFromS3(String s3Uri) throws IOException {
-    // Encode as SDK v1's AmazonS3URI did, so spaces, '%', '#' and '?' stay part of the key
-    String encodedS3Uri =
-        URLEncoder.encode(s3Uri, StandardCharsets.UTF_8)
-            .replace("%3A", ":")
-            .replace("%2F", "/")
-            .replace("+", "%20");
-    S3Uri s3FileUri = amazonS3Client.utilities().parseUri(URI.create(encodedS3Uri));
-    // A URI without a bucket or key now fails here; SDK v1 failed later in getObject with the same
-    // IllegalArgumentException
-    String bucket =
-        s3FileUri
-            .bucket()
-            .orElseThrow(() -> new IllegalArgumentException("Invalid S3 bucket in URI: " + s3Uri));
-    String key =
-        s3FileUri
-            .key()
-            .orElseThrow(() -> new IllegalArgumentException("Invalid S3 key in URI: " + s3Uri));
-
-    GetObjectRequest getObjectRequest = GetObjectRequest.builder().bucket(bucket).key(key).build();
-
-    // try-with-resources closes the S3 response stream, which the SDK v1 code left open
-    try (ResponseInputStream<GetObjectResponse> s3object =
-        amazonS3Client.getObject(getObjectRequest)) {
-      return IoUtils.toUtf8String(s3object);
-    }
+  public String readSecretString(String secretId) {
+    return amazonSecretsManagerClient
+        .getSecretValue(GetSecretValueRequest.builder().secretId(secretId).build())
+        .secretString();
   }
 
   /**

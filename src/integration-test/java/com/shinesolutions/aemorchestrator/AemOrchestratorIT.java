@@ -61,8 +61,8 @@ import tools.jackson.databind.ObjectMapper;
       "aws.cloudformation.stackName.authorDispatcher=" + AemOrchestratorIT.AUTHOR_DISPATCHER_STACK,
       "aws.cloudformation.stackName.author=" + AemOrchestratorIT.AUTHOR_STACK,
       "aws.cloudformation.stackName.messaging=" + AemOrchestratorIT.MESSAGING_STACK,
-      "aem.credentials.s3.use=true",
-      "aem.credentials.s3.file.uri=s3://" + AemOrchestratorIT.CREDENTIALS_S3_PATH,
+      "aem.credentials.secretsmanager.use=true",
+      "aem.credentials.secretsmanager.secret.id=" + AemOrchestratorIT.CREDENTIALS_SECRET_ID,
       "aem.protocol.author=http",
       "startup.waitForAuthorElb.maxAttempts=3",
       "startup.waitForAuthorElb.backOffPeriod=100",
@@ -81,7 +81,7 @@ class AemOrchestratorIT {
   static final String AUTHOR_DISPATCHER_STACK = "aem-author-dispatcher-stack";
   static final String AUTHOR_STACK = "aem-author-stack";
   static final String MESSAGING_STACK = "aem-messaging-stack";
-  static final String CREDENTIALS_S3_PATH = "aem-stack-config/aem-credentials.json";
+  static final String CREDENTIALS_SECRET_ID = "aem-opencloud/aem-stack/system-users-credentials";
 
   static final String PUBLISH_DISPATCHER_ASG = "publish-dispatcher-asg";
   static final String PUBLISH_ASG = "publish-asg";
@@ -120,8 +120,8 @@ class AemOrchestratorIT {
     AWS.addStackResource(AUTHOR_STACK, "AuthorLoadBalancer", AUTHOR_ELB_ARN);
     AWS.addStackResource(MESSAGING_STACK, "AEMASGEventTopic", TOPIC_ARN);
     AWS.addLoadBalancer(AUTHOR_ELB_ARN, AUTHOR_ELB_NAME, AUTHOR_ELB_DNS);
-    // Read by AemConfig while the context starts (aem.credentials.s3.use=true)
-    AWS.s3Objects.put(CREDENTIALS_S3_PATH, readResource("/sample-aem-credentials.json"));
+    // Read by AemConfig while the context starts (aem.credentials.secretsmanager.use=true)
+    AWS.secrets.put(CREDENTIALS_SECRET_ID, readResource("/sample-aem-credentials.json"));
   }
 
   /** Replaces the SDK client beans built by AwsConfig with the in-memory fakes. */
