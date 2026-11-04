@@ -40,14 +40,7 @@ class ScaleDownPreviewPublishDispatcherActionTest {
     currentDispatcherDesiredCapacity = 2;
     currentPreviewPublishDesiredCapacity = 3;
 
-    when(aemHelperService.getPreviewPublishIdForPairedDispatcher(instanceId))
-        .thenReturn(pairedPreviewPublishId);
-
-    when(aemHelperService.getAutoScalingGroupDesiredCapacityForPreviewPublishDispatcher())
-        .thenReturn(currentDispatcherDesiredCapacity);
-
-    when(aemHelperService.getAutoScalingGroupDesiredCapacityForPreviewPublish())
-        .thenReturn(currentPreviewPublishDesiredCapacity);
+    setupAemInstanceHelperServiceGetAutoScalingGroupDesiredAnd2MoreStubs(pairedPreviewPublishId);
 
     boolean success = action.execute(instanceId);
 
@@ -64,14 +57,7 @@ class ScaleDownPreviewPublishDispatcherActionTest {
     currentDispatcherDesiredCapacity = 3;
     currentPreviewPublishDesiredCapacity = 3;
 
-    when(aemHelperService.getPreviewPublishIdForPairedDispatcher(instanceId))
-        .thenReturn(pairedPreviewPublishId);
-
-    when(aemHelperService.getAutoScalingGroupDesiredCapacityForPreviewPublishDispatcher())
-        .thenReturn(currentDispatcherDesiredCapacity);
-
-    when(aemHelperService.getAutoScalingGroupDesiredCapacityForPreviewPublish())
-        .thenReturn(currentPreviewPublishDesiredCapacity);
+    setupAemInstanceHelperServiceGetAutoScalingGroupDesiredAnd2MoreStubs(pairedPreviewPublishId);
 
     boolean success = action.execute(instanceId);
 
@@ -88,13 +74,7 @@ class ScaleDownPreviewPublishDispatcherActionTest {
     currentDispatcherDesiredCapacity = 1;
     currentPreviewPublishDesiredCapacity = 3;
 
-    when(aemHelperService.getPreviewPublishIdForPairedDispatcher(instanceId)).thenReturn(null);
-
-    when(aemHelperService.getAutoScalingGroupDesiredCapacityForPreviewPublishDispatcher())
-        .thenReturn(currentDispatcherDesiredCapacity);
-
-    when(aemHelperService.getAutoScalingGroupDesiredCapacityForPreviewPublish())
-        .thenReturn(currentPreviewPublishDesiredCapacity);
+    setupAemInstanceHelperServiceGetAutoScalingGroupDesiredAnd2MoreStubs(null);
 
     boolean success = action.execute(instanceId);
 
@@ -104,5 +84,15 @@ class ScaleDownPreviewPublishDispatcherActionTest {
         .setAutoScalingGroupDesiredCapacityForPreviewPublish(currentDispatcherDesiredCapacity);
 
     assertThat(success, equalTo(true));
+  }
+
+  private void setupAemInstanceHelperServiceGetAutoScalingGroupDesiredAnd2MoreStubs(
+      String getPreviewPublishIdForPairedDispatcherReturnValue) {
+    when(aemHelperService.getPreviewPublishIdForPairedDispatcher(instanceId))
+        .thenReturn(getPreviewPublishIdForPairedDispatcherReturnValue);
+    when(aemHelperService.getAutoScalingGroupDesiredCapacityForPreviewPublishDispatcher())
+        .thenReturn(currentDispatcherDesiredCapacity);
+    when(aemHelperService.getAutoScalingGroupDesiredCapacityForPreviewPublish())
+        .thenReturn(currentPreviewPublishDesiredCapacity);
   }
 }
