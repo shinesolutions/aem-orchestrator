@@ -7,20 +7,20 @@ import tools.jackson.core.JacksonException;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 
-/** Reads AEM credentials from the JSON credentials file stored in S3. */
+/** Reads AEM credentials from the JSON credentials secret stored in Secrets Manager. */
 public class CredentialsExtractor {
 
   public static final String REPLICATOR_USER = "replicator";
   public static final String ORCHESTRATOR_USER = "orchestrator";
 
   /**
-   * Parses the AEM credentials file, a JSON object whose {@code orchestrator} and {@code
+   * Parses the AEM credentials secret value, a JSON object whose {@code orchestrator} and {@code
    * replicator} fields hold the passwords of the users with those names.
    *
    * <p>As with Jackson 2 {@code asText()}, a missing field or an object or array gives an empty
    * password, and a JSON {@code null} gives {@code "null"}.
    *
-   * @param fileContents the JSON content of the credentials file
+   * @param fileContents the JSON content of the credentials secret
    * @throws JacksonException if the content is not valid JSON
    * @throws IOException if the content cannot be read
    */

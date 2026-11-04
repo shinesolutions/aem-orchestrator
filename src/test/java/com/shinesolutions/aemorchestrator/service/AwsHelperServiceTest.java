@@ -7,14 +7,10 @@ import static org.hamcrest.Matchers.hasProperty;
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.Date;
@@ -28,9 +24,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
-import software.amazon.awssdk.core.ResponseInputStream;
-import software.amazon.awssdk.http.AbortableInputStream;
-import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.autoscaling.AutoScalingClient;
 import software.amazon.awssdk.services.autoscaling.model.AutoScalingGroup;
 import software.amazon.awssdk.services.autoscaling.model.DescribeAutoScalingGroupsRequest;
@@ -66,10 +59,9 @@ import software.amazon.awssdk.services.elasticloadbalancingv2.ElasticLoadBalanci
 import software.amazon.awssdk.services.elasticloadbalancingv2.model.DescribeLoadBalancersRequest;
 import software.amazon.awssdk.services.elasticloadbalancingv2.model.DescribeLoadBalancersResponse;
 import software.amazon.awssdk.services.elasticloadbalancingv2.model.LoadBalancer;
-import software.amazon.awssdk.services.s3.S3Client;
-import software.amazon.awssdk.services.s3.S3Utilities;
-import software.amazon.awssdk.services.s3.model.GetObjectRequest;
-import software.amazon.awssdk.services.s3.model.GetObjectResponse;
+import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
+import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueRequest;
+import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueResponse;
 
 @ExtendWith(MockitoExtension.class)
 class AwsHelperServiceTest {
@@ -86,7 +78,7 @@ class AwsHelperServiceTest {
 
   @Mock private ElasticLoadBalancingV2Client elasticLoadBalancingClient;
 
-  @Mock private S3Client s3Client;
+  @Mock private SecretsManagerClient secretsManagerClient;
 
   @InjectMocks private AwsHelperService awsHelperService;
 
@@ -510,58 +502,19 @@ class AwsHelperServiceTest {
   }
 
   @Test
-  void testReadFileFromS3() throws IOException {
+  void testReadSecretString() {
     final String testInput = "Test Input";
-    final ResponseInputStream<GetObjectResponse> responseInputStream =
-        new ResponseInputStream<>(
-            GetObjectResponse.builder().build(),
-            AbortableInputStream.create(
-                new ByteArrayInputStream(testInput.getBytes(StandardCharsets.UTF_8))));
 
-    when(s3Client.utilities()).thenReturn(S3Utilities.builder().region(Region.US_EAST_1).build());
-    when(s3Client.getObject(any(GetObjectRequest.class))).thenReturn(responseInputStream);
+    when(secretsManagerClient.getSecretValue(any(GetSecretValueRequest.class)))
+        .thenReturn(GetSecretValueResponse.builder().secretString(testInput).build());
 
-    // Append an object key to the S3 URL path
-    final String s3Url = "http://bucket.s3.amazonaws.com/test-key.txt";
-    assertThat(awsHelperService.readFileFromS3(s3Url), equalTo(testInput));
+    final String secretId = "aem-opencloud/test-stack/system-users-credentials";
+    assertThat(awsHelperService.readSecretString(secretId), equalTo(testInput));
 
-    final ArgumentCaptor<GetObjectRequest> argumentCaptor =
-        ArgumentCaptor.forClass(GetObjectRequest.class);
-    verify(s3Client).getObject(argumentCaptor.capture());
-    assertThat(argumentCaptor.getValue().bucket(), equalTo("bucket"));
-    assertThat(argumentCaptor.getValue().key(), equalTo("test-key.txt"));
-  }
-
-  @Test
-  void testReadFileFromS3_noKey() {
-    // SDK v1 also rejected a missing key (IllegalArgumentException from AmazonS3Client.getObject)
-    when(s3Client.utilities()).thenReturn(S3Utilities.builder().region(Region.US_EAST_1).build());
-
-    assertThrows(
-        IllegalArgumentException.class,
-        () -> awsHelperService.readFileFromS3("http://bucket.s3.amazonaws.com"));
-    verify(s3Client, never()).getObject(any(GetObjectRequest.class));
-  }
-
-  @Test
-  void testReadFileFromS3_keyWithReservedCharacters() throws IOException {
-    final ResponseInputStream<GetObjectResponse> responseInputStream =
-        new ResponseInputStream<>(
-            GetObjectResponse.builder().build(),
-            AbortableInputStream.create(
-                new ByteArrayInputStream("{}".getBytes(StandardCharsets.UTF_8))));
-
-    when(s3Client.utilities()).thenReturn(S3Utilities.builder().region(Region.US_EAST_1).build());
-    when(s3Client.getObject(any(GetObjectRequest.class))).thenReturn(responseInputStream);
-
-    // Like SDK v1's AmazonS3URI, spaces and '#' are part of the key, not a parse error or fragment
-    awsHelperService.readFileFromS3("s3://bucket/aem config/credentials #1.json");
-
-    final ArgumentCaptor<GetObjectRequest> argumentCaptor =
-        ArgumentCaptor.forClass(GetObjectRequest.class);
-    verify(s3Client).getObject(argumentCaptor.capture());
-    assertThat(argumentCaptor.getValue().bucket(), equalTo("bucket"));
-    assertThat(argumentCaptor.getValue().key(), equalTo("aem config/credentials #1.json"));
+    final ArgumentCaptor<GetSecretValueRequest> argumentCaptor =
+        ArgumentCaptor.forClass(GetSecretValueRequest.class);
+    verify(secretsManagerClient).getSecretValue(argumentCaptor.capture());
+    assertThat(argumentCaptor.getValue().secretId(), equalTo(secretId));
   }
 
   @Test
