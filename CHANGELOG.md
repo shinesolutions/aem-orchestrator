@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Upgraded swaggeraem4j from 0.10.0 to 4.1.0, the AEM API client generated with OpenAPI Generator and OkHttp 4
 - Upgraded release-action to 2.2.0
 - Switched the RTK pom.xml version resource to the xml type
+- Upgraded aem-platform-buildenv to 6.5.0, which has RTK 4.4.0
 
 ### Removed
 - Removed copying the dependencies to `target/lib`, as the Spring Boot jar already contains them
