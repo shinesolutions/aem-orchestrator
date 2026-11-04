@@ -7,7 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Changed
 - Read the AEM credentials from AWS Secrets Manager instead of S3: `aem.credentials.s3.use` and `aem.credentials.s3.file.uri` are replaced by `aem.credentials.secretsmanager.use` and `aem.credentials.secretsmanager.secret.id`, and the secret value has the same JSON format as the former S3 file
+
+## [5.1.0] - 2026-11-04
+### Changed
 - Upgraded swaggeraem4j from 0.10.0 to 4.1.0, the AEM API client generated with OpenAPI Generator and OkHttp 4
+- Upgraded release-action to 2.2.0
+- Switched the RTK pom.xml version resource to the xml type
+- Upgraded aem-platform-buildenv to 6.5.0, which has RTK 4.4.0
 
 ### Removed
 - Removed copying the dependencies to `target/lib`, as the Spring Boot jar already contains them
@@ -165,7 +171,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [#54]: https://github.com/shinesolutions/aem-orchestrator/issues/54
 [#56]: https://github.com/shinesolutions/aem-orchestrator/issues/56
 
-[Unreleased]: https://github.com/shinesolutions/aem-orchestrator/compare/aem-orchestrator-5.0.0...HEAD
+[Unreleased]: https://github.com/shinesolutions/aem-orchestrator/compare/aem-orchestrator-5.1.0...HEAD
+[5.1.0]: https://github.com/shinesolutions/aem-orchestrator/compare/aem-orchestrator-5.0.0...aem-orchestrator-5.1.0
 [5.0.0]: https://github.com/shinesolutions/aem-orchestrator/compare/aem-orchestrator-4.0.0...aem-orchestrator-5.0.0
 [4.0.0]: https://github.com/shinesolutions/aem-orchestrator/compare/aem-orchestrator-3.0.1...aem-orchestrator-4.0.0
 [3.0.1]: https://github.com/shinesolutions/aem-orchestrator/compare/aem-orchestrator-3.0.0...aem-orchestrator-3.0.1
