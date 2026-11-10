@@ -64,8 +64,7 @@ class AutoScalingTerminateEventHandlerTest {
 
   @Test
   void testSuccessAndActionDeleteMessage() throws Exception {
-    when(scaleDownAutoScaleGroupMappings.get(anyString())).thenReturn(action);
-    when(action.execute(message.getEc2InstanceId())).thenReturn(true);
+    setupActionExecuteAndGetStubs(true);
 
     boolean result = handler.handleEvent(messageContent);
 
@@ -75,12 +74,16 @@ class AutoScalingTerminateEventHandlerTest {
 
   @Test
   void testSuccessAndActionKeepMessage() throws Exception {
-    when(scaleDownAutoScaleGroupMappings.get(anyString())).thenReturn(action);
-    when(action.execute(message.getEc2InstanceId())).thenReturn(false);
+    setupActionExecuteAndGetStubs(false);
 
     boolean result = handler.handleEvent(messageContent);
 
     assertThat(result, equalTo(false));
     verify(action, times(1)).execute(message.getEc2InstanceId());
+  }
+
+  private void setupActionExecuteAndGetStubs(boolean executeReturnValue) {
+    when(scaleDownAutoScaleGroupMappings.get(anyString())).thenReturn(action);
+    when(action.execute(message.getEc2InstanceId())).thenReturn(executeReturnValue);
   }
 }
