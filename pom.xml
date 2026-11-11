@@ -12,7 +12,7 @@
 
   <groupId>com.shinesolutions</groupId>
   <artifactId>aem-orchestrator</artifactId>
-  <version>6.0.0</version>
+  <version>6.0.1-pre.0</version>
   <packaging>jar</packaging>
 
   <name>aem-orchestrator</name>
