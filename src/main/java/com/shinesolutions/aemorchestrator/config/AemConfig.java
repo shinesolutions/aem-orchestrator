@@ -34,11 +34,11 @@ public class AemConfig {
   @Value("${aem.credentials.orchestrator.password}")
   private String orchestratorPassword;
 
-  @Value("${aem.credentials.s3.use}")
-  private Boolean readCredentialsFromS3;
+  @Value("${aem.credentials.secretsmanager.use}")
+  private Boolean readCredentialsFromSecretsManager;
 
-  @Value("${aem.credentials.s3.file.uri:@null}")
-  private String s3CredentialFileUri;
+  @Value("${aem.credentials.secretsmanager.secret.id:@null}")
+  private String credentialsSecretId;
 
   @Value("${aws.cloudformation.stackName.publishDispatcher}")
   private String awsPublishDispatcherStackName;
@@ -85,30 +85,32 @@ public class AemConfig {
   /**
    * Provides the AEM orchestrator and replicator credentials.
    *
-   * <p>When {@code aem.credentials.s3.use} is true, the credentials are read from the JSON file at
-   * {@code aem.credentials.s3.file.uri} (see {@link CredentialsExtractor}); otherwise they are
+   * <p>When {@code aem.credentials.secretsmanager.use} is true, the credentials are read from the
+   * JSON value of the Secrets Manager secret {@code aem.credentials.secretsmanager.secret.id} (see
+   * {@link CredentialsExtractor}); otherwise they are
    * taken from the {@code aem.credentials.orchestrator.*} and {@code aem.credentials.replicator.*}
    * properties.
    *
-   * @throws Exception if the credentials file cannot be read from S3 or parsed
+   * @throws Exception if the credentials secret cannot be read from Secrets Manager or parsed
    */
   @Bean
   public AemCredentials aemCredentials(final AwsHelperService awsHelper) throws Exception {
     AemCredentials aemCredentials;
 
-    // If storing credentials in S3
-    if (readCredentialsFromS3) {
-      // Retrieve and read JSON formatted file from given S3 URI
-      logger.debug("Reading AEM credentials from S3 bucket");
+    // If storing credentials in Secrets Manager (replaces the S3 credentials file)
+    if (readCredentialsFromSecretsManager) {
+      // Retrieve and read the JSON formatted secret value, same format as the former S3 file
+      logger.debug("Reading AEM credentials from Secrets Manager");
 
       try {
-        String s3CredentialsFileContent = awsHelper.readFileFromS3(s3CredentialFileUri);
+        String credentialsSecretContent = awsHelper.readSecretString(credentialsSecretId);
 
-        aemCredentials = CredentialsExtractor.extractAemCredentials(s3CredentialsFileContent);
+        aemCredentials = CredentialsExtractor.extractAemCredentials(credentialsSecretContent);
 
       } catch (Exception e) {
         logger.error(
-            "Failed to read AEM credentials file from S3 location: " + s3CredentialFileUri, e);
+            "Failed to read AEM credentials from Secrets Manager secret: " + credentialsSecretId,
+            e);
         throw e;
       }
 

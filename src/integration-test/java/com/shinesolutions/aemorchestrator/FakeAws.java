@@ -4,7 +4,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import java.io.ByteArrayInputStream;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -20,9 +19,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.mockito.stubbing.Answer;
 import software.amazon.awssdk.awscore.exception.AwsErrorDetails;
-import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.core.SdkResponse;
-import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.autoscaling.AutoScalingClient;
 import software.amazon.awssdk.services.autoscaling.model.AutoScalingGroup;
@@ -65,11 +62,10 @@ import software.amazon.awssdk.services.elasticloadbalancingv2.ElasticLoadBalanci
 import software.amazon.awssdk.services.elasticloadbalancingv2.model.DescribeLoadBalancersRequest;
 import software.amazon.awssdk.services.elasticloadbalancingv2.model.DescribeLoadBalancersResponse;
 import software.amazon.awssdk.services.elasticloadbalancingv2.model.LoadBalancer;
-import software.amazon.awssdk.services.s3.S3Client;
-import software.amazon.awssdk.services.s3.S3Utilities;
-import software.amazon.awssdk.services.s3.model.GetObjectRequest;
-import software.amazon.awssdk.services.s3.model.GetObjectResponse;
-import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
+import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
+import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueRequest;
+import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueResponse;
+import software.amazon.awssdk.services.secretsmanager.model.ResourceNotFoundException;
 import software.amazon.awssdk.services.sqs.SqsClient;
 import software.amazon.awssdk.services.sqs.model.DeleteMessageRequest;
 import software.amazon.awssdk.services.sqs.model.DeleteMessageResponse;
@@ -127,7 +123,8 @@ final class FakeAws {
       mock(ElasticLoadBalancingV2Client.class, emptyResponses());
   final AutoScalingClient autoScaling = mock(AutoScalingClient.class, emptyResponses());
   final CloudFormationClient cloudFormation = mock(CloudFormationClient.class, emptyResponses());
-  final S3Client s3 = mock(S3Client.class, emptyResponses());
+  final SecretsManagerClient secretsManager =
+      mock(SecretsManagerClient.class, emptyResponses());
   final CloudWatchClient cloudWatch = mock(CloudWatchClient.class, emptyResponses());
   final SqsClient sqs = mock(SqsClient.class, emptyResponses());
 
@@ -138,7 +135,7 @@ final class FakeAws {
   final List<String> deletedAlarmNames = new CopyOnWriteArrayList<>();
   final Map<String, Map<String, String>> stackResources = new ConcurrentHashMap<>();
   final List<LoadBalancer> loadBalancers = new CopyOnWriteArrayList<>();
-  final Map<String, String> s3Objects = new ConcurrentHashMap<>();
+  final Map<String, String> secrets = new ConcurrentHashMap<>();
   final List<String> queueUrlRequests = new CopyOnWriteArrayList<>();
   final Set<String> receivedMessageIds = ConcurrentHashMap.newKeySet();
   final Set<String> deletedReceiptHandles = ConcurrentHashMap.newKeySet();
@@ -153,7 +150,7 @@ final class FakeAws {
     stubAutoScaling();
     stubCloudFormation();
     stubElb();
-    stubS3();
+    stubSecretsManager();
     stubCloudWatch();
     stubSqs();
   }
@@ -173,15 +170,15 @@ final class FakeAws {
       return autoScaling;
     } else if (bean instanceof CloudFormationClient) {
       return cloudFormation;
-    } else if (bean instanceof S3Client) {
-      return s3;
+    } else if (bean instanceof SecretsManagerClient) {
+      return secretsManager;
     } else if (bean instanceof CloudWatchClient) {
       return cloudWatch;
     }
     return bean;
   }
 
-  /** Clears per-scenario state; stacks, load balancers and S3 objects are kept. */
+  /** Clears per-scenario state; stacks, load balancers and secrets are kept. */
   void reset() {
     instances.clear();
     autoScalingGroups.values().forEach(g -> g.instanceIds.clear());
@@ -453,19 +450,22 @@ final class FakeAws {
             });
   }
 
-  private void stubS3() {
-    when(s3.utilities()).thenReturn(S3Utilities.builder().region(REGION).build());
-    when(s3.getObject(any(GetObjectRequest.class)))
+  private void stubSecretsManager() {
+    when(secretsManager.getSecretValue(any(GetSecretValueRequest.class)))
         .thenAnswer(
             inv -> {
-              GetObjectRequest request = inv.getArgument(0);
-              String content = s3Objects.get(request.bucket() + "/" + request.key());
+              GetSecretValueRequest request = inv.getArgument(0);
+              String content = secrets.get(request.secretId());
               if (content == null) {
-                throw NoSuchKeyException.builder().statusCode(404).message("NoSuchKey").build();
+                throw ResourceNotFoundException.builder()
+                    .statusCode(400)
+                    .message("ResourceNotFoundException")
+                    .build();
               }
-              return new ResponseInputStream<>(
-                  GetObjectResponse.builder().build(),
-                  AbortableInputStream.create(new ByteArrayInputStream(content.getBytes())));
+              return GetSecretValueResponse.builder()
+                  .name(request.secretId())
+                  .secretString(content)
+                  .build();
             });
   }
 

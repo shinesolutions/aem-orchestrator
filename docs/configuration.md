@@ -48,8 +48,8 @@ Here is a complete list of all configurable properties:
 | aws.client.protocol                                                  | https                                    | (no effect)                                  |
 | aws.snapshot.tags                                                    | Component,StackPrefix                    |                                              |
 | aws.device.name                                                      | /dev/sdb                                 |                                              |
-| aem.credentials.s3.use                                               | false                                    | true                                         |
-| aem.credentials.s3.file.uri                                          |                                          | s3://bucket/file.ext                         |
+| aem.credentials.secretsmanager.use                                   | false                                    | true                                         |
+| aem.credentials.secretsmanager.secret.id                             |                                          | aem-opencloud/stack/system-users-credentials |
 | aem.credentials.replicator.username                                  | overwrite-me                             |                                              |
 | aem.credentials.replicator.password                                  | overwrite-me                             |                                              |
 | aem.credentials.orchestrator.username                                | overwrite-me                             |                                              |
@@ -140,11 +140,11 @@ The AWS device name used when getting the Volume ID for creating the snapshot
 
 ### AEM Properties
 
-#### aem.credentials.s3.use
-Setting this to *true* will tell the Orchestrator to read the AEM credentials from an S3 bucket (see *aem.credentials.s3.file.uri* below for specifing the location), instead of the application.properties file.
+#### aem.credentials.secretsmanager.use
+Setting this to *true* will tell the Orchestrator to read the AEM credentials from AWS Secrets Manager (see *aem.credentials.secretsmanager.secret.id* below for specifing the secret), instead of the application.properties file.
 
-#### aem.credentials.s3.file.uri
-The AWS S3 bucket location of an unencrypted JSON file containing AEM credentials. Here is an example of the file format:
+#### aem.credentials.secretsmanager.secret.id
+The name or ARN of the AWS Secrets Manager secret whose value is a JSON object containing AEM credentials. The Orchestrator's instance profile needs `secretsmanager:GetSecretValue` on the secret, and `kms:Decrypt` on its KMS key when the secret is encrypted with a customer managed key. Here is an example of the secret value format:
 
 ```
 {
