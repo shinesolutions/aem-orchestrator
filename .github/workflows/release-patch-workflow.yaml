@@ -1,8 +1,6 @@
 ---
 name: Release Patch
 on: [workflow_dispatch]
-# GITHUB_TOKEN is read-only; workflows that write to the repository use
-# SHINEOPENSOURCE_GITHUB_TOKEN instead
 permissions:
   contents: read
 jobs:
