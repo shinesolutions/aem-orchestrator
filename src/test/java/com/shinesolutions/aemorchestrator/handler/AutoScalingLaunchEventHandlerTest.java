@@ -78,8 +78,7 @@ class AutoScalingLaunchEventHandlerTest {
 
   @Test
   void testInstanceNotRunning() {
-    when(scaleUpAutoScaleGroupMappings.get(anyString())).thenReturn(action);
-    when(awsHelperService.isInstanceRunning(message.getEc2InstanceId())).thenReturn(false);
+    setupAwsHelperServiceIsInstanceRunningAndGetStubs(false);
 
     boolean result = handler.handleEvent(messageContent);
 
@@ -98,9 +97,7 @@ class AutoScalingLaunchEventHandlerTest {
 
   @Test
   void testSuccessAndActionDeleteMessage() {
-    when(scaleUpAutoScaleGroupMappings.get(anyString())).thenReturn(action);
-    when(awsHelperService.isInstanceRunning(message.getEc2InstanceId())).thenReturn(true);
-    when(action.execute(message.getEc2InstanceId())).thenReturn(true);
+    setupAwsHelperServiceIsInstanceRunningAndGetAndExecuteStubs(true);
 
     boolean result = handler.handleEvent(messageContent);
 
@@ -110,13 +107,24 @@ class AutoScalingLaunchEventHandlerTest {
 
   @Test
   void testSuccessAndActionKeepMessage() {
-    when(scaleUpAutoScaleGroupMappings.get(anyString())).thenReturn(action);
-    when(awsHelperService.isInstanceRunning(message.getEc2InstanceId())).thenReturn(true);
-    when(action.execute(message.getEc2InstanceId())).thenReturn(false);
+    setupAwsHelperServiceIsInstanceRunningAndGetAndExecuteStubs(false);
 
     boolean result = handler.handleEvent(messageContent);
 
     assertThat(result, equalTo(false));
     verify(action, times(1)).execute(message.getEc2InstanceId());
+  }
+
+  private void setupAwsHelperServiceIsInstanceRunningAndGetStubs(
+      boolean isInstanceRunningReturnValue) {
+    when(scaleUpAutoScaleGroupMappings.get(anyString())).thenReturn(action);
+    when(awsHelperService.isInstanceRunning(message.getEc2InstanceId()))
+        .thenReturn(isInstanceRunningReturnValue);
+  }
+
+  private void setupAwsHelperServiceIsInstanceRunningAndGetAndExecuteStubs(
+      boolean executeReturnValue) {
+    setupAwsHelperServiceIsInstanceRunningAndGetStubs(true);
+    when(action.execute(message.getEc2InstanceId())).thenReturn(executeReturnValue);
   }
 }
