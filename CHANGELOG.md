@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Changed
-- Upgrade AEM Platform BuildEnv to 6.6.0
+- Upgrade AEM Platform BuildEnv to 6.7.0
 - Speed up CI: skip CI for release tags, same-repo pull requests and version bump commits, cancel superseded branch runs, and add job timeouts
 
 ## [6.0.0] - 2026-11-11
