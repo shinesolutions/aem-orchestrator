@@ -31,9 +31,7 @@ class ScaleUpPreviewPublishDispatcherActionTest {
 
   @Test
   void testSameDesiredCapacity() {
-    when(aemHelperService.getAutoScalingGroupDesiredCapacityForPreviewPublishDispatcher())
-        .thenReturn(2);
-    when(aemHelperService.getAutoScalingGroupDesiredCapacityForPreviewPublish()).thenReturn(2);
+    setupAemInstanceHelperServiceGetAutoScalingGroupDesiredAnd1MoreStubs(2, 2);
 
     boolean success = action.execute(instanceId);
 
@@ -46,10 +44,8 @@ class ScaleUpPreviewPublishDispatcherActionTest {
   @Test
   void testHigherDesiredCapacity() {
     int dispatcherDesiredCapcity = 4;
-    when(aemHelperService.getAutoScalingGroupDesiredCapacityForPreviewPublishDispatcher())
-        .thenReturn(dispatcherDesiredCapcity);
-    when(aemHelperService.getAutoScalingGroupDesiredCapacityForPreviewPublish())
-        .thenReturn(dispatcherDesiredCapcity + 1);
+    setupAemInstanceHelperServiceGetAutoScalingGroupDesiredAnd1MoreStubs(
+        dispatcherDesiredCapcity + 1, dispatcherDesiredCapcity);
 
     boolean success = action.execute(instanceId);
 
@@ -62,10 +58,8 @@ class ScaleUpPreviewPublishDispatcherActionTest {
   @Test
   void testLowerDesiredCapacity() {
     int dispatcherDesiredCapcity = 3;
-    when(aemHelperService.getAutoScalingGroupDesiredCapacityForPreviewPublishDispatcher())
-        .thenReturn(dispatcherDesiredCapcity);
-    when(aemHelperService.getAutoScalingGroupDesiredCapacityForPreviewPublish())
-        .thenReturn(dispatcherDesiredCapcity - 1);
+    setupAemInstanceHelperServiceGetAutoScalingGroupDesiredAnd1MoreStubs(
+        dispatcherDesiredCapcity - 1, dispatcherDesiredCapcity);
 
     boolean success = action.execute(instanceId);
 
@@ -73,5 +67,14 @@ class ScaleUpPreviewPublishDispatcherActionTest {
         .setAutoScalingGroupDesiredCapacityForPreviewPublish(dispatcherDesiredCapcity);
 
     assertThat(success, equalTo(true));
+  }
+
+  private void setupAemInstanceHelperServiceGetAutoScalingGroupDesiredAnd1MoreStubs(
+      int getAutoScalingGroupDesiredCapacityForPreviewPublishReturnValue,
+      int getAutoScalingGroupDesiredCapacityForPreviewPublishDispatcherReturnValue) {
+    when(aemHelperService.getAutoScalingGroupDesiredCapacityForPreviewPublishDispatcher())
+        .thenReturn(getAutoScalingGroupDesiredCapacityForPreviewPublishDispatcherReturnValue);
+    when(aemHelperService.getAutoScalingGroupDesiredCapacityForPreviewPublish())
+        .thenReturn(getAutoScalingGroupDesiredCapacityForPreviewPublishReturnValue);
   }
 }
